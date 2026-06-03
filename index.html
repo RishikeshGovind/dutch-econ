@@ -86,9 +86,11 @@ section[id$="-hero"] h1 em{font-style:italic;color:var(--primary)}
 .spo-table td{padding:10px 10px 10px 0;border-bottom:1px solid var(--border);vertical-align:middle}
 .spo-table tr.hl td{font-weight:500}
 .spo-bar{height:5px;border-radius:3px;background:var(--primary);opacity:.8}
-.fade{opacity:0;transform:translateY(28px);transition:opacity .65s ease,transform .65s ease}
+.fade{opacity:0;transform:translateY(24px);transition:opacity .55s ease,transform .55s ease}
 .fade.in{opacity:1;transform:none}
-.fade.d1{transition-delay:.12s}.fade.d2{transition-delay:.24s}
+.fade.d1.in{transition-delay:.1s}.fade.d2.in{transition-delay:.2s}
+/* Fallback: never permanently invisible */
+.track-panel.active .fade:not(.observed){opacity:1;transform:none;transition:none}
 svg text{font-family:'Inter',-apple-system,sans-serif}
 
 </style>
@@ -612,11 +614,21 @@ const initialized=new Set();
 function activateTrack(n){
   document.querySelectorAll('.track-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('t'+n).classList.add('active');
+  const panel=document.getElementById('t'+n);
+  panel.classList.add('active');
   const tab=document.querySelector('.tab[data-t="'+n+'"]');
   if(tab)tab.classList.add('active');
   window.scrollTo({top:0,behavior:'instant'});
   if(!initialized.has(n)){[initT1,initT2,initT3][n-1]();initialized.add(n);}
+  // Mark all fade elements as "observed" so the CSS fallback doesn't override the animation.
+  // Then immediately reveal anything already in the viewport via rAF (handles timing gaps).
+  requestAnimationFrame(()=>{
+    panel.querySelectorAll('.fade').forEach(el=>{
+      el.classList.add('observed');
+      const r=el.getBoundingClientRect();
+      if(r.top<window.innerHeight+80)el.classList.add('in');
+    });
+  });
 }
 document.querySelectorAll('.tab').forEach(t=>{t.addEventListener('click',()=>activateTrack(parseInt(t.dataset.t)));});
 activateTrack(1);
