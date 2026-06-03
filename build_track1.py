@@ -170,7 +170,10 @@ h2{{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-hei
 .insight-text strong{{display:block;color:var(--text);margin-bottom:3px;font-size:11px;text-transform:uppercase;letter-spacing:.08em}}
 
 /* Simulation section */
-#sim-controls{{display:flex;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap}}
+#sim-banner{{display:flex;align-items:center;gap:18px;padding:14px 22px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;min-height:58px}}
+#sim-action{{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;min-width:170px;white-space:nowrap;transition:color .4s}}
+#sim-narrative{{font-size:13px;color:var(--muted);font-style:italic;line-height:1.5}}
+#sim-controls{{display:flex;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap}}
 #sim-play-btn{{
   background:var(--orange);color:#fff;border:none;border-radius:6px;
   padding:8px 20px;font-size:13px;font-weight:500;cursor:pointer;
@@ -178,15 +181,14 @@ h2{{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-hei
 }}
 #sim-play-btn:hover{{background:#B84508}}
 #sim-slider{{flex:1;min-width:160px;accent-color:var(--orange);height:4px;cursor:pointer}}
-.sim-time{{font-family:'Playfair Display',serif;font-size:22px;color:var(--text);min-width:54px}}
-.sim-stat-row{{display:flex;gap:0;flex-wrap:wrap;margin-top:16px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)}}
+.sim-time{{font-family:'Playfair Display',serif;font-size:22px;color:var(--text);min-width:60px}}
+.sim-stat-row{{display:flex;gap:0;flex-wrap:wrap;margin-top:14px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)}}
 .sim-stat{{flex:1;min-width:140px;padding:14px 20px;border-right:1px solid var(--border)}}
 .sim-stat:last-child{{border-right:none}}
 .sim-stat .sv{{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);line-height:1.2;transition:color .3s}}
 .sim-stat .sl{{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--subtle);margin-top:4px}}
 .soc-track{{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:6px;width:100%}}
-#sim-soc-bar{{height:100%;background:var(--blue);border-radius:3px;transition:width .5s ease}}
-#sim-status{{transition:color .3s}}
+#sim-soc-bar{{height:100%;background:var(--blue);border-radius:3px;transition:width .6s ease}}
 
 /* Chart common */
 .chart-wrap{{width:100%;overflow-x:auto}}
@@ -255,11 +257,17 @@ svg text{{font-family:'Inter',-apple-system,sans-serif}}
 <section id="sim">
   <div class="eyebrow fade">Live Simulation</div>
   <h2 class="fade">Watch the Battery Work</h2>
-  <p class="lead fade">Each circle is an energy packet. Watch them migrate from the grid into the battery
-  during cheap or negative-price hours — then flow out into the market at peak prices.
-  Scrub the timeline or hit play to animate a full day.</p>
+  <p class="lead fade">Each dot is an energy packet (0.1 MWh). As the day unfolds, dots migrate
+  between the <strong>grid</strong> and the <strong>battery</strong> following the oracle dispatch decisions.
+  The banner tells you exactly what is happening and why.</p>
 
   <div class="fade">
+    <!-- Status banner — tells the story each hour -->
+    <div id="sim-banner">
+      <span id="sim-action" style="color:var(--muted)">○ Ready</span>
+      <span id="sim-narrative">Press Play to simulate a day of oracle dispatch decisions</span>
+    </div>
+    <!-- Controls above the canvas -->
     <div id="sim-controls">
       <button id="sim-play-btn">▶ Play</button>
       <input type="range" id="sim-slider" min="0" max="23" value="0" step="1">
@@ -269,16 +277,12 @@ svg text{{font-family:'Inter',-apple-system,sans-serif}}
     <div class="sim-stat-row">
       <div class="sim-stat">
         <div class="sv" id="sim-price">—</div>
-        <div class="sl">Price (€/MWh)</div>
-      </div>
-      <div class="sim-stat">
-        <div class="sv" id="sim-status" style="font-size:15px;padding-top:4px">—</div>
-        <div class="sl">Battery action</div>
+        <div class="sl">Market price (€/MWh)</div>
       </div>
       <div class="sim-stat" style="min-width:180px">
-        <div class="soc-track"><div id="sim-soc-bar"></div></div>
-        <div class="sv" id="sim-soc" style="font-size:16px;margin-top:4px">—</div>
-        <div class="sl">State of charge</div>
+        <div class="soc-track"><div id="sim-soc-bar" style="width:50%"></div></div>
+        <div class="sv" id="sim-soc" style="font-size:16px;margin-top:4px">1.0 MWh</div>
+        <div class="sl">Battery charge level</div>
       </div>
       <div class="sim-stat">
         <div class="sv" id="sim-revenue" style="color:var(--green)">€0</div>
@@ -398,242 +402,272 @@ const priceColor = d3.scaleLinear()
   .range(["#6D28D9","#F7F4EE","#FCD34D","#D4540A","#7F1D1D"]).clamp(true);
 
 // ════════════════════════════════════════════════════════════════════
-// SIMULATION — D3 Force Particle System
+// SIMULATION — two-zone energy particle system
 // ════════════════════════════════════════════════════════════════════
 (function initSim(){{
-  const simDay = dispatch.slice(0,24);   // first 24 h of data
+  const simDay = dispatch.slice(0,24);  // oracle dispatch for day 1 of test period
   const W = Math.min($("sim-svg-wrap").clientWidth||920, 920);
-  const H = 340;
-  const PAD = 16;
+  const H = 300;
+  const PAD = 14;
   const iW = W - PAD*2;
 
-  // Three zone centres (x only; y is always centred)
-  const ZX = [iW*0.16, iW*0.5, iW*0.84];
-  const ZY = H*0.5;
-  const ZW = iW/3;
+  // ── Two-zone layout ─────────────────────────────────────────────
+  // Left: GRID  |  Right: BATTERY
+  const GW = iW * 0.42;          // grid zone width
+  const BW = iW - GW;            // battery zone width
+  const GCX = GW / 2;            // grid centre x
+  const BCX = GW + BW / 2;       // battery centre x
+  const CY  = H / 2;
 
-  const N_E = 44;   // energy dots (move between zones)
-  const N_BG = 28;  // static background dots (always in zone 0)
-  const R = 5.5;    // dot radius
+  // ── Dot counts ──────────────────────────────────────────────────
+  const N_E  = 20;   // energy dots (0.1 MWh each, 20 = full 2 MWh battery)
+  const N_BG = 28;   // static grid background dots (always in grid zone)
+  const R    = 6.5;  // dot radius
 
   const initBatt = Math.round(simDay[0].soc / 2 * N_E);
 
-  // Build dot array
   const dots = [];
-  for (let i=0; i<N_E+N_BG; i++) {{
-    const isBg = i >= N_E;
-    const zone = (!isBg && i < initBatt) ? 1 : 0;
+  // Energy dots — start split between grid and battery at initial SOC
+  for (let i=0;i<N_E;i++) {{
+    const inB = i < initBatt;
     dots.push({{
-      id:i, bg:isBg, zone,
-      flying:false,           // true while flying off-screen to "sold"
-      x: ZX[zone]+(Math.random()-.5)*90,
-      y: ZY+(Math.random()-.5)*110,
+      id:i, kind:"energy", zone: inB?"battery":"grid", flying:false,
+      x: (inB?BCX:GCX) + (Math.random()-.5)*90,
+      y: CY + (Math.random()-.5)*120,
+      vx:0, vy:0
+    }});
+  }}
+  // Background grid dots — always stay in grid zone
+  for (let i=0;i<N_BG;i++) {{
+    dots.push({{
+      id:N_E+i, kind:"bg", zone:"grid", flying:false,
+      x: GCX + (Math.random()-.5)*110,
+      y: CY + (Math.random()-.5)*150,
       vx:0, vy:0
     }});
   }}
 
-  // SVG
-  const svg = d3.select("#sim-svg-wrap").append("svg")
-    .attr("width",W).attr("height",H);
+  // ── SVG ──────────────────────────────────────────────────────────
+  const svg = d3.select("#sim-svg-wrap").append("svg").attr("width",W).attr("height",H);
   const g = svg.append("g").attr("transform",`translate(${{PAD}},0)`);
 
   // Zone backgrounds
-  const zoneBg  = ["#F2EDE5","#E8EEF6","#E8F2EA"];
-  const zoneLbl = [["GRID","SOURCE"],["BATTERY","STORAGE"],["SOLD","GRID"]];
-  for (let z=0;z<3;z++) {{
-    g.append("rect")
-      .attr("x",z*ZW+4).attr("y",8)
-      .attr("width",ZW-8).attr("height",H-16)
-      .attr("rx",14).attr("fill",zoneBg[z]).attr("opacity",.82);
-    zoneLbl[z].forEach((line,li)=>
-      g.append("text").attr("x",ZX[z]).attr("y",28+li*14)
-       .attr("text-anchor","middle")
-       .style("font-size","9.5px").style("font-weight","600")
-       .style("fill","#B0A89E").style("letter-spacing","0.12em").text(line));
+  g.append("rect").attr("x",0).attr("y",8)
+    .attr("width",GW-8).attr("height",H-16).attr("rx",14)
+    .attr("fill","#F2EDE5").attr("opacity",.9);
+  g.append("rect").attr("x",GW+8).attr("y",8)
+    .attr("width",BW-8).attr("height",H-16).attr("rx",14)
+    .attr("fill","#E6EDF6").attr("opacity",.9);
+
+  // Zone labels
+  g.append("text").attr("x",GCX).attr("y",26).attr("text-anchor","middle")
+    .style("font-size","10px").style("font-weight","700")
+    .style("fill","#B0A89E").style("letter-spacing","0.14em").text("GRID");
+  g.append("text").attr("x",GCX).attr("y",40).attr("text-anchor","middle")
+    .style("font-size","9px").style("fill","#C4B9AD").text("source of electricity");
+
+  g.append("text").attr("x",BCX).attr("y",26).attr("text-anchor","middle")
+    .style("font-size","10px").style("font-weight","700")
+    .style("fill","#7A9BBC").style("letter-spacing","0.14em").text("BATTERY");
+  g.append("text").attr("x",BCX).attr("y",40).attr("text-anchor","middle")
+    .style("font-size","9px").style("fill","#9AB5D0").text("1 MW · 2 MWh · 90% round-trip");
+
+  // Capacity label
+  g.append("text").attr("x",iW-6).attr("y",H-12).attr("text-anchor","end")
+    .style("font-size","9px").style("fill","#9AB5D0").text("● = 0.1 MWh");
+
+  // ── Flow arrow (between zones, flashes on transitions) ──────────
+  const arrow = g.append("text")
+    .attr("x", GW).attr("y", CY+8)
+    .attr("text-anchor","middle").style("font-size","26px")
+    .style("opacity",0).style("pointer-events","none");
+
+  // ── Dot colour logic ─────────────────────────────────────────────
+  function dotFill(d) {{
+    if (d.kind==="bg")       return "#C4B9AD";
+    if (d.flying)            return "#D4540A";   // orange while discharging
+    if (d.zone==="battery")  return "#1B5E96";   // deep blue when stored
+    return "#8EAEBF";                            // light blue when in grid
+  }}
+  function targetX(d) {{
+    if (d.flying) return iW + 110;        // fly off-screen right when discharging
+    return d.zone==="battery" ? BCX : GCX;
   }}
 
-  // Flow arrows (shown during charge/discharge)
-  const arr01 = g.append("text").attr("x",(ZX[0]+ZX[1])/2).attr("y",ZY+5)
-    .attr("text-anchor","middle").style("font-size","22px").style("opacity",0)
-    .style("fill","#8EAEBF").text("→");
-  const arr12 = g.append("text").attr("x",(ZX[1]+ZX[2])/2).attr("y",ZY+5)
-    .attr("text-anchor","middle").style("font-size","22px").style("opacity",0)
-    .style("fill","#D4540A").text("→");
-
-  // Dot elements
-  const dotColor = d => {{
-    if (d.bg)      return "#C4B9AD";
-    if (d.flying)  return "#D4540A";
-    if (d.zone===1) return "#1B5E96";
-    if (d.zone===2) return "#1B7A45";
-    return "#8EAEBF";
-  }};
-  const dotOp = d => d.bg ? 0.28 : d.flying ? 0.85 : 0.9;
-
   const circles = g.selectAll("circle.d").data(dots).join("circle")
-    .attr("class","d").attr("r",R)
-    .attr("fill", dotColor).attr("opacity", dotOp).attr("stroke","none");
+    .attr("class","d")
+    .attr("r", d => d.kind==="bg" ? R-1.5 : R)
+    .attr("fill", dotFill)
+    .attr("opacity", d => d.kind==="bg" ? 0.24 : 0.88);
 
-  // Force targets
-  const tx = d => d.flying ? iW+120 : ZX[d.zone];
-  const ty = ()  => ZY;
-
+  // ── Force simulation ─────────────────────────────────────────────
   const sim = d3.forceSimulation(dots)
-    .force("x", d3.forceX(tx).strength(d => d.flying?0.38:0.07))
-    .force("y", d3.forceY(ty).strength(0.065))
-    .force("collide", d3.forceCollide(R+1.6).strength(0.88))
-    .force("charge", d3.forceManyBody().strength(-1.2))
+    .force("x", d3.forceX(targetX).strength(d => d.flying ? 0.44 : 0.07))
+    .force("y", d3.forceY(CY).strength(0.065))
+    .force("collide", d3.forceCollide(R+1.8).strength(0.9))
+    .force("charge", d3.forceManyBody().strength(-1.5))
     .alphaDecay(0.015)
     .on("tick", () => {{
       circles
         .attr("cx", d=>d.x).attr("cy", d=>d.y)
-        .attr("fill", dotColor)
+        .attr("fill", dotFill)
         .attr("opacity", d => {{
-          if (d.bg)     return 0.25;
-          if (d.flying) return Math.max(0, 1-(d.x-iW*0.68)/(iW*0.32));
-          return 0.9;
+          if (d.kind==="bg")  return 0.22;
+          if (d.flying)       return Math.max(0, 1-(d.x-iW*0.68)/(iW*0.32));
+          return 0.88;
         }});
-
-      // Recycle dots that flew off-screen back to source zone
-      dots.forEach(d=>{{
-        if (d.flying && d.x > iW+60) {{
-          d.flying=false; d.zone=0;
-          d.x=ZX[0]+(Math.random()-.5)*80;
-          d.y=ZY+(Math.random()-.5)*100;
+      // Recycle sold dots back to grid invisibly
+      dots.forEach(d => {{
+        if (d.flying && d.x > iW+70) {{
+          d.flying = false;
+          d.zone   = "grid";
+          d.x = GCX + (Math.random()-.5)*80;
+          d.y = CY  + (Math.random()-.5)*100;
         }}
       }});
     }});
 
-  let curH=0, cumRev=0, playing=false, timer=null;
-
-  function updateForces(){{
-    sim.force("x", d3.forceX(tx).strength(d=>d.flying?0.38:0.07));
+  function reheat() {{
+    sim.force("x", d3.forceX(targetX).strength(d => d.flying ? 0.44 : 0.07));
+    sim.alpha(0.46).restart();
   }}
 
-  function jump(h){{
-    // Reset dots to hour-0 initial state, then fast-forward
-    dots.forEach(d=>{{d.flying=false;d.zone=0;}});
-    let b=0;
-    dots.filter(d=>!d.bg).forEach(d=>{{ if(b<initBatt){{d.zone=1;b++;}} }});
-    cumRev=0;
+  // ── Hour state transition ─────────────────────────────────────────
+  let curH=0, cumRev=0;
 
-    for (let i=1;i<=h;i++) {{
-      const D=simDay[i];
-      const target=Math.round(D.soc/2*N_E);
-      const eDots=dots.filter(d=>!d.bg&&!d.flying);
-      const inBatt=eDots.filter(d=>d.zone===1).length;
-      const delta=target-inBatt;
-      if (delta>0) {{
-        let mv=0;
-        eDots.forEach(d=>{{if(d.zone===0&&mv<delta){{d.zone=1;mv++;}}}});
-      }} else if (delta<0) {{
-        let mv=0;
-        eDots.forEach(d=>{{if(d.zone===1&&mv<-delta){{
-          d.zone=2;
-          cumRev+=Math.max(0,D.price)*(2/N_E);
+  function stepHour(h) {{
+    const D = simDay[h];
+    const target = Math.round(D.soc / 2 * N_E);
+    const eDots  = dots.filter(d => d.kind==="energy" && !d.flying);
+    const inBatt = eDots.filter(d => d.zone==="battery").length;
+    const delta  = target - inBatt;
+
+    // Move dots between zones
+    if (delta > 0) {{
+      // CHARGING — grid dots migrate into battery
+      let mv = 0;
+      eDots.forEach(d => {{ if (d.zone==="grid" && mv<delta) {{ d.zone="battery"; mv++; }} }});
+      arrow.text("→").style("fill","#1B5E96")
+        .style("opacity",.75).transition().duration(900).style("opacity",0);
+    }} else if (delta < 0) {{
+      // DISCHARGING — battery dots fly off (sold to market)
+      let mv = 0;
+      eDots.forEach(d => {{
+        if (d.zone==="battery" && mv<Math.abs(delta)) {{
+          d.zone="grid"; d.flying=true;
+          if (D.price > 0) cumRev += D.price * (2 / N_E);
           mv++;
-        }}}});
-      }}
+        }}
+      }});
+      arrow.text("→").style("fill","#D4540A")
+        .style("opacity",.75).transition().duration(900).style("opacity",0);
     }}
-    // Scatter dots into their zones
+
+    reheat();
+
+    // ── Update UI ────────────────────────────────────────────────
+    const realBatt = dots.filter(d=>d.kind==="energy"&&d.zone==="battery"&&!d.flying).length;
+    const socPct   = Math.round(realBatt / N_E * 100);
+    const isNeg    = D.price < 0;
+    const isChg    = D.charge > 0.05;
+    const isDis    = D.discharge > 0.05;
+
+    let action, narr, col;
+    if (isChg && isNeg) {{
+      action="⬇ Charging";
+      narr=`Grid oversupplied with renewables — the market pays ${{Math.abs(D.price).toFixed(0)}} €/MWh to consumers who absorb surplus power`;
+      col="#6D28D9";
+    }} else if (isChg) {{
+      action="⚡ Charging";
+      narr=`Buying electricity at ${{D.price.toFixed(0)}} €/MWh and storing it — dots move from Grid into Battery`;
+      col="#1B5E96";
+    }} else if (isDis) {{
+      action="💰 Discharging";
+      narr=`Selling stored electricity at ${{D.price.toFixed(0)}} €/MWh — battery dots fly out, converting stored energy into revenue`;
+      col="#D4540A";
+    }} else {{
+      action="○ Holding";
+      narr=`Price at ${{D.price.toFixed(0)}} €/MWh — not attractive enough to buy or sell right now`;
+      col="#78716C";
+    }}
+
+    $("sim-action").textContent    = action;
+    $("sim-action").style.color    = col;
+    $("sim-narrative").textContent = narr;
+
+    $("sim-price").textContent  = (D.price>=0?"+":"")+D.price.toFixed(0)+" €/MWh";
+    $("sim-price").style.color  = isNeg?"#6D28D9":D.price>100?"#D4540A":"var(--text)";
+    $("sim-soc").textContent    = (realBatt/N_E*2).toFixed(1)+" MWh ("+socPct+"%)";
+    $("sim-soc-bar").style.width= socPct+"%";
+    $("sim-revenue").textContent= fmtE(Math.round(cumRev));
+    $("sim-hour-disp").textContent = String(h).padStart(2,"0")+":00";
+    $("sim-slider").value = h;
+    curH = h;
+  }}
+
+  // ── Jump to arbitrary hour (fast-forward from scratch) ───────────
+  function jumpTo(h) {{
+    cumRev = 0;
+    dots.forEach(d => {{ d.flying=false; d.zone="grid"; }});
+    let b = 0;
+    dots.filter(d=>d.kind==="energy").forEach(d=>{{ if(b<initBatt){{d.zone="battery";b++;}} }});
+    for (let i=1;i<=h;i++) {{
+      const D  = simDay[i];
+      const t  = Math.round(D.soc/2*N_E);
+      const ed = dots.filter(d=>d.kind==="energy"&&!d.flying);
+      const ib = ed.filter(d=>d.zone==="battery").length;
+      const dl = t - ib;
+      if (dl>0) {{ let mv=0; ed.forEach(d=>{{if(d.zone==="grid"&&mv<dl){{d.zone="battery";mv++;}}}}); }}
+      else if (dl<0) {{ let mv=0; ed.forEach(d=>{{if(d.zone==="battery"&&mv<-dl){{if(D.price>0)cumRev+=D.price*(2/N_E);d.zone="grid";mv++;}}}}); }}
+    }}
+    // Scatter dots into their zones then let sim settle
     dots.forEach(d=>{{
-      const z=d.zone;
-      d.x=ZX[z]+(Math.random()-.5)*80; d.y=ZY+(Math.random()-.5)*100;
+      const cx = d.zone==="battery" ? BCX : GCX;
+      d.x = cx+(Math.random()-.5)*80; d.y=CY+(Math.random()-.5)*100;
     }});
-    updateForces();
-    sim.alpha(0.55).restart();
-    refreshUI(h);
-    curH=h;
+    reheat();
+    stepHour(h);
   }}
 
-  function stepHour(h){{
-    const D=simDay[h];
-    const target=Math.round(D.soc/2*N_E);
-    const eDots=dots.filter(d=>!d.bg&&!d.flying);
-    const inBatt=eDots.filter(d=>d.zone===1).length;
-    const delta=target-inBatt;
-
-    arr01.style("opacity",0); arr12.style("opacity",0);
-
-    if (delta>0){{
-      let mv=0;
-      eDots.forEach(d=>{{if(d.zone===0&&mv<delta){{d.zone=1;mv++;}}}});
-      arr01.style("opacity",.55);
-    }} else if(delta<0){{
-      let mv=0;
-      eDots.forEach(d=>{{if(d.zone===1&&mv<-delta){{
-        d.zone=2; d.flying=true;
-        cumRev+=Math.max(0,D.price)*(2/N_E);
-        mv++;
-      }}}});
-      arr12.style("opacity",.55);
-    }}
-
-    updateForces();
-    sim.alpha(0.45).restart();
-    refreshUI(h);
-    curH=h;
-
-    setTimeout(()=>{{arr01.style("opacity",0);arr12.style("opacity",0);}}, 700);
-  }}
-
-  function refreshUI(h){{
-    const D=simDay[h];
-    const realBatt=dots.filter(d=>!d.bg&&!d.flying&&d.zone===1).length;
-    const socPct=Math.round(realBatt/N_E*100);
-    const status=D.charge>0.1?"⚡ Charging":D.discharge>0.1?"💰 Discharging":"— Idle";
-    const priceStr=(D.price>0?"+":"")+D.price.toFixed(0)+" €/MWh";
-
-    $("sim-price").textContent=priceStr;
-    $("sim-price").style.color=D.price<0?"#6D28D9":D.price>100?"#D4540A":"var(--text)";
-    $("sim-status").textContent=status;
-    $("sim-status").style.color=D.charge>0.1?"#1B5E96":D.discharge>0.1?"#D4540A":"var(--muted)";
-    $("sim-soc").textContent=(realBatt/N_E*2).toFixed(1)+" MWh ("+socPct+"%)";
-    $("sim-soc-bar").style.width=socPct+"%";
-    $("sim-revenue").textContent=fmtE(Math.round(cumRev));
-    $("sim-hour-disp").textContent=String(h).padStart(2,"0")+":00";
-    $("sim-slider").value=h;
-  }}
-
-  // Controls
+  // ── Controls ─────────────────────────────────────────────────────
+  let playing=false, timer=null;
   const SPEED=950;
-  function advance(){{
-    if(!playing) return;
+
+  function advance() {{
+    if (!playing) return;
     stepHour(curH);
-    if(curH>=23){{
+    if (curH>=23) {{
       playing=false;
       $("sim-play-btn").textContent="↺ Replay";
       $("sim-play-btn").dataset.mode="replay";
       return;
     }}
     curH++;
-    timer=setTimeout(advance,SPEED);
+    timer = setTimeout(advance, SPEED);
   }}
 
-  $("sim-play-btn").addEventListener("click",function(){{
-    if(this.dataset.mode==="replay"){{
-      this.dataset.mode=""; playing=true;
-      this.textContent="⏸ Pause";
-      curH=0; jump(0); setTimeout(advance,400);
+  $("sim-play-btn").addEventListener("click", function() {{
+    if (this.dataset.mode==="replay") {{
+      this.dataset.mode=""; playing=true; this.textContent="⏸ Pause";
+      curH=0; jumpTo(0); setTimeout(advance,400);
     }} else {{
       playing=!playing;
       this.textContent=playing?"⏸ Pause":"▶ Play";
-      if(playing) advance();
-      else if(timer){{clearTimeout(timer);timer=null;}}
+      if (playing) advance();
+      else if (timer) {{ clearTimeout(timer); timer=null; }}
     }}
   }});
 
-  $("sim-slider").addEventListener("input",function(){{
-    playing=false; if(timer){{clearTimeout(timer);timer=null;}}
+  $("sim-slider").addEventListener("input", function() {{
+    playing=false;
+    if (timer) {{ clearTimeout(timer); timer=null; }}
     $("sim-play-btn").textContent="▶ Play";
     $("sim-play-btn").dataset.mode="";
-    jump(parseInt(this.value));
+    jumpTo(parseInt(this.value));
   }});
 
-  // Auto-start after a short delay
-  setTimeout(()=>{{
-    playing=true; $("sim-play-btn").textContent="⏸ Pause"; advance();
-  }},900);
+  // Auto-play on load
+  setTimeout(()=>{{ playing=true; $("sim-play-btn").textContent="⏸ Pause"; advance(); }},900);
 }})();
 
 // ════════════════════════════════════════════════════════════════════
