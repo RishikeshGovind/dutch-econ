@@ -1,0 +1,13 @@
+create-js/
+img/
+js/
+.git/
+*.html
+*.css
+*.md
+*.Rproj
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+.vscode/
