@@ -315,8 +315,7 @@ const priceColor = d3.scaleLinear()
 
   // Zone backgrounds
   const zoneBg  = ["#F2EDE5","#E8EEF6","#E8F2EA"];
-  const zoneLbl = [["GRID","SOURCE"],["BATTERY","STORAGE"],["SOLD
-TO","GRID"]];
+  const zoneLbl = [["GRID","SOURCE"],["BATTERY","STORAGE"],["SOLD","GRID"]];
   for (let z=0;z<3;z++) {
     g.append("rect")
       .attr("x",z*ZW+4).attr("y",8)
@@ -754,55 +753,20 @@ function animCount(el,end,dur){
   })(performance.now());
 }
 
-const secs=document.querySelectorAll("section");
-const dotEls=document.querySelectorAll(".dot");
-const fadeEls=document.querySelectorAll(".fade");
-
-new IntersectionObserver(entries=>
-  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add("in");})
-,{threshold:.1}).observe.apply(null,[...fadeEls].map(el=>(new IntersectionObserver(
-  entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add("in");})
-,{threshold:.1}).observe(el),el)));
-
-// fix: simpler fade observer
+// Fade-in on scroll
 document.querySelectorAll(".fade").forEach(el=>{
-  new IntersectionObserver(([e])=>{if(e.isIntersecting)el.classList.add("in");},{threshold:.1}).observe(el);
+  new IntersectionObserver(([e])=>{
+    if(e.isIntersecting) el.classList.add("in");
+  },{threshold:0.1}).observe(el);
 });
 
-new IntersectionObserver(entries=>entries.forEach(e=>{
-  if(!e.isIntersecting) return;
-  dotEls.forEach(d=>d.classList.remove("on"));
-  const idx=[...secs].indexOf(e.target);
-  if(dotEls[idx]) dotEls[idx].classList.add("on");
-  if(e.target.id==="hero"){
-    setTimeout(()=>{
-      animCount($("h-oracle"),stats.oracle,1600);
-      animCount($("h-naive"),stats.naive,1600);
-      animCount($("h-gap"),stats.gap,1800);
-    },200);
-  }
-}).bind(null),{threshold:.35});
-new IntersectionObserver(entries=>entries.forEach(e=>{
-  if(!e.isIntersecting) return;
-  dotEls.forEach(d=>d.classList.remove("on"));
-  const idx=[...secs].indexOf(e.target);
-  if(dotEls[idx]) dotEls[idx].classList.add("on");
-  if(e.target.id==="hero"){
-    setTimeout(()=>{
-      animCount($("h-oracle"),stats.oracle,1600);
-      animCount($("h-naive"),stats.naive,1600);
-      animCount($("h-gap"),stats.gap,1800);
-    },200);
-  }
-}),{threshold:.35}).observe.apply(null,[...secs]);
-
-// Simplified: use one observer for both fades and nav
-secs.forEach(s=>{
+// Nav dot highlight + hero counter trigger
+document.querySelectorAll("section").forEach((s,i)=>{
   new IntersectionObserver(([e])=>{
     if(!e.isIntersecting) return;
-    dotEls.forEach(d=>d.classList.remove("on"));
-    const idx=[...secs].indexOf(s);
-    if(dotEls[idx]) dotEls[idx].classList.add("on");
+    document.querySelectorAll(".dot").forEach(d=>d.classList.remove("on"));
+    const dot=document.querySelectorAll(".dot")[i];
+    if(dot) dot.classList.add("on");
     if(s.id==="hero"){
       setTimeout(()=>{
         animCount($("h-oracle"),stats.oracle,1600);
@@ -813,7 +777,9 @@ secs.forEach(s=>{
   },{threshold:.35}).observe(s);
 });
 
-dotEls.forEach((d,i)=>d.addEventListener("click",()=>secs[i].scrollIntoView({behavior:"smooth"})));
+document.querySelectorAll(".dot").forEach((d,i)=>{
+  d.addEventListener("click",()=>document.querySelectorAll("section")[i].scrollIntoView({behavior:"smooth"}));
+});
 </script>
 </body>
 </html>
