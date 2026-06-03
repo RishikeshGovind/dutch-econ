@@ -3,8 +3,8 @@
 build_track1.py — Generates track1.html, a self-contained visual essay on
 the Track 1 Predict-Then-Optimize battery dispatch pipeline.
 
-Inspired by FlowingData / The Pudding: each chart answers one question,
-annotations tell the story, and everything is interactable.
+Inspired by FlowingData / The Pudding. Includes a live D3 force-simulation
+of energy particles flowing between grid → battery → market.
 
 Run:  python build_track1.py
 Open: open track1.html  (no server needed — data is embedded)
@@ -20,15 +20,15 @@ from scipy import stats as sp_stats
 DATA_DIR = Path(__file__).parent / "data"
 OUT_HTML = Path(__file__).parent / "track1.html"
 
-# ── Data processing ──────────────────────────────────────────────────────────
+# ── Data processing ───────────────────────────────────────────────────────────
 
 def check_files():
     needed = ["price_predictions.csv", "battery_results.csv",
               "decision_sensitivity.csv", "spo_comparison.csv"]
     missing = [f for f in needed if not (DATA_DIR / f).exists()]
     if missing:
-        print(f"Missing pipeline outputs: {missing}")
-        print("Run: python price_forecast.py && python battery_optimize.py && python spo_train.py")
+        print(f"Missing: {missing}\nRun: python price_forecast.py && "
+              "python battery_optimize.py && python spo_train.py")
         sys.exit(1)
 
 
@@ -37,25 +37,19 @@ def heatmap_data(preds):
     preds["datetime_utc"] = pd.to_datetime(preds["datetime_utc"], utc=True)
     preds["date"] = preds["datetime_utc"].dt.strftime("%Y-%m-%d")
     preds["hour"] = preds["datetime_utc"].dt.hour
-    return [
-        {"date": r["date"], "hour": int(r["hour"]), "price": round(float(r["actual"]), 1)}
-        for _, r in preds.head(14 * 24).iterrows()
-    ]
+    return [{"date": r["date"], "hour": int(r["hour"]), "price": round(float(r["actual"]), 1)}
+            for _, r in preds.head(14 * 24).iterrows()]
 
 
 def dispatch_data(results):
     results = results.copy()
     results["datetime_utc"] = pd.to_datetime(results["datetime_utc"])
-    return [
-        {
-            "dt": r["datetime_utc"].strftime("%Y-%m-%dT%H:00"),
-            "price": round(float(r["price_actual"]), 1),
-            "charge": round(float(r["charge_oracle_mw"]), 3),
-            "discharge": round(float(r["discharge_oracle_mw"]), 3),
-            "soc": round(float(r["soc_oracle_mwh"]), 3),
-        }
-        for _, r in results.head(72).iterrows()
-    ]
+    return [{"dt": r["datetime_utc"].strftime("%Y-%m-%dT%H:00"),
+             "price": round(float(r["price_actual"]), 1),
+             "charge": round(float(r["charge_oracle_mw"]), 3),
+             "discharge": round(float(r["discharge_oracle_mw"]), 3),
+             "soc": round(float(r["soc_oracle_mwh"]), 3)}
+            for _, r in results.head(72).iterrows()]
 
 
 def revenue_data(results):
@@ -64,7 +58,7 @@ def revenue_data(results):
         o = float(np.sum(g["price_actual"] * (g["discharge_oracle_mw"] - g["charge_oracle_mw"])))
         n = float(np.sum(g["price_actual"] * (g["discharge_naive_mw"] - g["charge_naive_mw"])))
         cum_o += o; cum_n += n
-        out.append({"day": i + 1, "date": str(day),
+        out.append({"day": i+1, "date": str(day),
                     "oracle": round(cum_o, 0), "naive": round(cum_n, 0)})
     return out
 
@@ -72,8 +66,7 @@ def revenue_data(results):
 def clock_data(sensitivity):
     h = sensitivity.groupby("hour").agg(
         sensitivity=("sensitivity_score", "mean"),
-        impact=("max_revenue_impact", "mean"),
-    ).reset_index()
+        impact=("max_revenue_impact", "mean")).reset_index()
     return [{"hour": int(r["hour"]), "sensitivity": round(float(r["sensitivity"]), 3),
              "impact": round(float(r["impact"]), 1)} for _, r in h.iterrows()]
 
@@ -95,7 +88,8 @@ def build_payload():
     spo     = pd.read_csv(DATA_DIR / "spo_comparison.csv")
 
     sc = scatter_data(results)
-    xs, ys = np.array([d["mae"] for d in sc]), np.array([d["revenue"] for d in sc])
+    xs = np.array([d["mae"] for d in sc])
+    ys = np.array([d["revenue"] for d in sc])
     slope, intercept, r_val, p_val, _ = sp_stats.linregress(xs, ys)
 
     rev = revenue_data(results)
@@ -116,17 +110,16 @@ def build_payload():
         "ols": {"slope": round(slope, 2), "intercept": round(intercept, 0),
                 "r": round(r_val, 3), "p": round(p_val, 3)},
         "stats": {
-            "oracle": int(oracle_total),
-            "naive":  int(naive_total),
-            "gap":    int(oracle_total - naive_total),
+            "oracle": int(oracle_total), "naive": int(naive_total),
+            "gap": int(oracle_total - naive_total),
             "gap_pct": round((oracle_total - naive_total) / oracle_total * 100, 1) if oracle_total else 0,
             "sens_pct": round(sens["sensitivity_score"].mean() * 100, 1),
-            "mae":    round(float(np.mean(np.abs(preds["actual"] - preds["forecast"]))), 1),
+            "mae": round(float(np.mean(np.abs(preds["actual"] - preds["forecast"]))), 1),
         },
     }
 
 
-# ── HTML template ─────────────────────────────────────────────────────────────
+# ── HTML ──────────────────────────────────────────────────────────────────────
 
 def html(data_json: str) -> str:
     return f"""<!DOCTYPE html>
@@ -139,88 +132,87 @@ def html(data_json: str) -> str:
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{{
-  --bg:#F7F4EE; --surface:#FBF9F5; --border:#E5E0D8;
-  --text:#1C1917; --muted:#78716C; --subtle:#A8A29E;
-  --orange:#D4540A; --blue:#1B5E96; --green:#1B7A45;
-  --purple:#6D28D9; --red:#9B1C1C;
-  --gap:24px;
+  --bg:#F7F4EE;--surface:#FBF9F5;--border:#E5E0D8;
+  --text:#1C1917;--muted:#78716C;--subtle:#A8A29E;
+  --orange:#D4540A;--blue:#1B5E96;--green:#1B7A45;
+  --purple:#6D28D9;--red:#9B1C1C;
 }}
 *{{box-sizing:border-box;margin:0;padding:0}}
 html{{scroll-behavior:smooth}}
 body{{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,sans-serif;font-size:15px;line-height:1.6;overflow-x:hidden}}
 
-/* ── Navigation ── */
+/* Nav */
 #sidenav{{position:fixed;right:22px;top:50%;transform:translateY(-50%);z-index:300;display:flex;flex-direction:column;gap:9px}}
 .dot{{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .25s}}
 .dot.on{{background:var(--orange);transform:scale(1.4)}}
 
-/* ── Sections ── */
-section{{min-height:100vh;display:flex;flex-direction:column;justify-content:center;
-  padding:80px 64px;max-width:1160px;margin:0 auto;position:relative}}
+/* Sections */
+section{{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px 64px;max-width:1160px;margin:0 auto;position:relative}}
 section+section{{border-top:1px solid var(--border)}}
-
-.eyebrow{{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
-  color:var(--orange);margin-bottom:10px}}
-h1{{font-family:'Playfair Display',serif;font-size:clamp(32px,4vw,56px);
-  line-height:1.15;margin-bottom:18px}}
-h2{{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);
-  line-height:1.2;margin-bottom:14px}}
+.eyebrow{{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:10px}}
+h1{{font-family:'Playfair Display',serif;font-size:clamp(32px,4vw,56px);line-height:1.15;margin-bottom:18px}}
+h2{{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-height:1.2;margin-bottom:14px}}
 .lead{{font-size:16px;color:var(--muted);max-width:580px;margin-bottom:36px;font-weight:300}}
 
-/* ── Hero stats ── */
-.hero-stats{{display:flex;gap:48px;flex-wrap:wrap;margin-bottom:52px}}
-.stat .num{{font-family:'Playfair Display',serif;font-size:clamp(38px,5vw,64px);
-  font-weight:700;line-height:1;color:var(--orange)}}
-.stat .num.blue{{color:var(--blue)}}
-.stat .num.green{{color:var(--green)}}
-.stat .lbl{{font-size:11px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.1em}}
-
-/* ── Chart wraps ── */
-.chart-wrap{{width:100%;overflow-x:auto}}
-.chart-row{{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}}
-
-/* ── Insight callout ── */
-.insight{{display:inline-flex;gap:14px;align-items:flex-start;
-  background:var(--surface);border-left:3px solid var(--orange);
-  padding:14px 20px;border-radius:0 8px 8px 0;margin-top:24px;max-width:600px}}
-.insight-icon{{font-size:18px;flex-shrink:0;margin-top:1px}}
-.insight-text{{font-size:13px;color:var(--muted);line-height:1.6}}
-.insight-text strong{{display:block;color:var(--text);margin-bottom:3px;font-size:12px;
-  text-transform:uppercase;letter-spacing:.08em}}
-
-/* ── Tooltip ── */
-#tip{{position:fixed;background:#fff;border:1px solid var(--border);
-  border-radius:8px;padding:10px 14px;font-size:12.5px;pointer-events:none;
-  opacity:0;transition:opacity .15s;z-index:999;
-  box-shadow:0 4px 16px rgba(0,0,0,.09);max-width:200px;line-height:1.5}}
-#tip .tip-label{{font-weight:600;margin-bottom:4px;color:var(--text)}}
-#tip .tip-val{{color:var(--muted)}}
-
-/* ── Legend pill ── */
-.legend{{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;margin-bottom:4px}}
-.legend-item{{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}}
-.legend-dot{{width:10px;height:10px;border-radius:50%;flex-shrink:0}}
-.legend-rect{{width:20px;height:10px;border-radius:2px;flex-shrink:0}}
-
-/* ── Fade animations ── */
-.fade{{opacity:0;transform:translateY(28px);transition:opacity .65s ease,transform .65s ease}}
-.fade.in{{opacity:1;transform:none}}
-.fade.delay-1{{transition-delay:.12s}}
-.fade.delay-2{{transition-delay:.24s}}
-
-/* ── Hero flourish ── */
+/* Hero */
 #hero{{min-height:100vh;padding-top:120px}}
 #hero h1 em{{font-style:italic;color:var(--orange)}}
 .hero-line{{width:40px;height:3px;background:var(--orange);margin:20px 0 32px}}
+.hero-stats{{display:flex;gap:48px;flex-wrap:wrap;margin-bottom:52px}}
+.stat .num{{font-family:'Playfair Display',serif;font-size:clamp(38px,5vw,64px);font-weight:700;line-height:1;color:var(--orange)}}
+.stat .num.blue{{color:var(--blue)}}.stat .num.green{{color:var(--green)}}
+.stat .lbl{{font-size:11px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.1em}}
 
-/* ── SPO table ── */
-.spo-table{{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}}
-.spo-table th{{font-size:10px;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--subtle);font-weight:500;padding:0 12px 10px 0;border-bottom:1px solid var(--border);
-  text-align:left}}
-.spo-table td{{padding:11px 12px 11px 0;border-bottom:1px solid var(--border);vertical-align:middle}}
-.spo-table tr.highlight td{{color:var(--text);font-weight:500}}
-.spo-bar{{height:6px;border-radius:3px;background:var(--orange);opacity:.8}}
+/* Insight */
+.insight{{display:inline-flex;gap:14px;align-items:flex-start;background:var(--surface);border-left:3px solid var(--orange);padding:14px 20px;border-radius:0 8px 8px 0;margin-top:24px;max-width:620px}}
+.insight-icon{{font-size:18px;flex-shrink:0;margin-top:1px}}
+.insight-text{{font-size:13px;color:var(--muted);line-height:1.6}}
+.insight-text strong{{display:block;color:var(--text);margin-bottom:3px;font-size:11px;text-transform:uppercase;letter-spacing:.08em}}
+
+/* Simulation section */
+#sim-controls{{display:flex;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap}}
+#sim-play-btn{{
+  background:var(--orange);color:#fff;border:none;border-radius:6px;
+  padding:8px 20px;font-size:13px;font-weight:500;cursor:pointer;
+  font-family:'Inter',sans-serif;letter-spacing:.02em;transition:background .2s;min-width:90px
+}}
+#sim-play-btn:hover{{background:#B84508}}
+#sim-slider{{flex:1;min-width:160px;accent-color:var(--orange);height:4px;cursor:pointer}}
+.sim-time{{font-family:'Playfair Display',serif;font-size:22px;color:var(--text);min-width:54px}}
+.sim-stat-row{{display:flex;gap:0;flex-wrap:wrap;margin-top:16px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)}}
+.sim-stat{{flex:1;min-width:140px;padding:14px 20px;border-right:1px solid var(--border)}}
+.sim-stat:last-child{{border-right:none}}
+.sim-stat .sv{{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);line-height:1.2;transition:color .3s}}
+.sim-stat .sl{{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--subtle);margin-top:4px}}
+.soc-track{{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:6px;width:100%}}
+#sim-soc-bar{{height:100%;background:var(--blue);border-radius:3px;transition:width .5s ease}}
+#sim-status{{transition:color .3s}}
+
+/* Chart common */
+.chart-wrap{{width:100%;overflow-x:auto}}
+.chart-row{{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}}
+
+/* Tooltip */
+#tip{{position:fixed;background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12.5px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.09);max-width:210px;line-height:1.5}}
+#tip .tl{{font-weight:600;margin-bottom:4px;color:var(--text)}}
+#tip .tv{{color:var(--muted)}}
+
+/* Legend */
+.legend{{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px}}
+.legend-item{{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}}
+.legend-rect{{width:20px;height:10px;border-radius:2px;flex-shrink:0}}
+
+/* SPO table */
+.spo-table{{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}}
+.spo-table th{{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--subtle);font-weight:500;padding:0 10px 10px 0;border-bottom:1px solid var(--border);text-align:left}}
+.spo-table td{{padding:10px 10px 10px 0;border-bottom:1px solid var(--border);vertical-align:middle}}
+.spo-table tr.hl td{{font-weight:500}}
+.spo-bar{{height:5px;border-radius:3px;background:var(--orange);opacity:.8}}
+
+/* Fade-in */
+.fade{{opacity:0;transform:translateY(28px);transition:opacity .65s ease,transform .65s ease}}
+.fade.in{{opacity:1;transform:none}}
+.fade.d1{{transition-delay:.12s}}.fade.d2{{transition-delay:.24s}}
 
 svg text{{font-family:'Inter',-apple-system,sans-serif}}
 </style>
@@ -228,474 +220,628 @@ svg text{{font-family:'Inter',-apple-system,sans-serif}}
 <body>
 
 <div id="sidenav">
-  <div class="dot on" data-target="hero"    title="Overview"></div>
-  <div class="dot"    data-target="heatmap" title="Price Calendar"></div>
-  <div class="dot"    data-target="dispatch" title="Dispatch Portrait"></div>
-  <div class="dot"    data-target="revenue"  title="Revenue Race"></div>
-  <div class="dot"    data-target="explain"  title="Decision Sensitivity"></div>
+  <div class="dot on"  data-i="0" title="Overview"></div>
+  <div class="dot"     data-i="1" title="Simulation"></div>
+  <div class="dot"     data-i="2" title="Price Calendar"></div>
+  <div class="dot"     data-i="3" title="Dispatch Portrait"></div>
+  <div class="dot"     data-i="4" title="Revenue Race"></div>
+  <div class="dot"     data-i="5" title="Decision Sensitivity"></div>
 </div>
-<div id="tip"><div class="tip-label"></div><div class="tip-val"></div></div>
+<div id="tip"><div class="tl"></div><div class="tv"></div></div>
 
-<!-- ════════════════════════════════════════════════════════ HERO -->
+<!-- ══════════════════════════════════════════════════════════════ HERO -->
 <section id="hero">
   <div class="eyebrow fade">Track 1 · Predict-Then-Optimize</div>
-  <h1 class="fade delay-1">Between <em>Oracle</em> and Reality:<br>A 60-Day Energy Storage Experiment</h1>
-  <div class="hero-line fade delay-1"></div>
-  <p class="lead fade delay-2">
-    A 1 MW / 2 MWh battery charges from the Dutch day-ahead electricity market when prices are low
-    and discharges when they peak. The only problem — prices must be forecast 24 hours ahead.
-    How much does forecast error cost?
-  </p>
+  <h1 class="fade d1">Between <em>Oracle</em> and Reality:<br>A 60-Day Energy Storage Experiment</h1>
+  <div class="hero-line fade d1"></div>
+  <p class="lead fade d2">A 1 MW / 2 MWh battery charges from the Dutch day-ahead electricity market when prices are low
+  and sells when they peak. The only problem — prices must be forecast 24 hours ahead.
+  How much does forecast error cost?</p>
   <div class="hero-stats">
-    <div class="stat fade"><div class="num green" id="h-oracle">0</div><div class="lbl">Oracle revenue (€) — perfect foresight</div></div>
-    <div class="stat fade delay-1"><div class="num blue" id="h-naive">0</div><div class="lbl">Naive P-T-O revenue (€) — XGBoost forecast</div></div>
-    <div class="stat fade delay-2"><div class="num" id="h-gap">0</div><div class="lbl">Decision quality gap (€) — lost to forecast error</div></div>
+    <div class="stat fade"><div class="num green" id="h-oracle">—</div><div class="lbl">Oracle revenue (€) — perfect foresight</div></div>
+    <div class="stat fade d1"><div class="num blue" id="h-naive">—</div><div class="lbl">Naive P-T-O revenue (€) — XGBoost forecast</div></div>
+    <div class="stat fade d2"><div class="num" id="h-gap">—</div><div class="lbl">Decision quality gap (€) — lost to forecast error</div></div>
   </div>
-  <div class="insight fade delay-2">
+  <div class="insight fade d2">
     <span class="insight-icon">↓</span>
-    <div class="insight-text">
-      <strong>The Research Question</strong>
-      Minimising forecast MSE is not the same as maximising dispatch profit.
-      The five charts below trace exactly where and why this gap opens — and motivate
-      decision-focused learning (SPO+) as the remedy.
+    <div class="insight-text"><strong>The Research Question</strong>
+    Minimising forecast MSE is not the same as maximising dispatch profit.
+    The sections below trace exactly where and why this gap opens — and motivate
+    decision-focused learning (SPO+) as the remedy.</div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ SIMULATION -->
+<section id="sim">
+  <div class="eyebrow fade">Live Simulation</div>
+  <h2 class="fade">Watch the Battery Work</h2>
+  <p class="lead fade">Each circle is an energy packet. Watch them migrate from the grid into the battery
+  during cheap or negative-price hours — then flow out into the market at peak prices.
+  Scrub the timeline or hit play to animate a full day.</p>
+
+  <div class="fade">
+    <div id="sim-controls">
+      <button id="sim-play-btn">▶ Play</button>
+      <input type="range" id="sim-slider" min="0" max="23" value="0" step="1">
+      <span class="sim-time" id="sim-hour-disp">00:00</span>
+    </div>
+    <div class="chart-wrap"><div id="sim-svg-wrap"></div></div>
+    <div class="sim-stat-row">
+      <div class="sim-stat">
+        <div class="sv" id="sim-price">—</div>
+        <div class="sl">Price (€/MWh)</div>
+      </div>
+      <div class="sim-stat">
+        <div class="sv" id="sim-status" style="font-size:15px;padding-top:4px">—</div>
+        <div class="sl">Battery action</div>
+      </div>
+      <div class="sim-stat" style="min-width:180px">
+        <div class="soc-track"><div id="sim-soc-bar"></div></div>
+        <div class="sv" id="sim-soc" style="font-size:16px;margin-top:4px">—</div>
+        <div class="sl">State of charge</div>
+      </div>
+      <div class="sim-stat">
+        <div class="sv" id="sim-revenue" style="color:var(--green)">€0</div>
+        <div class="sl">Revenue earned today</div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ════════════════════════════════════════════════════════ HEATMAP -->
+<!-- ══════════════════════════════════════════════════════════════ HEATMAP -->
 <section id="heatmap">
   <div class="eyebrow fade">Chart 1 of 5</div>
   <h2 class="fade">What the Market Looks Like</h2>
-  <p class="lead fade">
-    Netherlands day-ahead prices across 14 test days and 24 hours.
-    Each cell is one hour. <span style="color:var(--purple);font-weight:500">Purple = negative prices</span>
-    (renewables flood the grid) and <span style="color:var(--orange);font-weight:500">deep orange = scarcity peaks</span>.
-    These are the signals the battery must read — one day ahead.
-  </p>
+  <p class="lead fade">Netherlands day-ahead prices across 14 test days and 24 hours.
+  <span style="color:var(--purple);font-weight:500">Purple = negative prices</span> (renewables flood the grid);
+  <span style="color:var(--orange);font-weight:500">deep orange = scarcity peaks</span>.
+  These are the signals the battery must read — one day ahead.</p>
   <div class="chart-wrap fade"><div id="heatmap-chart"></div></div>
   <div class="insight fade">
     <span class="insight-icon">⚡</span>
-    <div class="insight-text">
-      <strong>Why this matters for the LP</strong>
-      Negative price hours (purple) are golden: charge then, get paid to consume electricity.
-      The battery's entire profit depends on forecasting these relative rankings correctly.
-    </div>
+    <div class="insight-text"><strong>Why this matters for the LP</strong>
+    Negative price hours are golden — the grid pays you to consume. The battery's entire profit
+    depends on forecasting these relative rankings 24 hours early.</div>
   </div>
 </section>
 
-<!-- ════════════════════════════════════════════════════════ DISPATCH -->
+<!-- ══════════════════════════════════════════════════════════════ DISPATCH -->
 <section id="dispatch">
   <div class="eyebrow fade">Chart 2 of 5</div>
   <h2 class="fade">Charge Low, Sell High</h2>
-  <p class="lead fade">
-    72 hours of oracle dispatch decisions. The battery charges during cheap or negative-price
-    periods (blue, below zero) and discharges at peaks (orange, above zero).
-    The state of charge (grey line) governs what's physically possible.
-  </p>
+  <p class="lead fade">72 hours of oracle dispatch. The battery charges during cheap or negative-price periods
+  (blue, below zero) and discharges at peaks (orange, above zero).
+  The grey dashed line is the state of charge — what is physically possible at each moment.</p>
   <div class="chart-wrap fade"><div id="dispatch-chart"></div></div>
   <div class="legend fade">
-    <div class="legend-item"><div class="legend-rect" style="background:var(--orange);opacity:.75"></div>Discharge — selling into grid</div>
-    <div class="legend-item"><div class="legend-rect" style="background:var(--blue);opacity:.75"></div>Charge — buying from grid</div>
+    <div class="legend-item"><div class="legend-rect" style="background:var(--orange);opacity:.8"></div>Discharge — selling to grid</div>
+    <div class="legend-item"><div class="legend-rect" style="background:var(--blue);opacity:.8"></div>Charge — buying from grid</div>
     <div class="legend-item"><div class="legend-rect" style="background:#999;opacity:.5;height:3px;margin-top:3px"></div>State of charge (MWh)</div>
   </div>
 </section>
 
-<!-- ════════════════════════════════════════════════════════ REVENUE -->
+<!-- ══════════════════════════════════════════════════════════════ REVENUE -->
 <section id="revenue">
   <div class="eyebrow fade">Chart 3 of 5</div>
   <h2 class="fade">The Growing Gap</h2>
-  <p class="lead fade">
-    Cumulative revenue over 60 test days. The oracle (dashed) represents the upper bound of what
-    is physically achievable. Every missed negative-price hour and misjudged peak compounds the loss.
-  </p>
+  <p class="lead fade">Cumulative revenue over 60 test days. The oracle (dashed) is the upper bound of what
+  is physically achievable with perfect foresight. Every missed negative-price hour and misjudged
+  peak compounds the loss.</p>
   <div class="chart-wrap fade"><div id="revenue-chart"></div></div>
   <div class="insight fade">
     <span class="insight-icon">📉</span>
-    <div class="insight-text">
-      <strong>The compounding effect</strong>
-      The gap does not grow uniformly — it spikes on high-volatility days where price spikes
-      were missed or negative prices were forecast as positive.
-      These are exactly the days SPO+ is designed to target.
-    </div>
+    <div class="insight-text"><strong>The compounding effect</strong>
+    The gap spikes on high-volatility days where price events were missed or misforecast.
+    These are exactly the days SPO+ is designed to target by training on decision regret,
+    not prediction error.</div>
   </div>
 </section>
 
-<!-- ════════════════════════════════════════════════════════ EXPLAIN -->
+<!-- ══════════════════════════════════════════════════════════════ EXPLAIN -->
 <section id="explain">
   <div class="eyebrow fade">Charts 4 & 5 of 5</div>
   <h2 class="fade">When Forecast Errors Matter</h2>
-  <p class="lead fade">
-    Not all forecast errors are equal. A 10 €/MWh error at 3 am changes nothing;
-    the same error at 6 pm can flip the charge/discharge decision entirely.
-  </p>
+  <p class="lead fade">Not all forecast errors are equal. A 10 €/MWh error at 3 am changes nothing;
+  the same error at 6 pm can flip the charge/discharge decision entirely.</p>
   <div class="chart-row">
     <div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
         <strong style="color:var(--text)">Decision sensitivity clock</strong><br>
-        Arc radius = probability that a ±10 €/MWh forecast shift flips the dispatch decision.
-        Colour = average price at that hour.
-      </p>
+        Arc radius = probability that a ±10 €/MWh forecast shift flips dispatch. Colour = sensitivity level.</p>
       <div class="fade"><div id="clock-chart"></div></div>
     </div>
     <div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
         <strong style="color:var(--text)">Lower MAE → Higher revenue</strong><br>
-        Each point is one test day. The OLS trend confirms the core thesis: forecast accuracy
-        and decision quality move together.
-      </p>
+        Each point is one test day. OLS confirms: forecast accuracy and decision quality move together.</p>
       <div class="fade"><div id="scatter-chart"></div></div>
       <div class="fade" style="margin-top:28px">
-        <p style="font-size:12px;color:var(--subtle);margin-bottom:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:500">Model comparison · 60-day dispatch revenue</p>
+        <p style="font-size:11px;color:var(--subtle);margin-bottom:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:500">Model comparison · 60-day dispatch revenue</p>
         <table class="spo-table" id="spo-table"></table>
       </div>
     </div>
   </div>
   <div class="insight fade" style="margin-top:40px">
     <span class="insight-icon">🎯</span>
-    <div class="insight-text">
-      <strong>The SPO+ research agenda</strong>
-      Standard XGBoost minimises MSE uniformly across all hours.
-      Smart Predict-Then-Optimize (Elmachtoub & Grigas, 2022) trains the model to minimise
-      <em>decision regret</em> — concentrating accuracy precisely at the sensitive hours shown in the clock.
-    </div>
+    <div class="insight-text"><strong>The SPO+ research agenda</strong>
+    Standard XGBoost minimises MSE uniformly across all hours.
+    Smart Predict-Then-Optimize (Elmachtoub & Grigas, 2022) trains the model to minimise
+    <em>decision regret</em> — concentrating accuracy at the sensitive hours shown in the clock above.</div>
   </div>
 </section>
 
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script>
 const DATA = {data_json};
-const {{heatmap, dispatch, revenue, clock, scatter, spo, ols, stats}} = DATA;
+const {{heatmap,dispatch,revenue,clock,scatter,spo,ols,stats}} = DATA;
+const fmt = d3.format(",.0f");
+const fmtE = v => "€"+fmt(v);
+const $ = id => document.getElementById(id);
 
 // ── Tooltip ──────────────────────────────────────────────────────────────────
-const tip = document.getElementById("tip");
-function showTip(event, label, val) {{
-  tip.querySelector(".tip-label").textContent = label;
-  tip.querySelector(".tip-val").innerHTML = val;
-  tip.style.opacity = 1;
-  moveTip(event);
+const tip = $("tip");
+function showTip(ev,label,val){{
+  tip.querySelector(".tl").textContent=label;
+  tip.querySelector(".tv").innerHTML=val;
+  tip.style.opacity=1; moveTip(ev);
 }}
-function moveTip(event) {{
-  const {{clientX:x, clientY:y}} = event;
-  const tw = tip.offsetWidth, th = tip.offsetHeight;
-  tip.style.left = (x + 14 > window.innerWidth - tw - 8 ? x - tw - 14 : x + 14) + "px";
-  tip.style.top  = (y - th / 2 < 4 ? 4 : y - th / 2) + "px";
+function moveTip(ev){{
+  const {{clientX:x,clientY:y}}=ev;
+  const tw=tip.offsetWidth,th=tip.offsetHeight;
+  tip.style.left=(x+14>window.innerWidth-tw-8?x-tw-14:x+14)+"px";
+  tip.style.top=(y-th/2<4?4:y-th/2)+"px";
 }}
-function hideTip() {{ tip.style.opacity = 0; }}
+function hideTip(){{tip.style.opacity=0;}}
 
-// ── Colour helpers ────────────────────────────────────────────────────────────
 const priceColor = d3.scaleLinear()
-  .domain([-60, 0, 50, 120, 175])
-  .range(["#6D28D9","#F7F4EE","#FCD34D","#D4540A","#7F1D1D"])
-  .clamp(true);
+  .domain([-60,0,50,120,175])
+  .range(["#6D28D9","#F7F4EE","#FCD34D","#D4540A","#7F1D1D"]).clamp(true);
 
-const fmt = d3.format(",.0f");
-const fmtE = v => "€" + fmt(v);
+// ════════════════════════════════════════════════════════════════════
+// SIMULATION — D3 Force Particle System
+// ════════════════════════════════════════════════════════════════════
+(function initSim(){{
+  const simDay = dispatch.slice(0,24);   // first 24 h of data
+  const W = Math.min($("sim-svg-wrap").clientWidth||920, 920);
+  const H = 340;
+  const PAD = 16;
+  const iW = W - PAD*2;
 
-// ── 1 · PRICE HEATMAP ────────────────────────────────────────────────────────
-(function drawHeatmap() {{
-  const dates = [...new Set(heatmap.map(d => d.date))].sort();
-  const W0 = Math.min(document.querySelector("#heatmap-chart").clientWidth || 900, 960);
-  const cellW = Math.floor((W0 - 90) / 24);
-  const cellH = Math.max(22, Math.floor(Math.min(42, (460 - 50) / dates.length)));
-  const margin = {{top:30,right:20,bottom:44,left:86}};
-  const W = cellW * 24 + margin.left + margin.right;
-  const H = cellH * dates.length + margin.top + margin.bottom;
+  // Three zone centres (x only; y is always centred)
+  const ZX = [iW*0.16, iW*0.5, iW*0.84];
+  const ZY = H*0.5;
+  const ZW = iW/3;
 
-  const svg = d3.select("#heatmap-chart").append("svg")
-    .attr("width", W).attr("height", H);
-  const g = svg.append("g").attr("transform", `translate(${{margin.left}},${{margin.top}})`);
+  const N_E = 44;   // energy dots (move between zones)
+  const N_BG = 28;  // static background dots (always in zone 0)
+  const R = 5.5;    // dot radius
 
-  const xBand = d3.scaleBand().domain(d3.range(24)).range([0, cellW*24]).padding(0.06);
-  const yBand = d3.scaleBand().domain(dates).range([0, cellH*dates.length]).padding(0.06);
+  const initBatt = Math.round(simDay[0].soc / 2 * N_E);
 
-  g.selectAll("rect.cell").data(heatmap).join("rect")
-    .attr("class","cell")
-    .attr("x", d => xBand(d.hour)).attr("y", d => yBand(d.date))
-    .attr("width", xBand.bandwidth()).attr("height", yBand.bandwidth())
-    .attr("fill", d => priceColor(d.price))
-    .attr("rx", 2)
-    .on("mousemove", (ev,d) => showTip(ev, `${{d.date}} · ${{d.hour}}:00h`,
-      `<span style="color:${{priceColor(d.price)}};font-weight:600">${{d.price > 0 ? "+" : ""}}${{d.price}} €/MWh</span>`))
-    .on("mouseleave", hideTip);
+  // Build dot array
+  const dots = [];
+  for (let i=0; i<N_E+N_BG; i++) {{
+    const isBg = i >= N_E;
+    const zone = (!isBg && i < initBatt) ? 1 : 0;
+    dots.push({{
+      id:i, bg:isBg, zone,
+      flying:false,           // true while flying off-screen to "sold"
+      x: ZX[zone]+(Math.random()-.5)*90,
+      y: ZY+(Math.random()-.5)*110,
+      vx:0, vy:0
+    }});
+  }}
 
-  // X axis — hours
-  const xAx = d3.axisBottom(xBand).tickValues(d3.range(0,24,3)).tickFormat(h => h+"h").tickSize(4);
-  g.append("g").attr("transform",`translate(0,${{cellH*dates.length+4}})`).call(xAx)
-    .call(g => g.select(".domain").remove())
-    .call(g => g.selectAll("text").style("font-size","11px").style("fill","#78716C"));
+  // SVG
+  const svg = d3.select("#sim-svg-wrap").append("svg")
+    .attr("width",W).attr("height",H);
+  const g = svg.append("g").attr("transform",`translate(${{PAD}},0)`);
 
-  // Y axis — dates
-  const yAx = d3.axisLeft(yBand).tickFormat(d => {{
-    const dt = new Date(d+"T00:00:00");
-    return d3.timeFormat("%d %b")(dt);
-  }}).tickSize(0);
-  g.append("g").attr("transform","translate(-8,0)").call(yAx)
-    .call(g => g.select(".domain").remove())
-    .call(g => g.selectAll("text").style("font-size","11px").style("fill","#78716C"));
+  // Zone backgrounds
+  const zoneBg  = ["#F2EDE5","#E8EEF6","#E8F2EA"];
+  const zoneLbl = [["GRID","SOURCE"],["BATTERY","STORAGE"],["SOLD\nTO","GRID"]];
+  for (let z=0;z<3;z++) {{
+    g.append("rect")
+      .attr("x",z*ZW+4).attr("y",8)
+      .attr("width",ZW-8).attr("height",H-16)
+      .attr("rx",14).attr("fill",zoneBg[z]).attr("opacity",.82);
+    zoneLbl[z].forEach((line,li)=>
+      g.append("text").attr("x",ZX[z]).attr("y",28+li*14)
+       .attr("text-anchor","middle")
+       .style("font-size","9.5px").style("font-weight","600")
+       .style("fill","#B0A89E").style("letter-spacing","0.12em").text(line));
+  }}
 
-  // Colour legend
-  const lgW = 200, lgH = 10;
-  const lg = svg.append("g").attr("transform", `translate(${{margin.left}},${{H-12}})`);
-  const defs = svg.append("defs");
-  const grad = defs.append("linearGradient").attr("id","hm-grad").attr("x1","0%").attr("x2","100%");
-  [[-60,"#6D28D9"],[0,"#F7F4EE"],[50,"#FCD34D"],[120,"#D4540A"],[175,"#7F1D1D"]].forEach(([v,c]) => {{
-    grad.append("stop").attr("offset", `${{(v+60)/235*100}}%`).attr("stop-color",c);
+  // Flow arrows (shown during charge/discharge)
+  const arr01 = g.append("text").attr("x",(ZX[0]+ZX[1])/2).attr("y",ZY+5)
+    .attr("text-anchor","middle").style("font-size","22px").style("opacity",0)
+    .style("fill","#8EAEBF").text("→");
+  const arr12 = g.append("text").attr("x",(ZX[1]+ZX[2])/2).attr("y",ZY+5)
+    .attr("text-anchor","middle").style("font-size","22px").style("opacity",0)
+    .style("fill","#D4540A").text("→");
+
+  // Dot elements
+  const dotColor = d => {{
+    if (d.bg)      return "#C4B9AD";
+    if (d.flying)  return "#D4540A";
+    if (d.zone===1) return "#1B5E96";
+    if (d.zone===2) return "#1B7A45";
+    return "#8EAEBF";
+  }};
+  const dotOp = d => d.bg ? 0.28 : d.flying ? 0.85 : 0.9;
+
+  const circles = g.selectAll("circle.d").data(dots).join("circle")
+    .attr("class","d").attr("r",R)
+    .attr("fill", dotColor).attr("opacity", dotOp).attr("stroke","none");
+
+  // Force targets
+  const tx = d => d.flying ? iW+120 : ZX[d.zone];
+  const ty = ()  => ZY;
+
+  const sim = d3.forceSimulation(dots)
+    .force("x", d3.forceX(tx).strength(d => d.flying?0.38:0.07))
+    .force("y", d3.forceY(ty).strength(0.065))
+    .force("collide", d3.forceCollide(R+1.6).strength(0.88))
+    .force("charge", d3.forceManyBody().strength(-1.2))
+    .alphaDecay(0.015)
+    .on("tick", () => {{
+      circles
+        .attr("cx", d=>d.x).attr("cy", d=>d.y)
+        .attr("fill", dotColor)
+        .attr("opacity", d => {{
+          if (d.bg)     return 0.25;
+          if (d.flying) return Math.max(0, 1-(d.x-iW*0.68)/(iW*0.32));
+          return 0.9;
+        }});
+
+      // Recycle dots that flew off-screen back to source zone
+      dots.forEach(d=>{{
+        if (d.flying && d.x > iW+60) {{
+          d.flying=false; d.zone=0;
+          d.x=ZX[0]+(Math.random()-.5)*80;
+          d.y=ZY+(Math.random()-.5)*100;
+        }}
+      }});
+    }});
+
+  let curH=0, cumRev=0, playing=false, timer=null;
+
+  function updateForces(){{
+    sim.force("x", d3.forceX(tx).strength(d=>d.flying?0.38:0.07));
+  }}
+
+  function jump(h){{
+    // Reset dots to hour-0 initial state, then fast-forward
+    dots.forEach(d=>{{d.flying=false;d.zone=0;}});
+    let b=0;
+    dots.filter(d=>!d.bg).forEach(d=>{{ if(b<initBatt){{d.zone=1;b++;}} }});
+    cumRev=0;
+
+    for (let i=1;i<=h;i++) {{
+      const D=simDay[i];
+      const target=Math.round(D.soc/2*N_E);
+      const eDots=dots.filter(d=>!d.bg&&!d.flying);
+      const inBatt=eDots.filter(d=>d.zone===1).length;
+      const delta=target-inBatt;
+      if (delta>0) {{
+        let mv=0;
+        eDots.forEach(d=>{{if(d.zone===0&&mv<delta){{d.zone=1;mv++;}}}});
+      }} else if (delta<0) {{
+        let mv=0;
+        eDots.forEach(d=>{{if(d.zone===1&&mv<-delta){{
+          d.zone=2;
+          cumRev+=Math.max(0,D.price)*(2/N_E);
+          mv++;
+        }}}});
+      }}
+    }}
+    // Scatter dots into their zones
+    dots.forEach(d=>{{
+      const z=d.zone;
+      d.x=ZX[z]+(Math.random()-.5)*80; d.y=ZY+(Math.random()-.5)*100;
+    }});
+    updateForces();
+    sim.alpha(0.55).restart();
+    refreshUI(h);
+    curH=h;
+  }}
+
+  function stepHour(h){{
+    const D=simDay[h];
+    const target=Math.round(D.soc/2*N_E);
+    const eDots=dots.filter(d=>!d.bg&&!d.flying);
+    const inBatt=eDots.filter(d=>d.zone===1).length;
+    const delta=target-inBatt;
+
+    arr01.style("opacity",0); arr12.style("opacity",0);
+
+    if (delta>0){{
+      let mv=0;
+      eDots.forEach(d=>{{if(d.zone===0&&mv<delta){{d.zone=1;mv++;}}}});
+      arr01.style("opacity",.55);
+    }} else if(delta<0){{
+      let mv=0;
+      eDots.forEach(d=>{{if(d.zone===1&&mv<-delta){{
+        d.zone=2; d.flying=true;
+        cumRev+=Math.max(0,D.price)*(2/N_E);
+        mv++;
+      }}}});
+      arr12.style("opacity",.55);
+    }}
+
+    updateForces();
+    sim.alpha(0.45).restart();
+    refreshUI(h);
+    curH=h;
+
+    setTimeout(()=>{{arr01.style("opacity",0);arr12.style("opacity",0);}}, 700);
+  }}
+
+  function refreshUI(h){{
+    const D=simDay[h];
+    const realBatt=dots.filter(d=>!d.bg&&!d.flying&&d.zone===1).length;
+    const socPct=Math.round(realBatt/N_E*100);
+    const status=D.charge>0.1?"⚡ Charging":D.discharge>0.1?"💰 Discharging":"— Idle";
+    const priceStr=(D.price>0?"+":"")+D.price.toFixed(0)+" €/MWh";
+
+    $("sim-price").textContent=priceStr;
+    $("sim-price").style.color=D.price<0?"#6D28D9":D.price>100?"#D4540A":"var(--text)";
+    $("sim-status").textContent=status;
+    $("sim-status").style.color=D.charge>0.1?"#1B5E96":D.discharge>0.1?"#D4540A":"var(--muted)";
+    $("sim-soc").textContent=(realBatt/N_E*2).toFixed(1)+" MWh ("+socPct+"%)";
+    $("sim-soc-bar").style.width=socPct+"%";
+    $("sim-revenue").textContent=fmtE(Math.round(cumRev));
+    $("sim-hour-disp").textContent=String(h).padStart(2,"0")+":00";
+    $("sim-slider").value=h;
+  }}
+
+  // Controls
+  const SPEED=950;
+  function advance(){{
+    if(!playing) return;
+    stepHour(curH);
+    if(curH>=23){{
+      playing=false;
+      $("sim-play-btn").textContent="↺ Replay";
+      $("sim-play-btn").dataset.mode="replay";
+      return;
+    }}
+    curH++;
+    timer=setTimeout(advance,SPEED);
+  }}
+
+  $("sim-play-btn").addEventListener("click",function(){{
+    if(this.dataset.mode==="replay"){{
+      this.dataset.mode=""; playing=true;
+      this.textContent="⏸ Pause";
+      curH=0; jump(0); setTimeout(advance,400);
+    }} else {{
+      playing=!playing;
+      this.textContent=playing?"⏸ Pause":"▶ Play";
+      if(playing) advance();
+      else if(timer){{clearTimeout(timer);timer=null;}}
+    }}
   }});
-  lg.append("rect").attr("width",lgW).attr("height",lgH).attr("rx",3).attr("fill","url(#hm-grad)");
-  ["−60","0","","120","175+"].forEach((t,i) => {{
-    const x = lgW/4*i;
-    lg.append("text").attr("x",x).attr("y",lgH+13).style("font-size","9px").style("fill","#A8A29E").text(t+" €/MWh");
+
+  $("sim-slider").addEventListener("input",function(){{
+    playing=false; if(timer){{clearTimeout(timer);timer=null;}}
+    $("sim-play-btn").textContent="▶ Play";
+    $("sim-play-btn").dataset.mode="";
+    jump(parseInt(this.value));
   }});
+
+  // Auto-start after a short delay
+  setTimeout(()=>{{
+    playing=true; $("sim-play-btn").textContent="⏸ Pause"; advance();
+  }},900);
 }})();
 
-// ── 2 · DISPATCH PORTRAIT ────────────────────────────────────────────────────
-(function drawDispatch() {{
-  const margin = {{top:16,right:24,bottom:44,left:48}};
-  const W0 = Math.min(document.querySelector("#dispatch-chart").clientWidth || 920, 960);
-  const W = W0, H = 340;
-  const iW = W - margin.left - margin.right;
-  const iH = H - margin.top - margin.bottom;
+// ════════════════════════════════════════════════════════════════════
+// CHART 1 · PRICE HEATMAP
+// ════════════════════════════════════════════════════════════════════
+(function drawHeatmap(){{
+  const dates=[...new Set(heatmap.map(d=>d.date))].sort();
+  const W0=Math.min($("heatmap-chart").clientWidth||900,960);
+  const cellW=Math.floor((W0-90)/24);
+  const cellH=Math.max(22,Math.floor(Math.min(42,(460-50)/dates.length)));
+  const m={{t:30,r:20,b:44,l:86}};
+  const W=cellW*24+m.l+m.r, H=cellH*dates.length+m.t+m.b;
+  const svg=d3.select("#heatmap-chart").append("svg").attr("width",W).attr("height",H);
+  const g=svg.append("g").attr("transform",`translate(${{m.l}},${{m.t}})`);
+  const xB=d3.scaleBand().domain(d3.range(24)).range([0,cellW*24]).padding(.06);
+  const yB=d3.scaleBand().domain(dates).range([0,cellH*dates.length]).padding(.06);
+  g.selectAll("rect.c").data(heatmap).join("rect").attr("class","c")
+    .attr("x",d=>xB(d.hour)).attr("y",d=>yB(d.date))
+    .attr("width",xB.bandwidth()).attr("height",yB.bandwidth())
+    .attr("fill",d=>priceColor(d.price)).attr("rx",2)
+    .on("mousemove",(ev,d)=>showTip(ev,`${{d.date}} · ${{d.hour}}:00h`,
+      `<span style="color:${{priceColor(d.price)}};font-weight:600">${{d.price>0?"+":""}}${{d.price}} €/MWh</span>`))
+    .on("mouseleave",hideTip);
+  g.append("g").attr("transform",`translate(0,${{cellH*dates.length+4}})`)
+    .call(d3.axisBottom(xB).tickValues(d3.range(0,24,3)).tickFormat(h=>h+"h").tickSize(4))
+    .call(g=>g.select(".domain").remove())
+    .call(g=>g.selectAll("text").style("font-size","11px").style("fill","#78716C"));
+  g.append("g").attr("transform","translate(-8,0)")
+    .call(d3.axisLeft(yB).tickFormat(d=>{{const dt=new Date(d+"T00:00:00");return d3.timeFormat("%d %b")(dt);}}).tickSize(0))
+    .call(g=>g.select(".domain").remove())
+    .call(g=>g.selectAll("text").style("font-size","11px").style("fill","#78716C"));
+  // Legend
+  const lgW=200, defs=svg.append("defs");
+  const grad=defs.append("linearGradient").attr("id","hm-g").attr("x1","0%").attr("x2","100%");
+  [[-60,"#6D28D9"],[0,"#F7F4EE"],[50,"#FCD34D"],[120,"#D4540A"],[175,"#7F1D1D"]].forEach(([v,c])=>
+    grad.append("stop").attr("offset",`${{(v+60)/235*100}}%`).attr("stop-color",c));
+  const lg=svg.append("g").attr("transform",`translate(${{m.l}},${{H-12}})`);
+  lg.append("rect").attr("width",lgW).attr("height",10).attr("rx",3).attr("fill","url(#hm-g)");
+  ["−60","0","","120","175+ €/MWh"].forEach((t,i)=>
+    lg.append("text").attr("x",lgW/4*i).attr("y",23)
+      .style("font-size","9px").style("fill","#A8A29E").text(t));
+}})();
 
-  const svg = d3.select("#dispatch-chart").append("svg").attr("width",W).attr("height",H);
-  const g = svg.append("g").attr("transform",`translate(${{margin.left}},${{margin.top}})`);
-
-  const times = dispatch.map(d => new Date(d.dt));
-  const x = d3.scaleTime().domain(d3.extent(times)).range([0,iW]);
-  const midY = iH * 0.54;  // zero line
-  const yPrice = d3.scaleLinear()
-    .domain([d3.min(dispatch,d=>d.price)*1.05, d3.max(dispatch,d=>d.price)*1.1])
-    .range([iH, 0]).clamp(true);
-  const barScale = midY / 1.05;   // MW 0→1 maps to this many px
-  const socScale = d3.scaleLinear().domain([0,2]).range([12, 0]);
-
-  // Background price bands (subtle colour behind chart)
-  const bw = iW / dispatch.length;
-  g.selectAll("rect.pbg").data(dispatch).join("rect")
-    .attr("x", (_,i)=>i*bw).attr("y",0).attr("width",bw).attr("height",iH)
-    .attr("fill", d => priceColor(d.price)).attr("opacity",.13);
-
-  // Zero line
+// ════════════════════════════════════════════════════════════════════
+// CHART 2 · DISPATCH PORTRAIT
+// ════════════════════════════════════════════════════════════════════
+(function drawDispatch(){{
+  const m={{t:16,r:24,b:44,l:48}};
+  const W=Math.min($("dispatch-chart").clientWidth||920,960), H=340;
+  const iW=W-m.l-m.r, iH=H-m.t-m.b;
+  const svg=d3.select("#dispatch-chart").append("svg").attr("width",W).attr("height",H);
+  const g=svg.append("g").attr("transform",`translate(${{m.l}},${{m.t}})`);
+  const times=dispatch.map(d=>new Date(d.dt));
+  const x=d3.scaleTime().domain(d3.extent(times)).range([0,iW]);
+  const midY=iH*0.54, bw=iW/dispatch.length, bs=midY/1.05;
+  g.selectAll("rect.pb").data(dispatch).join("rect")
+    .attr("x",(_,i)=>i*bw).attr("y",0).attr("width",bw).attr("height",iH)
+    .attr("fill",d=>priceColor(d.price)).attr("opacity",.12);
   g.append("line").attr("x1",0).attr("x2",iW).attr("y1",midY).attr("y2",midY)
     .attr("stroke","#C7C0B8").attr("stroke-width",1);
-
-  // Discharge bars (above midY)
-  g.selectAll("rect.dis").data(dispatch).join("rect")
-    .attr("class","dis")
-    .attr("x", (_,i)=>i*bw+1).attr("width",bw-2)
-    .attr("y", d => midY - d.discharge*barScale)
-    .attr("height", d => d.discharge*barScale)
-    .attr("fill","#D4540A").attr("opacity",.75).attr("rx",1)
-    .on("mousemove",(ev,d)=>showTip(ev,`${{d.dt.slice(0,13)}}h`,
-      `Discharge: <b>${{d.discharge.toFixed(2)}} MW</b><br>Price: ${{d.price}} €/MWh`))
-    .on("mouseleave",hideTip);
-
-  // Charge bars (below midY)
-  g.selectAll("rect.chg").data(dispatch).join("rect")
-    .attr("class","chg")
+  g.selectAll("rect.dis").data(dispatch).join("rect").attr("class","dis")
     .attr("x",(_,i)=>i*bw+1).attr("width",bw-2)
-    .attr("y", midY).attr("height", d => d.charge*barScale)
-    .attr("fill","#1B5E96").attr("opacity",.75).attr("rx",1)
-    .on("mousemove",(ev,d)=>showTip(ev,`${{d.dt.slice(0,13)}}h`,
-      `Charge: <b>${{d.charge.toFixed(2)}} MW</b><br>Price: ${{d.price}} €/MWh`))
+    .attr("y",d=>midY-d.discharge*bs).attr("height",d=>d.discharge*bs)
+    .attr("fill","#D4540A").attr("opacity",.78).attr("rx",1)
+    .on("mousemove",(ev,d)=>showTip(ev,`${{d.dt.slice(0,13)}}h`,`Discharge: <b>${{d.discharge.toFixed(2)}} MW</b><br>Price: ${{d.price}} €/MWh`))
     .on("mouseleave",hideTip);
-
-  // SOC line
-  const socLine = d3.line()
-    .x((_,i)=>i*bw+bw/2)
-    .y(d => midY - socScale(d.soc)*barScale - d.discharge*barScale - 2)
-    .curve(d3.curveMonotoneX);
+  g.selectAll("rect.chg").data(dispatch).join("rect").attr("class","chg")
+    .attr("x",(_,i)=>i*bw+1).attr("width",bw-2)
+    .attr("y",midY).attr("height",d=>d.charge*bs)
+    .attr("fill","#1B5E96").attr("opacity",.78).attr("rx",1)
+    .on("mousemove",(ev,d)=>showTip(ev,`${{d.dt.slice(0,13)}}h`,`Charge: <b>${{d.charge.toFixed(2)}} MW</b><br>Price: ${{d.price}} €/MWh`))
+    .on("mouseleave",hideTip);
+  const socLine=d3.line().x((_,i)=>i*bw+bw/2).y(d=>midY-d.soc/2*bs*1.6).curve(d3.curveMonotoneX);
   g.append("path").datum(dispatch).attr("d",socLine)
-    .attr("fill","none").attr("stroke","#999").attr("stroke-width",1.5)
-    .attr("stroke-dasharray","4,3").attr("opacity",.7);
-
-  // Price line
-  const priceLine = d3.line()
-    .x((_,i)=>i*bw+bw/2).y(d=>yPrice(d.price)).curve(d3.curveMonotoneX);
+    .attr("fill","none").attr("stroke","#888").attr("stroke-width",1.5).attr("stroke-dasharray","4,3").attr("opacity",.65);
+  const priceLine=d3.line().x((_,i)=>i*bw+bw/2).y(d=>{{
+    const py=d3.scaleLinear().domain([d3.min(dispatch,d=>d.price),d3.max(dispatch,d=>d.price)]).range([iH-8,8]);
+    return py(d.price);
+  }}).curve(d3.curveMonotoneX);
   g.append("path").datum(dispatch).attr("d",priceLine)
-    .attr("fill","none").attr("stroke","#1C1917").attr("stroke-width",1.4).attr("opacity",.35);
-
-  // Midnight guide lines
-  dispatch.forEach((d,i)=>{{ if(d.dt.endsWith("T00:00")) {{
-    g.append("line").attr("x1",i*bw).attr("x2",i*bw)
-     .attr("y1",0).attr("y2",iH).attr("stroke","#C7C0B8").attr("stroke-width",0.8).attr("stroke-dasharray","3,3");
+    .attr("fill","none").attr("stroke","#1C1917").attr("stroke-width",1.3).attr("opacity",.28);
+  dispatch.forEach((d,i)=>{{if(d.dt.endsWith("T00:00")){{
+    g.append("line").attr("x1",i*bw).attr("x2",i*bw).attr("y1",0).attr("y2",iH)
+      .attr("stroke","#C7C0B8").attr("stroke-width",.8).attr("stroke-dasharray","3,3");
     g.append("text").attr("x",i*bw+4).attr("y",12)
-     .style("font-size","10px").style("fill","#A8A29E")
-     .text(new Date(d.dt).toLocaleDateString("en-GB",{{day:"numeric",month:"short"}}));
+      .style("font-size","10px").style("fill","#A8A29E")
+      .text(new Date(d.dt).toLocaleDateString("en-GB",{{day:"numeric",month:"short"}}));
   }}}});
-
-  // Y axis
-  const yAx = d3.axisLeft(d3.scaleLinear().domain([-1,1]).range([midY+barScale,midY-barScale]))
-    .ticks(3).tickFormat(d=>Math.abs(d)+" MW");
-  g.append("g").call(yAx).call(g=>g.select(".domain").remove())
-    .call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
-
-  // Labels
-  g.append("text").attr("x",iW).attr("y",midY-barScale*0.5)
-    .attr("text-anchor","end").style("font-size","10px").style("fill","#D4540A").text("discharge ↑");
-  g.append("text").attr("x",iW).attr("y",midY+barScale*0.5)
-    .attr("text-anchor","end").style("font-size","10px").style("fill","#1B5E96").text("charge ↓");
+  g.append("text").attr("x",iW).attr("y",midY-bs*0.45).attr("text-anchor","end")
+    .style("font-size","10px").style("fill","#D4540A").text("discharge ↑");
+  g.append("text").attr("x",iW).attr("y",midY+bs*0.45).attr("text-anchor","end")
+    .style("font-size","10px").style("fill","#1B5E96").text("charge ↓");
 }})();
 
-// ── 3 · REVENUE RACE ─────────────────────────────────────────────────────────
-(function drawRevenue() {{
-  const margin = {{top:20,right:80,bottom:44,left:68}};
-  const W0 = Math.min(document.querySelector("#revenue-chart").clientWidth || 920, 960);
-  const W = W0, H = 320;
-  const iW = W-margin.left-margin.right, iH = H-margin.top-margin.bottom;
-
-  const svg = d3.select("#revenue-chart").append("svg").attr("width",W).attr("height",H);
-  const g = svg.append("g").attr("transform",`translate(${{margin.left}},${{margin.top}})`);
-
-  const allVals = revenue.flatMap(d=>[d.oracle,d.naive]);
-  const x = d3.scaleLinear().domain([1,revenue.length]).range([0,iW]);
-  const y = d3.scaleLinear().domain([Math.min(0,d3.min(allVals))-500, d3.max(allVals)*1.05]).range([iH,0]);
-
-  // Gap area
-  const gapArea = d3.area()
-    .x(d=>x(d.day)).y0(d=>y(d.naive)).y1(d=>y(d.oracle)).curve(d3.curveMonotoneX);
-  const defs = svg.append("defs");
-  const gapGrad = defs.append("linearGradient").attr("id","gap-grad").attr("x1","0%").attr("x2","100%");
-  gapGrad.append("stop").attr("offset","0%").attr("stop-color","#D4540A").attr("stop-opacity",.06);
-  gapGrad.append("stop").attr("offset","100%").attr("stop-color","#D4540A").attr("stop-opacity",.18);
-  g.append("path").datum(revenue).attr("d",gapArea).attr("fill","url(#gap-grad)");
-
-  // Oracle line
-  const oLine = d3.line().x(d=>x(d.day)).y(d=>y(d.oracle)).curve(d3.curveMonotoneX);
-  g.append("path").datum(revenue).attr("d",oLine)
-    .attr("fill","none").attr("stroke","#1B7A45").attr("stroke-width",1.5)
-    .attr("stroke-dasharray","5,4").attr("opacity",.7);
-
-  // Naive line
-  const nLine = d3.line().x(d=>x(d.day)).y(d=>y(d.naive)).curve(d3.curveMonotoneX);
-  g.append("path").datum(revenue).attr("d",nLine)
+// ════════════════════════════════════════════════════════════════════
+// CHART 3 · REVENUE RACE
+// ════════════════════════════════════════════════════════════════════
+(function drawRevenue(){{
+  const m={{t:20,r:80,b:44,l:68}};
+  const W=Math.min($("revenue-chart").clientWidth||920,960),H=320;
+  const iW=W-m.l-m.r,iH=H-m.t-m.b;
+  const svg=d3.select("#revenue-chart").append("svg").attr("width",W).attr("height",H);
+  const g=svg.append("g").attr("transform",`translate(${{m.l}},${{m.t}})`);
+  const allV=revenue.flatMap(d=>[d.oracle,d.naive]);
+  const x=d3.scaleLinear().domain([1,revenue.length]).range([0,iW]);
+  const y=d3.scaleLinear().domain([Math.min(0,d3.min(allV))-500,d3.max(allV)*1.05]).range([iH,0]);
+  const defs=svg.append("defs");
+  const gg=defs.append("linearGradient").attr("id","gap-g").attr("x1","0%").attr("x2","100%");
+  gg.append("stop").attr("offset","0%").attr("stop-color","#D4540A").attr("stop-opacity",.05);
+  gg.append("stop").attr("offset","100%").attr("stop-color","#D4540A").attr("stop-opacity",.18);
+  g.append("path").datum(revenue)
+    .attr("d",d3.area().x(d=>x(d.day)).y0(d=>y(d.naive)).y1(d=>y(d.oracle)).curve(d3.curveMonotoneX))
+    .attr("fill","url(#gap-g)");
+  g.append("path").datum(revenue)
+    .attr("d",d3.line().x(d=>x(d.day)).y(d=>y(d.oracle)).curve(d3.curveMonotoneX))
+    .attr("fill","none").attr("stroke","#1B7A45").attr("stroke-width",1.5).attr("stroke-dasharray","5,4").attr("opacity",.7);
+  g.append("path").datum(revenue)
+    .attr("d",d3.line().x(d=>x(d.day)).y(d=>y(d.naive)).curve(d3.curveMonotoneX))
     .attr("fill","none").attr("stroke","#1B5E96").attr("stroke-width",2.2);
-
-  // Hover scrubber
-  const scrub = g.append("line").attr("y1",0).attr("y2",iH)
-    .attr("stroke","#C7C0B8").attr("stroke-width",1).attr("opacity",0);
-  const bisect = d3.bisector(d=>d.day).left;
-  svg.on("mousemove", ev => {{
-    const [mx] = d3.pointer(ev, g.node());
-    const day = Math.round(x.invert(mx));
-    const idx = Math.max(0,Math.min(bisect(revenue, day),revenue.length-1));
-    const d = revenue[idx];
+  const scrub=g.append("line").attr("y1",0).attr("y2",iH).attr("stroke","#C7C0B8").attr("stroke-width",1).attr("opacity",0);
+  const bis=d3.bisector(d=>d.day).left;
+  svg.on("mousemove",ev=>{{
+    const [mx]=d3.pointer(ev,g.node());
+    const day=Math.round(x.invert(mx));
+    const d=revenue[Math.max(0,Math.min(bis(revenue,day),revenue.length-1))];
     scrub.attr("x1",x(d.day)).attr("x2",x(d.day)).attr("opacity",.6);
-    showTip(ev,`Day ${{d.day}} · ${{d.date}}`,
-      `Oracle: <b>${{fmtE(d.oracle)}}</b><br>Naive: <b>${{fmtE(d.naive)}}</b><br>Gap: ${{fmtE(d.oracle-d.naive)}}`);
-  }}).on("mouseleave", ()=>{{ scrub.attr("opacity",0); hideTip(); }});
-
-  // Axes
-  g.append("g").attr("transform",`translate(0,${{iH}})`).call(d3.axisBottom(x).ticks(10).tickFormat(d=>`Day ${{d}}`))
+    showTip(ev,`Day ${{d.day}} · ${{d.date}}`,`Oracle: <b>${{fmtE(d.oracle)}}</b><br>Naive: <b>${{fmtE(d.naive)}}</b><br>Gap: ${{fmtE(d.oracle-d.naive)}}`);
+  }}).on("mouseleave",()=>{{scrub.attr("opacity",0);hideTip();}});
+  g.append("g").attr("transform",`translate(0,${{iH}})`)
+    .call(d3.axisBottom(x).ticks(10).tickFormat(d=>`Day ${{d}}`))
     .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
   g.append("g").call(d3.axisLeft(y).ticks(5).tickFormat(fmtE))
     .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
-
-  // End labels
-  const last = revenue[revenue.length-1];
-  g.append("text").attr("x",iW+6).attr("y",y(last.oracle))
-    .attr("dominant-baseline","middle").style("font-size","11px").style("fill","#1B7A45").text("Oracle");
-  g.append("text").attr("x",iW+6).attr("y",y(last.naive))
-    .attr("dominant-baseline","middle").style("font-size","11px").style("fill","#1B5E96").text("Naive");
-
-  // Gap annotation
-  const midDay = Math.floor(revenue.length*0.75);
-  const md = revenue[midDay];
-  g.append("text").attr("x",x(md.day)).attr("y",(y(md.oracle)+y(md.naive))/2)
+  const last=revenue[revenue.length-1];
+  g.append("text").attr("x",iW+6).attr("y",y(last.oracle)).attr("dominant-baseline","middle")
+    .style("font-size","11px").style("fill","#1B7A45").text("Oracle");
+  g.append("text").attr("x",iW+6).attr("y",y(last.naive)).attr("dominant-baseline","middle")
+    .style("font-size","11px").style("fill","#1B5E96").text("Naive");
+  const midD=revenue[Math.floor(revenue.length*.72)];
+  g.append("text").attr("x",x(midD.day)).attr("y",(y(midD.oracle)+y(midD.naive))/2)
     .attr("text-anchor","middle").attr("dominant-baseline","middle")
     .style("font-size","11px").style("fill","#D4540A").style("font-style","italic")
-    .text(`${{fmtE(md.oracle-md.naive)}} gap`);
+    .text(`${{fmtE(midD.oracle-midD.naive)}} gap`);
 }})();
 
-// ── 4 · DECISION CLOCK ───────────────────────────────────────────────────────
-(function drawClock() {{
-  const S = 340;
-  const cx = S/2, cy = S/2;
-  const maxR = S/2 - 28, minR = S/2 - 100;
-  const overallSens = (clock.reduce((a,d)=>a+d.sensitivity,0)/clock.length*100).toFixed(1);
-
-  const svg = d3.select("#clock-chart").append("svg").attr("width",S).attr("height",S);
-  const g = svg.append("g").attr("transform",`translate(${{cx}},${{cy}})`);
-
-  // Grid circles
-  [0.25,0.5,0.75,1].forEach(f => {{
+// ════════════════════════════════════════════════════════════════════
+// CHART 4 · DECISION CLOCK
+// ════════════════════════════════════════════════════════════════════
+(function drawClock(){{
+  const S=330, cx=S/2, cy=S/2;
+  const maxR=S/2-28, minR=S/2-100;
+  const overallS=(clock.reduce((a,d)=>a+d.sensitivity,0)/clock.length*100).toFixed(1);
+  const svg=d3.select("#clock-chart").append("svg").attr("width",S).attr("height",S);
+  const g=svg.append("g").attr("transform",`translate(${{cx}},${{cy}})`);
+  [.25,.5,.75,1].forEach(f=>
     g.append("circle").attr("r",minR+(maxR-minR)*f)
-     .attr("fill","none").attr("stroke","#E5E0D8").attr("stroke-width",.8);
-  }});
-
-  // Arcs
-  const arc = d3.arc()
-    .innerRadius(minR)
-    .outerRadius(d => minR + (maxR-minR)*d.sensitivity)
-    .startAngle(d => (d.hour/24)*2*Math.PI - Math.PI/2)
-    .endAngle(d => ((d.hour+1)/24)*2*Math.PI - Math.PI/2)
-    .padAngle(0.025).cornerRadius(3);
-
-  const clr = d3.scaleSequential(d3.interpolateYlOrRd).domain([0,1]);
-
-  g.selectAll("path.seg").data(clock).join("path")
-    .attr("class","seg").attr("d",arc)
-    .attr("fill", d => clr(d.sensitivity))
-    .attr("opacity",.88)
-    .on("mousemove",(ev,d)=>showTip(ev,`${{d.hour}}:00 – ${{d.hour+1}}:00`,
+     .attr("fill","none").attr("stroke","#E5E0D8").attr("stroke-width",.8));
+  const arc=d3.arc()
+    .innerRadius(minR).outerRadius(d=>minR+(maxR-minR)*d.sensitivity)
+    .startAngle(d=>(d.hour/24)*2*Math.PI-Math.PI/2)
+    .endAngle(d=>((d.hour+1)/24)*2*Math.PI-Math.PI/2)
+    .padAngle(.025).cornerRadius(3);
+  const clr=d3.scaleSequential(d3.interpolateYlOrRd).domain([0,1]);
+  g.selectAll("path.seg").data(clock).join("path").attr("class","seg")
+    .attr("d",arc).attr("fill",d=>clr(d.sensitivity)).attr("opacity",.88)
+    .on("mousemove",(ev,d)=>showTip(ev,`${{d.hour}}:00–${{d.hour+1}}:00`,
       `Flip rate: <b>${{(d.sensitivity*100).toFixed(0)}}%</b><br>Avg impact: ${{fmtE(d.impact)}}`))
     .on("mouseleave",hideTip);
-
-  // Hour labels (every 3h)
-  d3.range(0,24,3).forEach(h => {{
-    const angle = (h/24)*2*Math.PI - Math.PI/2;
-    const r = maxR + 16;
-    g.append("text")
-     .attr("x", r*Math.cos(angle)).attr("y", r*Math.sin(angle))
-     .attr("text-anchor","middle").attr("dominant-baseline","middle")
-     .style("font-size","11px").style("fill","#A8A29E")
-     .text(h+"h");
+  d3.range(0,24,3).forEach(h=>{{
+    const angle=(h/24)*2*Math.PI-Math.PI/2;
+    const r=maxR+16;
+    g.append("text").attr("x",r*Math.cos(angle)).attr("y",r*Math.sin(angle))
+      .attr("text-anchor","middle").attr("dominant-baseline","middle")
+      .style("font-size","11px").style("fill","#A8A29E").text(h+"h");
   }});
-
-  // Centre label
   g.append("text").attr("text-anchor","middle").attr("y",-9)
    .style("font-size","26px").style("font-family","'Playfair Display',serif")
-   .style("fill","#D4540A").style("font-weight","700").text(overallSens+"%");
+   .style("fill","#D4540A").style("font-weight","700").text(overallS+"%");
   g.append("text").attr("text-anchor","middle").attr("y",12)
    .style("font-size","10px").style("fill","#78716C").text("of hours sensitive");
 }})();
 
-// ── 5 · SCATTER ──────────────────────────────────────────────────────────────
-(function drawScatter() {{
-  const margin = {{top:16,right:24,bottom:48,left:60}};
-  const S = 320;
-  const iW = S-margin.left-margin.right, iH = S-margin.top-margin.bottom;
-  const svg = d3.select("#scatter-chart").append("svg").attr("width",S).attr("height",S);
-  const g = svg.append("g").attr("transform",`translate(${{margin.left}},${{margin.top}})`);
-
-  const xs = scatter.map(d=>d.mae), ys = scatter.map(d=>d.revenue);
-  const x = d3.scaleLinear().domain(d3.extent(xs)).nice().range([0,iW]);
-  const y = d3.scaleLinear().domain(d3.extent(ys)).nice().range([iH,0]);
-
-  // OLS line
-  const {{slope,intercept,r,p}} = ols;
-  const x1 = d3.min(xs), x2 = d3.max(xs);
-  g.append("line")
-    .attr("x1",x(x1)).attr("y1",y(slope*x1+intercept))
+// ════════════════════════════════════════════════════════════════════
+// CHART 5 · SCATTER
+// ════════════════════════════════════════════════════════════════════
+(function drawScatter(){{
+  const m={{t:16,r:24,b:48,l:60}};
+  const S=320, iW=S-m.l-m.r, iH=S-m.t-m.b;
+  const svg=d3.select("#scatter-chart").append("svg").attr("width",S).attr("height",S);
+  const g=svg.append("g").attr("transform",`translate(${{m.l}},${{m.t}})`);
+  const xs=scatter.map(d=>d.mae), ys=scatter.map(d=>d.revenue);
+  const x=d3.scaleLinear().domain(d3.extent(xs)).nice().range([0,iW]);
+  const y=d3.scaleLinear().domain(d3.extent(ys)).nice().range([iH,0]);
+  const {{slope,intercept,r,p}}=ols;
+  const x1=d3.min(xs), x2=d3.max(xs);
+  g.append("line").attr("x1",x(x1)).attr("y1",y(slope*x1+intercept))
     .attr("x2",x(x2)).attr("y2",y(slope*x2+intercept))
-    .attr("stroke","#D4540A").attr("stroke-width",1.8).attr("opacity",.6)
-    .attr("stroke-dasharray","5,3");
-
-  // OLS annotation
+    .attr("stroke","#D4540A").attr("stroke-width",1.8).attr("opacity",.6).attr("stroke-dasharray","5,3");
   g.append("text").attr("x",x(x1)+4).attr("y",y(slope*x1+intercept)-8)
-    .style("font-size","10px").style("fill","#D4540A")
-    .text(`r = ${{r}}, p = ${{p}}`);
-
-  // Dots
-  const dotColor = d3.scaleSequential(d3.interpolateRdYlGn).domain([d3.max(xs),d3.min(xs)]);
+    .style("font-size","10px").style("fill","#D4540A").text(`r = ${{r}}, p = ${{p}}`);
+  const dc=d3.scaleSequential(d3.interpolateRdYlGn).domain([d3.max(xs),d3.min(xs)]);
   g.selectAll("circle").data(scatter).join("circle")
-    .attr("cx",d=>x(d.mae)).attr("cy",d=>y(d.revenue))
-    .attr("r",5).attr("fill",d=>dotColor(d.mae)).attr("opacity",.8)
-    .attr("stroke","#fff").attr("stroke-width",.8)
+    .attr("cx",d=>x(d.mae)).attr("cy",d=>y(d.revenue)).attr("r",5)
+    .attr("fill",d=>dc(d.mae)).attr("opacity",.82).attr("stroke","#fff").attr("stroke-width",.8)
     .on("mousemove",(ev,d)=>showTip(ev,d.date,`MAE: <b>${{d.mae}} €/MWh</b><br>Revenue: <b>${{fmtE(d.revenue)}}</b>`))
     .on("mouseleave",hideTip);
-
-  // Axes
-  g.append("g").attr("transform",`translate(0,${{iH}})`).call(d3.axisBottom(x).ticks(5).tickFormat(d=>d+" €/MWh"))
+  g.append("g").attr("transform",`translate(0,${{iH}})`)
+    .call(d3.axisBottom(x).ticks(5).tickFormat(d=>d+" €/MWh"))
     .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
   g.append("g").call(d3.axisLeft(y).ticks(5).tickFormat(fmtE))
     .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
@@ -703,84 +849,109 @@ const fmtE = v => "€" + fmt(v);
     .attr("text-anchor","middle").style("font-size","11px").style("fill","#A8A29E").text("Forecast MAE (€/MWh)");
 }})();
 
-// ── SPO table ────────────────────────────────────────────────────────────────
-(function buildSpoTable() {{
-  const tb = document.getElementById("spo-table");
-  const oracle_rev = spo.find(d=>d.model==="Oracle").revenue;
-  tb.innerHTML = `<tr>
-    <th>Model</th><th>MAE</th><th>Revenue</th><th>% of Oracle</th><th style="width:80px"></th>
-  </tr>` + spo.map(d => `<tr class="${{d.model==="Standard XGBoost"?"highlight":""}}">
-    <td>${{d.model}}</td>
-    <td>${{d.mae===0?"—":d.mae+" €/MWh"}}</td>
-    <td>${{fmtE(d.revenue)}}</td>
-    <td>${{d.pct.toFixed(1)}}%</td>
-    <td><div class="spo-bar" style="width:${{d.pct}}%"></div></td>
-  </tr>`).join("");
+// ════════════════════════════════════════════════════════════════════
+// SPO TABLE
+// ════════════════════════════════════════════════════════════════════
+(function(){{
+  const tb=$("spo-table"), oracleRev=spo.find(d=>d.model==="Oracle").revenue;
+  tb.innerHTML=`<tr><th>Model</th><th>MAE</th><th>Revenue</th><th>% of Oracle</th><th style="width:70px"></th></tr>`
+    +spo.map(d=>`<tr class="${{d.model==="Standard XGBoost"?"hl":""}}">
+      <td>${{d.model}}</td>
+      <td>${{d.mae===0?"—":d.mae+" €/MWh"}}</td>
+      <td>${{fmtE(d.revenue)}}</td>
+      <td>${{d.pct.toFixed(1)}}%</td>
+      <td><div class="spo-bar" style="width:${{d.pct}}%"></div></td>
+    </tr>`).join("");
 }})();
 
-// ── Hero animated counters ────────────────────────────────────────────────────
-function animCount(el, end, prefix, dur) {{
-  const start = performance.now();
-  function step(now) {{
-    const t = Math.min((now-start)/dur, 1);
-    const ease = t<.5 ? 2*t*t : -1+(4-2*t)*t;
-    el.textContent = prefix + fmt(Math.round(ease*end));
-    if(t<1) requestAnimationFrame(step);
-  }}
-  requestAnimationFrame(step);
+// ════════════════════════════════════════════════════════════════════
+// HERO COUNTERS + SCROLL
+// ════════════════════════════════════════════════════════════════════
+function animCount(el,end,dur){{
+  const s=performance.now();
+  (function step(now){{
+    const t=Math.min((now-s)/dur,1);
+    const ease=t<.5?2*t*t:-1+(4-2*t)*t;
+    el.textContent="€"+fmt(Math.round(ease*end));
+    if(t<1)requestAnimationFrame(step);
+  }})(performance.now());
 }}
 
-// ── Scroll + IntersectionObserver ────────────────────────────────────────────
-const dots = document.querySelectorAll(".dot");
-const sections = document.querySelectorAll("section");
-const fadeEls = document.querySelectorAll(".fade");
+const secs=document.querySelectorAll("section");
+const dotEls=document.querySelectorAll(".dot");
+const fadeEls=document.querySelectorAll(".fade");
 
-const fadeObs = new IntersectionObserver(entries => {{
-  entries.forEach(e => {{ if(e.isIntersecting) e.target.classList.add("in"); }});
-}}, {{threshold: 0.12}});
-fadeEls.forEach(el => fadeObs.observe(el));
+new IntersectionObserver(entries=>
+  entries.forEach(e=>{{if(e.isIntersecting)e.target.classList.add("in");}})
+,{{threshold:.1}}).observe.apply(null,[...fadeEls].map(el=>(new IntersectionObserver(
+  entries=>entries.forEach(e=>{{if(e.isIntersecting)e.target.classList.add("in");}})
+,{{threshold:.1}}).observe(el),el)));
 
-const secObs = new IntersectionObserver(entries => {{
-  entries.forEach(e => {{
-    if(e.isIntersecting) {{
-      dots.forEach(d=>d.classList.remove("on"));
-      const idx = [...sections].indexOf(e.target);
-      if(dots[idx]) dots[idx].classList.add("on");
-      // Trigger hero counters
-      if(e.target.id==="hero") {{
-        setTimeout(()=>{{
-          animCount(document.getElementById("h-oracle"), stats.oracle, "€", 1600);
-          animCount(document.getElementById("h-naive"),  stats.naive,  "€", 1600);
-          animCount(document.getElementById("h-gap"),    stats.gap,    "€", 1800);
-        }}, 200);
-      }}
-    }}
-  }});
-}}, {{threshold: 0.35}});
-sections.forEach(s => secObs.observe(s));
-
-dots.forEach((dot, i) => {{
-  dot.addEventListener("click", () => sections[i].scrollIntoView({{behavior:"smooth"}}));
+// fix: simpler fade observer
+document.querySelectorAll(".fade").forEach(el=>{{
+  new IntersectionObserver(([e])=>{{if(e.isIntersecting)el.classList.add("in");}},{{threshold:.1}}).observe(el);
 }});
+
+new IntersectionObserver(entries=>entries.forEach(e=>{{
+  if(!e.isIntersecting) return;
+  dotEls.forEach(d=>d.classList.remove("on"));
+  const idx=[...secs].indexOf(e.target);
+  if(dotEls[idx]) dotEls[idx].classList.add("on");
+  if(e.target.id==="hero"){{
+    setTimeout(()=>{{
+      animCount($("h-oracle"),stats.oracle,1600);
+      animCount($("h-naive"),stats.naive,1600);
+      animCount($("h-gap"),stats.gap,1800);
+    }},200);
+  }}
+}}).bind(null),{{threshold:.35}});
+new IntersectionObserver(entries=>entries.forEach(e=>{{
+  if(!e.isIntersecting) return;
+  dotEls.forEach(d=>d.classList.remove("on"));
+  const idx=[...secs].indexOf(e.target);
+  if(dotEls[idx]) dotEls[idx].classList.add("on");
+  if(e.target.id==="hero"){{
+    setTimeout(()=>{{
+      animCount($("h-oracle"),stats.oracle,1600);
+      animCount($("h-naive"),stats.naive,1600);
+      animCount($("h-gap"),stats.gap,1800);
+    }},200);
+  }}
+}}),{{threshold:.35}}).observe.apply(null,[...secs]);
+
+// Simplified: use one observer for both fades and nav
+secs.forEach(s=>{{
+  new IntersectionObserver(([e])=>{{
+    if(!e.isIntersecting) return;
+    dotEls.forEach(d=>d.classList.remove("on"));
+    const idx=[...secs].indexOf(s);
+    if(dotEls[idx]) dotEls[idx].classList.add("on");
+    if(s.id==="hero"){{
+      setTimeout(()=>{{
+        animCount($("h-oracle"),stats.oracle,1600);
+        animCount($("h-naive"),stats.naive,1600);
+        animCount($("h-gap"),stats.gap,1800);
+      }},200);
+    }}
+  }},{{threshold:.35}}).observe(s);
+}});
+
+dotEls.forEach((d,i)=>d.addEventListener("click",()=>secs[i].scrollIntoView({{behavior:"smooth"}})));
 </script>
 </body>
 </html>"""
 
 
-# ── Main ─────────────────────────────────────────────────────────────────────
-
 def main():
     print("Loading pipeline outputs...")
     payload = build_payload()
-
     s = payload["stats"]
     print(f"  Oracle: €{s['oracle']:,}  |  Naive: €{s['naive']:,}  |  Gap: €{s['gap']:,}")
-    print(f"  Sensitivity: {s['sens_pct']}%  |  MAE: {s['mae']} €/MWh")
-
     data_json = json.dumps(payload, separators=(",", ":"))
     OUT_HTML.write_text(html(data_json), encoding="utf-8")
-    print(f"\n✓ Generated: {OUT_HTML}")
-    print("  Open track1.html in any browser — no server required.")
+    kb = OUT_HTML.stat().st_size // 1024
+    print(f"\n✓  Generated: {OUT_HTML}  ({kb} KB)")
+    print("   Open track1.html in any browser — no server required.")
 
 
 if __name__ == "__main__":
