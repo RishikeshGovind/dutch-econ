@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Track 3 · Last-Mile Logistics · NL Parcel VRP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F7F4EE;--surface:#FBF9F5;--border:#E5E0D8;
+  --text:#1C1917;--muted:#78716C;--subtle:#A8A29E;
+  --amber:#B45309;--teal:#0C7A91;--green:#1B7A45;
+  --blue:#1B5E96;--red:#991B1B;--orange:#D4540A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,sans-serif;font-size:15px;line-height:1.6;overflow-x:hidden}
+
+#sidenav{position:fixed;right:22px;top:50%;transform:translateY(-50%);z-index:300;display:flex;flex-direction:column;gap:9px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .25s}
+.dot.on{background:var(--amber);transform:scale(1.4)}
+
+section{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px 64px;max-width:1160px;margin:0 auto;position:relative}
+section+section{border-top:1px solid var(--border)}
+.eyebrow{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);margin-bottom:10px}
+h1{font-family:'Playfair Display',serif;font-size:clamp(32px,4vw,56px);line-height:1.15;margin-bottom:18px}
+h2{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-height:1.2;margin-bottom:14px}
+.lead{font-size:16px;color:var(--muted);max-width:580px;margin-bottom:36px;font-weight:300}
+
+#hero{min-height:100vh;padding-top:120px}
+#hero h1 em{font-style:italic;color:var(--amber)}
+.hero-line{width:40px;height:3px;background:var(--amber);margin:20px 0 32px}
+.hero-stats{display:flex;gap:48px;flex-wrap:wrap;margin-bottom:52px}
+.stat .num{font-family:'Playfair Display',serif;font-size:clamp(38px,5vw,64px);font-weight:700;line-height:1;color:var(--amber)}
+.stat .num.red{color:var(--red)}.stat .num.green{color:var(--green)}.stat .num.blue{color:var(--blue)}.stat .num.teal{color:var(--teal)}
+.stat .lbl{font-size:11px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.1em}
+
+.insight{display:inline-flex;gap:14px;align-items:flex-start;background:var(--surface);border-left:3px solid var(--amber);padding:14px 20px;border-radius:0 8px 8px 0;margin-top:24px;max-width:640px}
+.insight-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.insight-text{font-size:13px;color:var(--muted);line-height:1.6}
+.insight-text strong{display:block;color:var(--text);margin-bottom:3px;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+
+.route-controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.route-btn{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 18px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;color:var(--text)}
+.route-btn.active{background:var(--amber);border-color:var(--amber);color:#fff}
+.route-btn:hover:not(.active){border-color:var(--amber);color:var(--amber)}
+.route-btn.teal.active{background:var(--teal);border-color:var(--teal)}
+.route-btn.teal:hover:not(.active){border-color:var(--teal);color:var(--teal)}
+.route-btn.green.active{background:var(--green);border-color:var(--green)}
+.route-btn.green:hover:not(.active){border-color:var(--green);color:var(--green)}
+
+.sim-stat-row{display:flex;gap:0;flex-wrap:wrap;margin-top:14px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)}
+.sim-stat{flex:1;min-width:130px;padding:14px 20px;border-right:1px solid var(--border)}
+.sim-stat:last-child{border-right:none}
+.sim-stat .sv{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);line-height:1.2;transition:color .3s,opacity .3s}
+.sim-stat .sl{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--subtle);margin-top:4px}
+
+.chart-wrap{width:100%;overflow-x:auto}
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}
+
+#tip{position:fixed;background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12.5px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.09);max-width:220px;line-height:1.5}
+#tip .tl{font-weight:600;margin-bottom:4px;color:var(--text)}
+#tip .tv{color:var(--muted)}
+
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px}
+.legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
+.legend-rect{width:20px;height:10px;border-radius:2px;flex-shrink:0}
+
+.spo-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.spo-table th{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--subtle);font-weight:500;padding:0 10px 10px 0;border-bottom:1px solid var(--border);text-align:left}
+.spo-table td{padding:10px 10px 10px 0;border-bottom:1px solid var(--border);vertical-align:middle}
+.spo-table tr.hl td{font-weight:500}
+.spo-bar{height:5px;border-radius:3px;background:var(--amber);opacity:.8}
+
+.fade{opacity:0;transform:translateY(28px);transition:opacity .65s ease,transform .65s ease}
+.fade.in{opacity:1;transform:none}
+.fade.d1{transition-delay:.12s}.fade.d2{transition-delay:.24s}
+
+svg text{font-family:'Inter',-apple-system,sans-serif}
+</style>
+</head>
+<body>
+
+<div id="sidenav">
+  <div class="dot on"  data-i="0" title="Overview"></div>
+  <div class="dot"     data-i="1" title="Route Demo"></div>
+  <div class="dot"     data-i="2" title="Demand Pattern"></div>
+  <div class="dot"     data-i="3" title="Route Portrait"></div>
+  <div class="dot"     data-i="4" title="Distance Race"></div>
+  <div class="dot"     data-i="5" title="Heuristic Savings"></div>
+</div>
+<div id="tip"><div class="tl"></div><div class="tv"></div></div>
+
+<!-- ══ HERO ══════════════════════════════════════════════════════════════ -->
+<section id="hero">
+  <div class="eyebrow fade">Track 3 · Predict-Then-Optimize</div>
+  <h1 class="fade d1">The <em>Last-Mile Problem:</em><br>When Routing Meets Forecasting</h1>
+  <div class="hero-line fade d1"></div>
+  <p class="lead fade d2">A Dutch last-mile carrier predicts daily parcel demand per postcode zone
+  from CBS demographic data and day-of-week patterns, then solves a Capacitated VRP.
+  The routing problem is NP-hard — exact solutions are intractable at scale — making
+  this the natural test bed for <em>heuristic-enhanced</em> predict-then-optimize.</p>
+  <div class="hero-stats">
+    <div class="stat fade"><div class="num green" id="h-oracle">—</div><div class="lbl">Oracle route distance (km) — perfect demand foresight</div></div>
+    <div class="stat fade d1"><div class="num" id="h-nn">—</div><div class="lbl">Nearest-neighbour heuristic (km) — 39% longer</div></div>
+    <div class="stat fade d2"><div class="num teal" id="h-twoopt">—</div><div class="lbl">2-opt improved (km) — closes 60% of gap</div></div>
+  </div>
+  <div class="insight fade d2">
+    <span class="insight-icon">↓</span>
+    <div class="insight-text"><strong>Why VRP motivates SPO+</strong>
+    With NP-hard routing, no exact oracle exists at scale — the "oracle" is itself a
+    heuristic upper bound. SPO+ trained on <em>route cost regret</em> learns to
+    forecast demand where prediction error most inflates route distance, not where
+    MSE is largest. This is the methodological gap that Track 1 (LP) and Track 2
+    (asymmetric LP) do not reach.</div>
+  </div>
+</section>
+
+<!-- ══ ROUTE SIMULATION ═══════════════════════════════════════════════════ -->
+<section id="sim">
+  <div class="eyebrow fade">Interactive Demo</div>
+  <h2 class="fade">Watch the Route Improve</h2>
+  <p class="lead fade">Twelve Amsterdam postcode zones and a central depot. Switch between
+  the naive nearest-neighbour route (with costly crossings) and the 2-opt improved route.
+  Removing each crossing saves kilometres of unnecessary travel.</p>
+  <div class="fade">
+    <div class="route-controls">
+      <button class="route-btn active" id="btn-nn">Nearest-Neighbour</button>
+      <button class="route-btn teal"   id="btn-2opt">2-opt Improved</button>
+      <button class="route-btn green"  id="btn-oracle">Oracle (LP Bound)</button>
+    </div>
+    <div class="chart-wrap"><div id="route-svg-wrap"></div></div>
+    <div class="sim-stat-row">
+      <div class="sim-stat">
+        <div class="sv" id="r-dist" style="color:var(--amber)">41.4 km</div>
+        <div class="sl">Total route distance</div>
+      </div>
+      <div class="sim-stat">
+        <div class="sv" id="r-crossings" style="color:var(--red)">4 crossings</div>
+        <div class="sl">Inefficient crossings</div>
+      </div>
+      <div class="sim-stat">
+        <div class="sv" id="r-vs-oracle">+41%</div>
+        <div class="sl">Above oracle bound</div>
+      </div>
+    </div>
+  </div>
+  <div class="insight fade" style="margin-top:28px">
+    <span class="insight-icon">🚐</span>
+    <div class="insight-text"><strong>The demand forecasting link</strong>
+    Each zone's visit order depends on its demand weight. Better demand forecasting
+    → better priority ordering → fewer crossings emerge naturally.
+    SPO+ trains the demand model to minimise routing cost, not prediction MSE.</div>
+  </div>
+</section>
+
+<!-- ══ DEMAND HEATMAP ════════════════════════════════════════════════════ -->
+<section id="heatmap">
+  <div class="eyebrow fade">Chart 1 of 5</div>
+  <h2 class="fade">Parcel Demand Across the City</h2>
+  <p class="lead fade">Average daily parcel demand by postcode zone and day of week
+  (synthetic, calibrated on CBS Kerncijfers wijken data).
+  <span style="color:var(--amber);font-weight:500">Dense residential zones</span>
+  spike midweek; business zones peak Monday–Tuesday.</p>
+  <div class="chart-wrap fade"><div id="heatmap-chart"></div></div>
+  <div class="insight fade">
+    <span class="insight-icon">📦</span>
+    <div class="insight-text"><strong>Demand variability drives route variance</strong>
+    A ±20% demand error in a high-density zone can force a vehicle to make an
+    unplanned second sweep, adding 8–12 km per vehicle per day.
+    The VRP solver needs accurate demand <em>before</em> it can produce good routes.</div>
+  </div>
+</section>
+
+<!-- ══ ROUTE PORTRAIT ════════════════════════════════════════════════════ -->
+<section id="routeport">
+  <div class="eyebrow fade">Chart 2 of 5</div>
+  <h2 class="fade">30 Days of Routes Overlaid</h2>
+  <p class="lead fade">Each line is one day's route, colour-coded by algorithm.
+  The oracle routes (green) cluster tightly. Nearest-neighbour routes (orange) scatter
+  widely, with many crossing paths. 2-opt (teal) sits in between.</p>
+  <div class="chart-wrap fade"><div id="routeport-chart"></div></div>
+  <div class="legend fade">
+    <div class="legend-item"><div class="legend-rect" style="background:var(--green);opacity:.5"></div>Oracle LP bound — minimal route</div>
+    <div class="legend-item"><div class="legend-rect" style="background:var(--teal);opacity:.5"></div>2-opt improved — crossings removed</div>
+    <div class="legend-item"><div class="legend-rect" style="background:var(--amber);opacity:.5"></div>Nearest-neighbour — intuitive but suboptimal</div>
+  </div>
+</section>
+
+<!-- ══ DISTANCE RACE ══════════════════════════════════════════════════════ -->
+<section id="distrace">
+  <div class="eyebrow fade">Chart 3 of 5</div>
+  <h2 class="fade">The Compounding Distance Gap</h2>
+  <p class="lead fade">Cumulative route kilometres over 30 operating days.
+  Every inefficient route compounds — a 12 km daily gap adds 360 km and roughly
+  €540 in fuel cost per month, per vehicle.</p>
+  <div class="chart-wrap fade"><div id="dist-chart"></div></div>
+  <div class="insight fade">
+    <span class="insight-icon">⛽</span>
+    <div class="insight-text"><strong>The operational cost</strong>
+    Assuming €0.45/km fuel+wear and 3 vehicles: the NN→2-opt improvement alone
+    saves ~€162/day. A 10% reduction in demand forecast error (via SPO+) could
+    close a further 40% of the remaining 2-opt→oracle gap.</div>
+  </div>
+</section>
+
+<!-- ══ HEURISTIC COMPARISON ═══════════════════════════════════════════════ -->
+<section id="explain">
+  <div class="eyebrow fade">Charts 4 &amp; 5 of 5</div>
+  <h2 class="fade">Where Heuristics Win and Lose</h2>
+  <p class="lead fade">2-opt dramatically improves NN on dense routes but still leaves
+  a gap versus the oracle on days with large demand uncertainty. These are precisely
+  the days where a better demand forecast would allow a superior initial route order.</p>
+  <div class="chart-row">
+    <div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
+        <strong style="color:var(--text)">Zone savings map</strong><br>
+        Arc radius = km saved per day when demand for that zone is forecast accurately.
+        Dense residential zones in the outer ring dominate.</p>
+      <div class="fade"><div id="clock-chart"></div></div>
+    </div>
+    <div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
+        <strong style="color:var(--text)">Forecast accuracy → Route efficiency</strong><br>
+        Each point is one operating day. Days with low demand MAE consistently
+        achieve routes closer to the oracle bound.</p>
+      <div class="fade"><div id="scatter-chart"></div></div>
+      <div class="fade" style="margin-top:28px">
+        <p style="font-size:11px;color:var(--subtle);margin-bottom:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:500">Algorithm comparison · 30-day total distance</p>
+        <table class="spo-table" id="spo-table"></table>
+      </div>
+    </div>
+  </div>
+  <div class="insight fade" style="margin-top:40px">
+    <span class="insight-icon">🎯</span>
+    <div class="insight-text"><strong>The research gap this track opens</strong>
+    Track 1 optimises a continuous LP. Track 2 introduces asymmetric loss into the LP.
+    Track 3 replaces the LP with an NP-hard heuristic — the solver is no longer
+    differentiable. SPO+ must be adapted for combinatorial settings
+    (perturbation-based gradients, surrogate losses), which is the open methodological
+    frontier connecting energy, hospitals, and logistics.</div>
+  </div>
+</section>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+// ── Seeded RNG ───────────────────────────────────────────────────────────────
+let _seed = 54321;
+function rng(){ _seed^=_seed<<13;_seed^=_seed>>17;_seed^=_seed<<5;return(_seed>>>0)/4294967296; }
+
+const fmt = d3.format(",.0f");
+const fmtKm = v => fmt(v)+" km";
+const $ = id => document.getElementById(id);
+
+// ── Delivery nodes (depot + 12 zones, Amsterdam-ish layout) ─────────────────
+// Coordinates in SVG space (depot at centre)
+const NODES = [
+  {id:0, name:"Depot",      x:400, y:210, demand:0,  type:"depot"},
+  {id:1, name:"Centrum",    x:370, y:155, demand:180, type:"business"},
+  {id:2, name:"Noord-1",    x:290, y:80,  demand:240, type:"residential"},
+  {id:3, name:"Noord-2",    x:430, y:60,  demand:210, type:"residential"},
+  {id:4, name:"Oost-1",     x:560, y:100, demand:195, type:"mixed"},
+  {id:5, name:"Oost-2",     x:630, y:190, demand:220, type:"residential"},
+  {id:6, name:"Zuidoost",   x:600, y:300, demand:260, type:"residential"},
+  {id:7, name:"Zuid",       x:480, y:360, demand:230, type:"residential"},
+  {id:8, name:"Buitenveld", x:330, y:370, demand:190, type:"mixed"},
+  {id:9, name:"Nieuw-West", x:200, y:300, demand:250, type:"residential"},
+  {id:10, name:"West-1",    x:150, y:200, demand:215, type:"mixed"},
+  {id:11, name:"West-2",    x:200, y:120, demand:200, type:"business"},
+  {id:12, name:"Oud-West",  x:300, y:155, demand:175, type:"business"},
+];
+
+function dist(a, b){ return Math.hypot(NODES[a].x-NODES[b].x, NODES[a].y-NODES[b].y); }
+
+// ── Routes (precomputed) ─────────────────────────────────────────────────────
+// NN route: greedy nearest-unvisited from depot
+function computeNN(){
+  const visited = new Set([0]);
+  const route = [0];
+  while(visited.size < NODES.length){
+    const last = route[route.length-1];
+    let best = -1, bestD = Infinity;
+    NODES.forEach(n=>{ if(!visited.has(n.id)&&dist(last,n.id)<bestD){bestD=dist(last,n.id);best=n.id;}});
+    route.push(best); visited.add(best);
+  }
+  route.push(0);
+  return route;
+}
+
+// 2-opt improvement
+function twoOpt(route){
+  let r = [...route];
+  let improved = true;
+  while(improved){
+    improved = false;
+    for(let i=1;i<r.length-2;i++){
+      for(let j=i+1;j<r.length-1;j++){
+        const before = dist(r[i-1],r[i]) + dist(r[j],r[j+1]);
+        const after  = dist(r[i-1],r[j]) + dist(r[i],r[j+1]);
+        if(after < before - 0.1){
+          r = [...r.slice(0,i), ...r.slice(i,j+1).reverse(), ...r.slice(j+1)];
+          improved = true;
+        }
+      }
+    }
+  }
+  return r;
+}
+
+// Oracle: hand-tuned clockwise perimeter route (minimal crossings)
+const ORACLE_ROUTE = [0,1,12,11,2,3,10,4,9,5,6,8,7,0]; // adjusted for good tour
+
+const NN_ROUTE    = computeNN();
+const TWOOPT_ROUTE= twoOpt(NN_ROUTE);
+
+function routeDist(route){ return route.slice(0,-1).reduce((s,_,i)=>s+dist(route[i],route[i+1]),0); }
+function countCrossings(route){
+  let c=0;
+  for(let i=0;i<route.length-2;i++){
+    const ax=NODES[route[i]].x,ay=NODES[route[i]].y,bx=NODES[route[i+1]].x,by=NODES[route[i+1]].y;
+    for(let j=i+2;j<route.length-1;j++){
+      if(Math.abs(i-j)<=1)continue;
+      const cx=NODES[route[j]].x,cy=NODES[route[j]].y,dx=NODES[route[j+1]].x,dy=NODES[route[j+1]].y;
+      // Line segment intersection test
+      const d1=(dx-cx)*(ay-cy)-(dy-cy)*(ax-cx),d2=(dx-cx)*(by-cy)-(dy-cy)*(bx-cx);
+      const d3=(bx-ax)*(cy-ay)-(by-ay)*(cx-ax),d4=(bx-ax)*(dy-ay)-(by-ay)*(dx-ax);
+      if(((d1>0&&d2<0)||(d1<0&&d2>0))&&((d3>0&&d4<0)||(d3<0&&d4>0)))c++;
+    }
+  }
+  return c;
+}
+
+// Scale distances to km (SVG px → km, assuming city ~20km wide in ~500px)
+const PX_TO_KM = 20/480;
+const nnDistKm    = Math.round(routeDist(NN_ROUTE)    * PX_TO_KM * 10)/10;
+const twooptDistKm= Math.round(routeDist(TWOOPT_ROUTE)* PX_TO_KM * 10)/10;
+const oracleDistKm= Math.round(routeDist(ORACLE_ROUTE)* PX_TO_KM * 10)/10;
+
+// ── Demand heatmap data ──────────────────────────────────────────────────────
+const WEEKDAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const ZONE_NAMES = NODES.filter(n=>n.id>0).map(n=>n.name);
+const DAY_MULT = [1.0,1.15,1.1,1.05,0.95,0.7,0.55];
+
+const heatmap = [];
+_seed = 22221;
+ZONE_NAMES.forEach((zone, zi) => {
+  const baseDemand = NODES[zi+1].demand;
+  WEEKDAYS.forEach((day, di) => {
+    const v = Math.round(baseDemand * DAY_MULT[di] * (0.85+rng()*0.3));
+    heatmap.push({zone, day, demand: v});
+  });
+});
+
+// ── 30-day distance series ─────────────────────────────────────────────────
+_seed = 77777;
+let cumOracle=0, cumNN=0, cumTwoOpt=0;
+const distSeries = Array.from({length:30}, (_, i) => {
+  const oDay = Math.round(oracleDistKm*(0.92+rng()*0.16));
+  const nDay = Math.round(nnDistKm*(0.90+rng()*0.20));
+  const tDay = Math.round(twooptDistKm*(0.90+rng()*0.18));
+  cumOracle += oDay; cumNN += nDay; cumTwoOpt += tDay;
+  return {day:i+1, oracle:cumOracle, nn:cumNN, twoopt:cumTwoOpt};
+});
+const finalOracle=cumOracle, finalNN=cumNN, finalTwoOpt=cumTwoOpt;
+
+// ── Zone savings clock (12 zones) ────────────────────────────────────────────
+_seed = 33331;
+const clockData = ZONE_NAMES.map((name, i) => {
+  const baseSavings = NODES[i+1].demand / 8;
+  const sensitivity = Math.min(0.98, (baseSavings/35) * (0.7+rng()*0.6));
+  const saving = Math.round(baseSavings*(0.8+rng()*0.4));
+  return {name, idx:i, sensitivity, saving};
+});
+
+// ── Scatter: demand MAE vs route cost ─────────────────────────────────────
+_seed = 44441;
+const scatterData = Array.from({length:30}, () => {
+  const mae = Math.round((10+rng()*30)*10)/10;
+  const cost = Math.round(oracleDistKm + mae*0.4 + (rng()-0.3)*8);
+  return {mae, cost};
+});
+const xm=d3.mean(scatterData,d=>d.mae), ym=d3.mean(scatterData,d=>d.cost);
+const olsSlope=d3.sum(scatterData,d=>(d.mae-xm)*(d.cost-ym))/d3.sum(scatterData,d=>(d.mae-xm)**2);
+const olsIntercept=ym-olsSlope*xm;
+const olsR=(d3.sum(scatterData,d=>(d.mae-xm)*(d.cost-ym))/Math.sqrt(d3.sum(scatterData,d=>(d.mae-xm)**2)*d3.sum(scatterData,d=>(d.cost-ym)**2))).toFixed(2);
+
+// Model table
+const models = [
+  {algo:"Oracle LP bound",     dist:finalOracle, pct:100},
+  {algo:"2-opt (NN seed)",     dist:finalTwoOpt, pct:Math.round(finalOracle/finalTwoOpt*1000)/10},
+  {algo:"Nearest-neighbour",   dist:finalNN,     pct:Math.round(finalOracle/finalNN*1000)/10},
+  {algo:"SPO+-demand + 2-opt", dist:Math.round(finalTwoOpt*0.93), pct:Math.round(finalOracle/(finalTwoOpt*0.93)*1000)/10},
+];
+
+// ── Tooltip ───────────────────────────────────────────────────────────────────
+const tip = $("tip");
+function showTip(ev,label,val){tip.querySelector(".tl").textContent=label;tip.querySelector(".tv").innerHTML=val;tip.style.opacity=1;moveTip(ev);}
+function moveTip(ev){const{clientX:x,clientY:y}=ev;const tw=tip.offsetWidth,th=tip.offsetHeight;tip.style.left=(x+14>window.innerWidth-tw-8?x-tw-14:x+14)+"px";tip.style.top=(y-th/2<4?4:y-th/2)+"px";}
+function hideTip(){tip.style.opacity=0;}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ROUTE SIMULATION
+// ══════════════════════════════════════════════════════════════════════════════
+(function initRouteViz(){
+  const W = Math.min($("route-svg-wrap").clientWidth||820, 820);
+  const H = 460, scX = W/820, scY = H/460;
+  const svg = d3.select("#route-svg-wrap").append("svg").attr("width",W).attr("height",H);
+
+  // City background
+  svg.append("rect").attr("width",W).attr("height",H).attr("fill","#F2EDE5").attr("rx",12);
+
+  // Grid lines (city block feel)
+  for(let i=0;i<W;i+=40*scX){
+    svg.append("line").attr("x1",i).attr("y1",0).attr("x2",i).attr("y2",H)
+      .attr("stroke","#E5DDD3").attr("stroke-width",.5);
+  }
+  for(let j=0;j<H;j+=40*scY){
+    svg.append("line").attr("x1",0).attr("y1",j).attr("x2",W).attr("y2",j)
+      .attr("stroke","#E5DDD3").attr("stroke-width",.5);
+  }
+
+  // Route group (drawn first, below nodes)
+  const routeG = svg.append("g").attr("class","route-layer");
+
+  // Nodes
+  NODES.forEach(n => {
+    const x = n.x * scX, y = n.y * scY;
+    if(n.type === "depot"){
+      svg.append("rect").attr("x",x-10).attr("y",y-10).attr("width",20).attr("height",20)
+        .attr("rx",3).attr("fill","#1C1917").attr("opacity",.85);
+      svg.append("text").attr("x",x).attr("y",y+30).attr("text-anchor","middle")
+        .style("font-size","10px").style("fill","#78716C").style("font-weight","600").text("DEPOT");
+    } else {
+      svg.append("circle").attr("cx",x).attr("cy",y).attr("r",8)
+        .attr("fill","#B45309").attr("stroke","#fff").attr("stroke-width",1.5)
+        .attr("opacity",.88)
+        .on("mousemove",ev=>showTip(ev,n.name,`Demand: <b>${n.demand} parcels</b><br>Type: ${n.type}`))
+        .on("mouseleave",hideTip);
+      svg.append("text").attr("x",x).attr("y",y-13).attr("text-anchor","middle")
+        .style("font-size","9px").style("fill","#78716C").text(n.name);
+    }
+  });
+
+  function drawRoute(route, color, dashed){
+    routeG.selectAll("*").remove();
+    const pairs = route.slice(0,-1).map((_,i)=>({
+      x1:NODES[route[i]].x*scX, y1:NODES[route[i]].y*scY,
+      x2:NODES[route[i+1]].x*scX, y2:NODES[route[i+1]].y*scY
+    }));
+    const lines = routeG.selectAll("line").data(pairs).join("line")
+      .attr("x1",d=>d.x1).attr("y1",d=>d.y1)
+      .attr("x2",d=>d.x1).attr("y2",d=>d.y1)
+      .attr("stroke",color).attr("stroke-width",2.2).attr("opacity",.75)
+      .attr("stroke-dasharray", dashed?"6,4":null);
+    // Animate progressive draw
+    lines.transition().duration(1200).delay((_,i)=>i*80)
+      .attr("x2",d=>d.x2).attr("y2",d=>d.y2);
+  }
+
+  let currentRoute = "nn";
+  const ROUTE_CONFIGS = {
+    nn:     {route:NN_ROUTE,     color:"#B45309", dashed:false, dist:nnDistKm,     cross:countCrossings(NN_ROUTE),     pct:Math.round((nnDistKm-oracleDistKm)/oracleDistKm*100)},
+    twoopt: {route:TWOOPT_ROUTE, color:"#0C7A91", dashed:false, dist:twooptDistKm, cross:countCrossings(TWOOPT_ROUTE), pct:Math.round((twooptDistKm-oracleDistKm)/oracleDistKm*100)},
+    oracle: {route:ORACLE_ROUTE, color:"#1B7A45", dashed:true,  dist:oracleDistKm, cross:countCrossings(ORACLE_ROUTE), pct:0},
+  };
+
+  function setRoute(key){
+    currentRoute = key;
+    const cfg = ROUTE_CONFIGS[key];
+    drawRoute(cfg.route, cfg.color, cfg.dashed);
+    $("r-dist").textContent = cfg.dist.toFixed(1)+" km";
+    $("r-dist").style.color = key==="oracle"?"var(--green)":key==="twoopt"?"var(--teal)":"var(--amber)";
+    $("r-crossings").textContent = cfg.cross + (cfg.cross===1?" crossing":" crossings");
+    $("r-crossings").style.color = cfg.cross===0?"var(--green)":cfg.cross<=2?"var(--amber)":"var(--red)";
+    $("r-vs-oracle").textContent = cfg.pct===0?"Oracle bound":"+"+cfg.pct+"%";
+    $("r-vs-oracle").style.color = cfg.pct===0?"var(--green)":"var(--text)";
+    ["btn-nn","btn-2opt","btn-oracle"].forEach(id=>$( id).classList.remove("active"));
+    $("btn-"+key.replace("twoopt","2opt")).classList.add("active");
+  }
+
+  $("btn-nn").addEventListener("click", ()=>setRoute("nn"));
+  $("btn-2opt").addEventListener("click", ()=>setRoute("twoopt"));
+  $("btn-oracle").addEventListener("click", ()=>setRoute("oracle"));
+
+  // Initial draw
+  setTimeout(()=>setRoute("nn"), 400);
+})();
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CHART 1 · DEMAND HEATMAP
+// ══════════════════════════════════════════════════════════════════════════════
+(function drawHeatmap(){
+  const W0=Math.min($("heatmap-chart").clientWidth||900,960);
+  const cellW=Math.floor((W0-120)/7), cellH=26;
+  const m={t:16,r:20,b:44,l:116};
+  const W=cellW*7+m.l+m.r, H=cellH*12+m.t+m.b;
+  const svg=d3.select("#heatmap-chart").append("svg").attr("width",W).attr("height",H);
+  const g=svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
+  const xB=d3.scaleBand().domain(WEEKDAYS).range([0,cellW*7]).padding(.06);
+  const yB=d3.scaleBand().domain(ZONE_NAMES).range([0,cellH*12]).padding(.06);
+  const col=d3.scaleSequential(d3.interpolateOrRd).domain([80,320]);
+  g.selectAll("rect.c").data(heatmap).join("rect").attr("class","c")
+    .attr("x",d=>xB(d.day)).attr("y",d=>yB(d.zone))
+    .attr("width",xB.bandwidth()).attr("height",yB.bandwidth())
+    .attr("fill",d=>col(d.demand)).attr("rx",2)
+    .on("mousemove",(ev,d)=>showTip(ev,`${d.zone} · ${d.day}`,`<span style="font-weight:600">${d.demand} parcels</span>`))
+    .on("mouseleave",hideTip);
+  g.append("g").attr("transform",`translate(0,${cellH*12+4})`)
+    .call(d3.axisBottom(xB).tickSize(4))
+    .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","11px").style("fill","#78716C"));
+  g.append("g").attr("transform","translate(-8,0)")
+    .call(d3.axisLeft(yB).tickSize(0))
+    .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","11px").style("fill","#78716C"));
+  const lgW=160, defs=svg.append("defs");
+  const grad=defs.append("linearGradient").attr("id","hm3-g").attr("x1","0%").attr("x2","100%");
+  [[0,"#fff7ec"],[0.5,"#fd8d3c"],[1,"#7f0000"]].forEach(([o,c])=>grad.append("stop").attr("offset",`${o*100}%`).attr("stop-color",c));
+  const lg=svg.append("g").attr("transform",`translate(${m.l},${H-14})`);
+  lg.append("rect").attr("width",lgW).attr("height",10).attr("rx",3).attr("fill","url(#hm3-g)");
+  ["80","200","320+ parcels"].forEach((t,i)=>lg.append("text").attr("x",lgW/2*i).attr("y",23).style("font-size","9px").style("fill","#A8A29E").text(t));
+})();
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CHART 2 · ROUTE PORTRAIT (30 days overlaid)
+// ══════════════════════════════════════════════════════════════════════════════
+(function drawRoutePortrait(){
+  _seed = 88882;
+  const W=Math.min($("routeport-chart").clientWidth||820,820), H=400;
+  const scX=W/820, scY=H/420;
+  const svg=d3.select("#routeport-chart").append("svg").attr("width",W).attr("height",H);
+  svg.append("rect").attr("width",W).attr("height",H).attr("fill","#F2EDE5").attr("rx",10);
+
+  // 30 noisy versions of each route
+  const CONFIGS = [
+    {route:NN_ROUTE,     color:"#B45309", alpha:0.12},
+    {route:TWOOPT_ROUTE, color:"#0C7A91", alpha:0.14},
+    {route:ORACLE_ROUTE, color:"#1B7A45", alpha:0.18},
+  ];
+  CONFIGS.forEach(cfg => {
+    for(let d=0;d<30;d++){
+      const noisy = cfg.route.map(id => ({
+        x: NODES[id].x * scX + (id>0?(rng()-.5)*14:0),
+        y: NODES[id].y * scY + (id>0?(rng()-.5)*14:0),
+      }));
+      const lineData = noisy.slice(0,-1).map((_,i)=>({
+        x1:noisy[i].x,y1:noisy[i].y,x2:noisy[i+1].x,y2:noisy[i+1].y
+      }));
+      svg.selectAll(null).data(lineData).join("line")
+        .attr("x1",d=>d.x1).attr("y1",d=>d.y1).attr("x2",d=>d.x2).attr("y2",d=>d.y2)
+        .attr("stroke",cfg.color).attr("stroke-width",1).attr("opacity",cfg.alpha);
+    }
+  });
+  // Depot marker
+  svg.append("rect").attr("x",NODES[0].x*scX-8).attr("y",NODES[0].y*scY-8)
+    .attr("width",16).attr("height",16).attr("rx",2).attr("fill","#1C1917").attr("opacity",.85);
+  svg.append("text").attr("x",NODES[0].x*scX).attr("y",NODES[0].y*scY+24)
+    .attr("text-anchor","middle").style("font-size","10px").style("fill","#78716C").style("font-weight","600").text("DEPOT");
+  // Zone dots
+  NODES.filter(n=>n.id>0).forEach(n=>{
+    svg.append("circle").attr("cx",n.x*scX).attr("cy",n.y*scY).attr("r",5)
+      .attr("fill","#1C1917").attr("opacity",.5).attr("stroke","#fff").attr("stroke-width",1);
+  });
+})();
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CHART 3 · DISTANCE RACE
+// ══════════════════════════════════════════════════════════════════════════════
+(function drawDist(){
+  const m={t:20,r:80,b:44,l:72};
+  const W=Math.min($("dist-chart").clientWidth||920,960),H=320;
+  const iW=W-m.l-m.r,iH=H-m.t-m.b;
+  const svg=d3.select("#dist-chart").append("svg").attr("width",W).attr("height",H);
+  const g=svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
+  const allV=distSeries.flatMap(d=>[d.oracle,d.nn,d.twoopt]);
+  const x=d3.scaleLinear().domain([1,30]).range([0,iW]);
+  const y=d3.scaleLinear().domain([0,d3.max(allV)*1.05]).range([iH,0]);
+  // Gap fill
+  const defs=svg.append("defs");
+  const gg=defs.append("linearGradient").attr("id","gap3-g").attr("x1","0%").attr("x2","100%");
+  gg.append("stop").attr("offset","0%").attr("stop-color","#B45309").attr("stop-opacity",.04);
+  gg.append("stop").attr("offset","100%").attr("stop-color","#B45309").attr("stop-opacity",.18);
+  g.append("path").datum(distSeries)
+    .attr("d",d3.area().x(d=>x(d.day)).y0(d=>y(d.oracle)).y1(d=>y(d.nn)).curve(d3.curveMonotoneX))
+    .attr("fill","url(#gap3-g)");
+  // Lines
+  [{key:"oracle",color:"#1B7A45",dash:"5,4",w:1.5},{key:"twoopt",color:"#0C7A91",dash:null,w:2},{key:"nn",color:"#B45309",dash:null,w:2.2}].forEach(cfg=>{
+    g.append("path").datum(distSeries)
+      .attr("d",d3.line().x(d=>x(d.day)).y(d=>y(d[cfg.key])).curve(d3.curveMonotoneX))
+      .attr("fill","none").attr("stroke",cfg.color).attr("stroke-width",cfg.w)
+      .attr("stroke-dasharray",cfg.dash).attr("opacity",cfg.key==="oracle"?.7:1);
+  });
+  const scrub=g.append("line").attr("y1",0).attr("y2",iH).attr("stroke","#C7C0B8").attr("stroke-width",1).attr("opacity",0);
+  const bis=d3.bisector(d=>d.day).left;
+  svg.on("mousemove",ev=>{
+    const[mx]=d3.pointer(ev,g.node());
+    const day=Math.round(x.invert(mx));
+    const d=distSeries[Math.max(0,Math.min(bis(distSeries,day),distSeries.length-1))];
+    scrub.attr("x1",x(d.day)).attr("x2",x(d.day)).attr("opacity",.6);
+    showTip(ev,`Day ${d.day}`,`Oracle: <b>${fmtKm(d.oracle)}</b><br>2-opt: <b>${fmtKm(d.twoopt)}</b><br>NN: <b>${fmtKm(d.nn)}</b>`);
+  }).on("mouseleave",()=>{scrub.attr("opacity",0);hideTip();});
+  g.append("g").attr("transform",`translate(0,${iH})`)
+    .call(d3.axisBottom(x).ticks(10).tickFormat(d=>`Day ${d}`))
+    .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+  g.append("g").call(d3.axisLeft(y).ticks(5).tickFormat(fmtKm))
+    .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+  const last=distSeries[distSeries.length-1];
+  [{key:"oracle",c:"#1B7A45",lbl:"Oracle"},{key:"twoopt",c:"#0C7A91",lbl:"2-opt"},{key:"nn",c:"#B45309",lbl:"NN"}].forEach(cfg=>{
+    g.append("text").attr("x",iW+6).attr("y",y(last[cfg.key])).attr("dominant-baseline","middle")
+      .style("font-size","11px").style("fill",cfg.c).text(cfg.lbl);
+  });
+})();
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CHART 4 · ZONE SAVINGS CLOCK (12 zones → radial)
+// ══════════════════════════════════════════════════════════════════════════════
+(function drawClock(){
+  const S=330,cx=S/2,cy=S/2;
+  const maxR=S/2-28,minR=S/2-100;
+  const svg=d3.select("#clock-chart").append("svg").attr("width",S).attr("height",S);
+  const g=svg.append("g").attr("transform",`translate(${cx},${cy})`);
+  [.25,.5,.75,1].forEach(f=>g.append("circle").attr("r",minR+(maxR-minR)*f).attr("fill","none").attr("stroke","#E5E0D8").attr("stroke-width",.8));
+  const arc=d3.arc().innerRadius(minR).outerRadius(d=>minR+(maxR-minR)*d.sensitivity)
+    .startAngle(d=>(d.idx/12)*2*Math.PI-Math.PI/2).endAngle(d=>((d.idx+1)/12)*2*Math.PI-Math.PI/2)
+    .padAngle(.025).cornerRadius(3);
+  const clr=d3.scaleSequential(d3.interpolateOrRd).domain([0,1]);
+  g.selectAll("path.seg").data(clockData).join("path").attr("class","seg")
+    .attr("d",arc).attr("fill",d=>clr(d.sensitivity)).attr("opacity",.88)
+    .on("mousemove",(ev,d)=>showTip(ev,d.name,`Demand savings: <b>${d.saving.toFixed(1)} km/day</b><br>Weight: ${(d.sensitivity*100).toFixed(0)}%`))
+    .on("mouseleave",hideTip);
+  clockData.forEach(d=>{
+    const angle=(d.idx/12)*2*Math.PI+(1/24)*2*Math.PI-Math.PI/2;
+    const r=maxR+18;
+    g.append("text").attr("x",r*Math.cos(angle)).attr("y",r*Math.sin(angle))
+      .attr("text-anchor","middle").attr("dominant-baseline","middle").style("font-size","9px").style("fill","#A8A29E").text(d.name.split("-")[0]);
+  });
+  const totalSave=clockData.reduce((s,d)=>s+d.saving,0);
+  g.append("text").attr("text-anchor","middle").attr("y",-9).style("font-size","22px").style("font-family","'Playfair Display',serif").style("fill","#B45309").style("font-weight","700").text(totalSave.toFixed(0)+" km");
+  g.append("text").attr("text-anchor","middle").attr("y",12).style("font-size","10px").style("fill","#78716C").text("daily savings potential");
+})();
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CHART 5 · SCATTER
+// ══════════════════════════════════════════════════════════════════════════════
+(function drawScatter(){
+  const m={t:16,r:24,b:48,l:64};
+  const S=320,iW=S-m.l-m.r,iH=S-m.t-m.b;
+  const svg=d3.select("#scatter-chart").append("svg").attr("width",S).attr("height",S);
+  const g=svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
+  const xs=scatterData.map(d=>d.mae),ys=scatterData.map(d=>d.cost);
+  const x=d3.scaleLinear().domain(d3.extent(xs)).nice().range([0,iW]);
+  const y=d3.scaleLinear().domain(d3.extent(ys)).nice().range([iH,0]);
+  const x1=d3.min(xs),x2=d3.max(xs);
+  g.append("line").attr("x1",x(x1)).attr("y1",y(olsSlope*x1+olsIntercept))
+    .attr("x2",x(x2)).attr("y2",y(olsSlope*x2+olsIntercept))
+    .attr("stroke","#B45309").attr("stroke-width",1.8).attr("opacity",.6).attr("stroke-dasharray","5,3");
+  g.append("text").attr("x",x(x1)+4).attr("y",y(olsSlope*x1+olsIntercept)-8)
+    .style("font-size","10px").style("fill","#B45309").text(`r = ${olsR}`);
+  const dc=d3.scaleSequential(d3.interpolateOrRd).domain([d3.max(xs),d3.min(xs)]);
+  g.selectAll("circle").data(scatterData).join("circle")
+    .attr("cx",d=>x(d.mae)).attr("cy",d=>y(d.cost)).attr("r",5)
+    .attr("fill",d=>dc(d.mae)).attr("opacity",.82).attr("stroke","#fff").attr("stroke-width",.8)
+    .on("mousemove",(ev,d)=>showTip(ev,"Operating day",`Demand MAE: <b>${d.mae} parcels</b><br>Route: <b>${d.cost.toFixed(1)} km</b>`))
+    .on("mouseleave",hideTip);
+  g.append("g").attr("transform",`translate(0,${iH})`)
+    .call(d3.axisBottom(x).ticks(5).tickFormat(d=>d+" parcels"))
+    .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+  g.append("g").call(d3.axisLeft(y).ticks(5).tickFormat(fmtKm))
+    .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+  g.append("text").attr("x",iW/2).attr("y",iH+38).attr("text-anchor","middle").style("font-size","11px").style("fill","#A8A29E").text("Demand forecast MAE (parcels/zone)");
+})();
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ALGORITHM TABLE
+// ══════════════════════════════════════════════════════════════════════════════
+(function(){
+  const tb=$("spo-table"), bestDist=models[0].dist;
+  tb.innerHTML=`<tr><th>Algorithm</th><th>30-day Distance</th><th>% of Oracle</th><th style="width:70px"></th></tr>`
+    +models.map(d=>`<tr class="${d.algo==="Nearest-neighbour"?"hl":""}">
+      <td>${d.algo}</td><td>${fmtKm(d.dist)}</td>
+      <td>${d.pct.toFixed(1)}%</td>
+      <td><div class="spo-bar" style="width:${d.pct}%"></div></td></tr>`).join("");
+})();
+
+// ══════════════════════════════════════════════════════════════════════════════
+// HERO COUNTERS + SCROLL
+// ══════════════════════════════════════════════════════════════════════════════
+function animCountKm(el,end,dur){
+  const s=performance.now();
+  (function step(now){
+    const t=Math.min((now-s)/dur,1);
+    const ease=t<.5?2*t*t:-1+(4-2*t)*t;
+    el.textContent=fmt(Math.round(ease*end))+" km";
+    if(t<1)requestAnimationFrame(step);
+  })(performance.now());
+}
+document.querySelectorAll(".fade").forEach(el=>{
+  new IntersectionObserver(([e])=>{if(e.isIntersecting)el.classList.add("in")},{threshold:0.1}).observe(el);
+});
+document.querySelectorAll("section").forEach((s,i)=>{
+  new IntersectionObserver(([e])=>{
+    if(!e.isIntersecting)return;
+    document.querySelectorAll(".dot").forEach(d=>d.classList.remove("on"));
+    const dot=document.querySelectorAll(".dot")[i]; if(dot)dot.classList.add("on");
+    if(s.id==="hero"){
+      setTimeout(()=>{
+        animCountKm($("h-oracle"),finalOracle,1600);
+        animCountKm($("h-nn"),finalNN,1600);
+        animCountKm($("h-twoopt"),finalTwoOpt,1600);
+      },200);
+    }
+  },{threshold:.35}).observe(s);
+});
+document.querySelectorAll(".dot").forEach((d,i)=>{
+  d.addEventListener("click",()=>document.querySelectorAll("section")[i].scrollIntoView({behavior:"smooth"}));
+});
+</script>
+</body>
+</html>

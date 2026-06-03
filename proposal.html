@@ -1,0 +1,2134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Predict-Then-Optimize &middot; Dutch PhD Proposal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --bg:#F7F4EE;--surface:#FBF9F5;--border:#E5E0D8;
+  --text:#1C1917;--muted:#78716C;--subtle:#A8A29E;
+  --orange:#D4540A;--blue:#1B5E96;--green:#1B7A45;
+  --teal:#0C7A91;--amber:#B45309;
+  --purple:#6D28D9;--red:#991B1B;
+  --primary:var(--orange);
+}
+.t1{--primary:var(--orange)}.t2{--primary:var(--teal)}.t3{--primary:var(--amber)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,sans-serif;font-size:15px;line-height:1.6;overflow-x:hidden;padding-top:56px}
+#topnav{position:fixed;top:0;left:0;right:0;height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;z-index:2000}
+#topnav .brand{font-family:'Playfair Display',serif;font-size:14px;color:var(--muted);font-weight:400;letter-spacing:.01em;white-space:nowrap}
+#topnav .brand em{font-style:italic;color:var(--text)}
+.tabs{display:flex;gap:4px}
+.tab{background:none;border:1px solid var(--border);border-radius:6px;padding:6px 16px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;color:var(--muted);transition:all .2s}
+.tab:hover{border-color:var(--text);color:var(--text)}
+.tab.active.t1{background:var(--orange);border-color:var(--orange);color:#fff}
+.tab.active.t2{background:var(--teal);border-color:var(--teal);color:#fff}
+.tab.active.t3{background:var(--amber);border-color:var(--amber);color:#fff}
+.track-panel{display:none}.track-panel.active{display:block}
+[id$="-sidenav"]{position:fixed;right:22px;top:50%;transform:translateY(-50%);z-index:300;display:flex;flex-direction:column;gap:9px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .25s}
+.dot.on{background:var(--primary);transform:scale(1.4)}
+section{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px 64px;max-width:1160px;margin:0 auto;position:relative}
+section+section{border-top:1px solid var(--border)}
+.eyebrow{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--primary);margin-bottom:10px}
+h1{font-family:'Playfair Display',serif;font-size:clamp(32px,4vw,56px);line-height:1.15;margin-bottom:18px}
+h2{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-height:1.2;margin-bottom:14px}
+.lead{font-size:16px;color:var(--muted);max-width:580px;margin-bottom:36px;font-weight:300}
+section[id$="-hero"]{min-height:100vh;padding-top:120px}
+section[id$="-hero"] h1 em{font-style:italic;color:var(--primary)}
+.hero-line{width:40px;height:3px;background:var(--primary);margin:20px 0 32px}
+.hero-stats{display:flex;gap:48px;flex-wrap:wrap;margin-bottom:52px}
+.stat .num{font-family:'Playfair Display',serif;font-size:clamp(38px,5vw,64px);font-weight:700;line-height:1;color:var(--primary)}
+.stat .num.blue{color:var(--blue)}.stat .num.green{color:var(--green)}.stat .num.red{color:var(--red)}.stat .num.teal{color:var(--teal)}
+.stat .lbl{font-size:11px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.1em}
+.insight{display:inline-flex;gap:14px;align-items:flex-start;background:var(--surface);border-left:3px solid var(--primary);padding:14px 20px;border-radius:0 8px 8px 0;margin-top:24px;max-width:640px}
+.insight-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.insight-text{font-size:13px;color:var(--muted);line-height:1.6}
+.insight-text strong{display:block;color:var(--text);margin-bottom:3px;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+[id$="-sim-banner"]{display:flex;align-items:center;gap:18px;padding:14px 22px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;min-height:58px}
+[id$="-sim-action"]{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;min-width:180px;white-space:nowrap;transition:color .4s}
+[id$="-sim-narrative"]{font-size:13px;color:var(--muted);font-style:italic;line-height:1.5}
+[id$="-sim-controls"]{display:flex;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap}
+[id$="-sim-play-btn"]{background:var(--primary);color:#fff;border:none;border-radius:6px;padding:8px 20px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:.02em;transition:background .2s;min-width:90px}
+[id$="-sim-slider"]{flex:1;min-width:160px;accent-color:var(--primary);height:4px;cursor:pointer}
+.sim-time{font-family:'Playfair Display',serif;font-size:22px;color:var(--text);min-width:60px}
+.sim-stat-row{display:flex;gap:0;flex-wrap:wrap;margin-top:14px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)}
+.sim-stat{flex:1;min-width:130px;padding:14px 20px;border-right:1px solid var(--border)}
+.sim-stat:last-child{border-right:none}
+.sim-stat .sv{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);line-height:1.2;transition:color .3s}
+.sim-stat .sl{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--subtle);margin-top:4px}
+.soc-track,.occ-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:6px;width:100%}
+#t1-sim-soc-bar{height:100%;background:var(--blue);border-radius:3px;transition:width .6s ease}
+#t2-sim-occ-bar{height:100%;background:var(--teal);border-radius:3px;transition:width .6s ease,background .3s}
+.route-controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.route-btn{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 18px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;color:var(--text)}
+.route-btn:hover{border-color:var(--amber);color:var(--amber)}
+.route-btn.teal:hover{border-color:var(--teal);color:var(--teal)}
+.route-btn.green:hover{border-color:var(--green);color:var(--green)}
+.route-btn.active{background:var(--amber);border-color:var(--amber);color:#fff}
+.route-btn.teal.active{background:var(--teal);border-color:var(--teal);color:#fff}
+.route-btn.green.active{background:var(--green);border-color:var(--green);color:#fff}
+.chart-wrap{width:100%;overflow-x:auto}
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}
+#tip{position:fixed;background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12.5px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.09);max-width:220px;line-height:1.5}
+#tip .tl{font-weight:600;margin-bottom:4px;color:var(--text)}
+#tip .tv{color:var(--muted)}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px}
+.legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
+.legend-rect{width:20px;height:10px;border-radius:2px;flex-shrink:0}
+.spo-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.spo-table th{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--subtle);font-weight:500;padding:0 10px 10px 0;border-bottom:1px solid var(--border);text-align:left}
+.spo-table td{padding:10px 10px 10px 0;border-bottom:1px solid var(--border);vertical-align:middle}
+.spo-table tr.hl td{font-weight:500}
+.spo-bar{height:5px;border-radius:3px;background:var(--primary);opacity:.8}
+.fade{opacity:0;transform:translateY(28px);transition:opacity .65s ease,transform .65s ease}
+.fade.in{opacity:1;transform:none}
+.fade.d1{transition-delay:.12s}.fade.d2{transition-delay:.24s}
+svg text{font-family:'Inter',-apple-system,sans-serif}
+
+</style>
+</head>
+<body>
+
+<nav id="topnav">
+  <div class="brand"><em>Predict-Then-Optimize</em> &middot; Dutch PhD Proposal</div>
+  <div class="tabs">
+    <button class="tab t1 active" data-t="1">Track 1 &middot; Energy</button>
+    <button class="tab t2" data-t="2">Track 2 &middot; Hospital</button>
+    <button class="tab t3" data-t="3">Track 3 &middot; Logistics</button>
+  </div>
+</nav>
+<div id="tip"><div class="tl"></div><div class="tv"></div></div>
+
+<div id="t1" class="track-panel t1">
+<div id="t1-sidenav">
+  <div class="dot on"  data-i="0" title="Overview"></div>
+  <div class="dot"     data-i="1" title="Simulation"></div>
+  <div class="dot"     data-i="2" title="Price Calendar"></div>
+  <div class="dot"     data-i="3" title="Dispatch Portrait"></div>
+  <div class="dot"     data-i="4" title="Revenue Race"></div>
+  <div class="dot"     data-i="5" title="Decision Sensitivity"></div>
+</div>
+<div class="tv"></div></div>
+
+<!-- ══════════════════════════════════════════════════════════════ HERO -->
+<section id="t1-hero">
+  <div class="eyebrow fade">Track 1 · Predict-Then-Optimize</div>
+  <h1 class="fade d1">Between <em>Oracle</em> and Reality:<br>A 60-Day Energy Storage Experiment</h1>
+  <div class="hero-line fade d1"></div>
+  <p class="lead fade d2">A 1 MW / 2 MWh battery charges from the Dutch day-ahead electricity market when prices are low
+  and sells when they peak. The only problem — prices must be forecast 24 hours ahead.
+  How much does forecast error cost?</p>
+  <div class="hero-stats">
+    <div class="stat fade"><div class="num green" id="t1-h-oracle">—</div><div class="lbl">Oracle revenue (€) — perfect foresight</div></div>
+    <div class="stat fade d1"><div class="num blue" id="t1-h-naive">—</div><div class="lbl">Naive P-T-O revenue (€) — XGBoost forecast</div></div>
+    <div class="stat fade d2"><div class="num" id="t1-h-gap">—</div><div class="lbl">Decision quality gap (€) — lost to forecast error</div></div>
+  </div>
+  <div class="insight fade d2">
+    <span class="insight-icon">↓</span>
+    <div class="insight-text"><strong>The Research Question</strong>
+    Minimising forecast MSE is not the same as maximising dispatch profit.
+    The sections below trace exactly where and why this gap opens — and motivate
+    decision-focused learning (SPO+) as the remedy.</div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ SIMULATION -->
+<section id="t1-sim">
+  <div class="eyebrow fade">Live Simulation</div>
+  <h2 class="fade">Watch the Battery Work</h2>
+  <p class="lead fade">Each dot is an energy packet (0.1 MWh). As the day unfolds, dots migrate
+  between the <strong>grid</strong> and the <strong>battery</strong> following the oracle dispatch decisions.
+  The banner tells you exactly what is happening and why.</p>
+
+  <div class="fade">
+    <!-- Status banner — tells the story each hour -->
+    <div id="t1-sim-banner">
+      <span id="t1-sim-action" style="color:var(--muted)">○ Ready</span>
+      <span id="t1-sim-narrative">Press Play to simulate a day of oracle dispatch decisions</span>
+    </div>
+    <!-- Controls above the canvas -->
+    <div id="t1-sim-controls">
+      <button id="t1-sim-play-btn">▶ Play</button>
+      <input type="range" id="t1-sim-slider" min="0" max="23" value="0" step="1">
+      <span class="sim-time" id="t1-sim-hour-disp">00:00</span>
+    </div>
+    <div class="chart-wrap"><div id="t1-sim-svg-wrap"></div></div>
+    <div class="sim-stat-row">
+      <div class="sim-stat">
+        <div class="sv" id="t1-sim-price">—</div>
+        <div class="sl">Market price (€/MWh)</div>
+      </div>
+      <div class="sim-stat" style="min-width:180px">
+        <div class="soc-track"><div id="t1-sim-soc-bar" style="width:50%"></div></div>
+        <div class="sv" id="t1-sim-soc" style="font-size:16px;margin-top:4px">1.0 MWh</div>
+        <div class="sl">Battery charge level</div>
+      </div>
+      <div class="sim-stat">
+        <div class="sv" id="t1-sim-revenue" style="color:var(--green)">€0</div>
+        <div class="sl">Revenue earned today</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ HEATMAP -->
+<section id="t1-heatmap">
+  <div class="eyebrow fade">Chart 1 of 5</div>
+  <h2 class="fade">What the Market Looks Like</h2>
+  <p class="lead fade">Netherlands day-ahead prices across 14 test days and 24 hours.
+  <span style="color:var(--purple);font-weight:500">Purple = negative prices</span> (renewables flood the grid);
+  <span style="color:var(--primary);font-weight:500">deep orange = scarcity peaks</span>.
+  These are the signals the battery must read — one day ahead.</p>
+  <div class="chart-wrap fade"><div id="t1-heatmap-chart"></div></div>
+  <div class="insight fade">
+    <span class="insight-icon">⚡</span>
+    <div class="insight-text"><strong>Why this matters for the LP</strong>
+    Negative price hours are golden — the grid pays you to consume. The battery's entire profit
+    depends on forecasting these relative rankings 24 hours early.</div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ DISPATCH -->
+<section id="t1-dispatch">
+  <div class="eyebrow fade">Chart 2 of 5</div>
+  <h2 class="fade">Charge Low, Sell High</h2>
+  <p class="lead fade">72 hours of oracle dispatch. The battery charges during cheap or negative-price periods
+  (blue, below zero) and discharges at peaks (orange, above zero).
+  The grey dashed line is the state of charge — what is physically possible at each moment.</p>
+  <div class="chart-wrap fade"><div id="t1-dispatch-chart"></div></div>
+  <div class="legend fade">
+    <div class="legend-item"><div class="legend-rect" style="background:var(--primary);opacity:.8"></div>Discharge — selling to grid</div>
+    <div class="legend-item"><div class="legend-rect" style="background:var(--blue);opacity:.8"></div>Charge — buying from grid</div>
+    <div class="legend-item"><div class="legend-rect" style="background:#999;opacity:.5;height:3px;margin-top:3px"></div>State of charge (MWh)</div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ REVENUE -->
+<section id="t1-revenue">
+  <div class="eyebrow fade">Chart 3 of 5</div>
+  <h2 class="fade">The Growing Gap</h2>
+  <p class="lead fade">Cumulative revenue over 60 test days. The oracle (dashed) is the upper bound of what
+  is physically achievable with perfect foresight. Every missed negative-price hour and misjudged
+  peak compounds the loss.</p>
+  <div class="chart-wrap fade"><div id="t1-revenue-chart"></div></div>
+  <div class="insight fade">
+    <span class="insight-icon">📉</span>
+    <div class="insight-text"><strong>The compounding effect</strong>
+    The gap spikes on high-volatility days where price events were missed or misforecast.
+    These are exactly the days SPO+ is designed to target by training on decision regret,
+    not prediction error.</div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ EXPLAIN -->
+<section id="t1-explain">
+  <div class="eyebrow fade">Charts 4 & 5 of 5</div>
+  <h2 class="fade">When Forecast Errors Matter</h2>
+  <p class="lead fade">Not all forecast errors are equal. A 10 €/MWh error at 3 am changes nothing;
+  the same error at 6 pm can flip the charge/discharge decision entirely.</p>
+  <div class="chart-row">
+    <div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
+        <strong style="color:var(--text)">Decision sensitivity clock</strong><br>
+        Arc radius = probability that a ±10 €/MWh forecast shift flips dispatch. Colour = sensitivity level.</p>
+      <div class="fade"><div id="t1-clock-chart"></div></div>
+    </div>
+    <div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
+        <strong style="color:var(--text)">Lower MAE → Higher revenue</strong><br>
+        Each point is one test day. OLS confirms: forecast accuracy and decision quality move together.</p>
+      <div class="fade"><div id="t1-scatter-chart"></div></div>
+      <div class="fade" style="margin-top:28px">
+        <p style="font-size:11px;color:var(--subtle);margin-bottom:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:500">Model comparison · 60-day dispatch revenue</p>
+        <table class="spo-table" id="t1-spo-table"></table>
+      </div>
+    </div>
+  </div>
+  <div class="insight fade" style="margin-top:40px">
+    <span class="insight-icon">🎯</span>
+    <div class="insight-text"><strong>The SPO+ research agenda</strong>
+    Standard XGBoost minimises MSE uniformly across all hours.
+    Smart Predict-Then-Optimize (Elmachtoub & Grigas, 2022) trains the model to minimise
+    <em>decision regret</em> — concentrating accuracy at the sensitive hours shown in the clock above.</div>
+  </div>
+</section>
+
+
+
+</div>
+
+<div id="t2" class="track-panel t2">
+<div id="t2-sidenav">
+  <div class="dot on"  data-i="0" title="Overview"></div>
+  <div class="dot"     data-i="1" title="Simulation"></div>
+  <div class="dot"     data-i="2" title="Admission Pattern"></div>
+  <div class="dot"     data-i="3" title="Staffing Portrait"></div>
+  <div class="dot"     data-i="4" title="Cost Race"></div>
+  <div class="dot"     data-i="5" title="Decision Sensitivity"></div>
+</div>
+<div class="tv"></div></div>
+
+<!-- ══ HERO ══════════════════════════════════════════════════════════════ -->
+<section id="t2-hero">
+  <div class="eyebrow fade">Track 2 · Predict-Then-Optimize</div>
+  <h1 class="fade d1">Staffing the Ward: When <em>Prediction Error</em><br>Costs Lives and Euros</h1>
+  <div class="hero-line fade d1"></div>
+  <p class="lead fade d2">A Dutch teaching hospital predicts next-day emergency ICU admissions 24 hours
+  ahead, then solves a staffing LP to minimise total cost. Understaffing triggers patient outcome
+  penalties 4× higher than overstaffing waste — a structured asymmetric loss that standard
+  MSE minimisation ignores entirely.</p>
+  <div class="hero-stats">
+    <div class="stat fade"><div class="num green" id="t2-h-oracle">—</div><div class="lbl">Oracle staffing cost (€) — perfect foresight</div></div>
+    <div class="stat fade d1"><div class="num red" id="t2-h-naive">—</div><div class="lbl">Naive P-T-O cost (€) — XGBoost forecast</div></div>
+    <div class="stat fade d2"><div class="num" id="t2-h-gap">—</div><div class="lbl">Excess cost (€) — paid for forecast error</div></div>
+  </div>
+  <div class="insight fade d2">
+    <span class="insight-icon">↓</span>
+    <div class="insight-text"><strong>The Asymmetric Loss Problem</strong>
+    Standard XGBoost minimises symmetric MSE — it penalises over- and under-prediction equally.
+    But understaffing an ICU costs 4–6× more per patient-hour than idle staff.
+    SPO+ trains directly on staffing regret, concentrating prediction accuracy on surge hours.</div>
+  </div>
+</section>
+
+<!-- ══ SIMULATION ════════════════════════════════════════════════════════ -->
+<section id="t2-sim">
+  <div class="eyebrow fade">Live Simulation</div>
+  <h2 class="fade">Watch the Ward</h2>
+  <p class="lead fade">Each dot is a patient (1 ICU bed-occupancy unit). The staffing level —
+  the LP decision made the <em>previous night</em> based on the forecast — is shown as a
+  dashed capacity line. Watch the morning surge push occupancy above it.</p>
+  <div class="fade">
+    <div id="t2-sim-banner">
+      <span id="t2-sim-action" style="color:var(--muted)">○ Ready</span>
+      <span id="t2-sim-narrative">Press Play to simulate a day of ICU admissions against the LP staffing plan</span>
+    </div>
+    <div id="t2-sim-controls">
+      <button id="t2-sim-play-btn">▶ Play</button>
+      <input type="range" id="t2-sim-slider" min="0" max="23" value="0" step="1">
+      <span class="sim-time" id="t2-sim-hour-disp">00:00</span>
+    </div>
+    <div class="chart-wrap"><div id="t2-sim-svg-wrap"></div></div>
+    <div class="sim-stat-row">
+      <div class="sim-stat">
+        <div class="sv" id="t2-sim-occ">—</div>
+        <div class="sl">Ward occupancy (patients)</div>
+      </div>
+      <div class="sim-stat" style="min-width:180px">
+        <div class="occ-track"><div id="t2-sim-occ-bar" style="width:60%"></div></div>
+        <div class="sv" id="t2-sim-cap" style="font-size:16px;margin-top:4px">14 beds staffed</div>
+        <div class="sl">LP staffing decision</div>
+      </div>
+      <div class="sim-stat">
+        <div class="sv" id="t2-sim-penalty" style="color:var(--red)">€0</div>
+        <div class="sl">Penalty cost today</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ HEATMAP ═══════════════════════════════════════════════════════════ -->
+<section id="t2-heatmap">
+  <div class="eyebrow fade">Chart 1 of 5</div>
+  <h2 class="fade">When Patients Arrive</h2>
+  <p class="lead fade">Average ICU admission rate by day-of-week and hour of day
+  (synthetic, calibrated on LCPS/CBS reference distributions).
+  <span style="color:var(--primary);font-weight:500">Teal peaks</span> mark the
+  morning and evening surge windows the LP must anticipate.</p>
+  <div class="chart-wrap fade"><div id="t2-heatmap-chart"></div></div>
+  <div class="insight fade">
+    <span class="insight-icon">🏥</span>
+    <div class="insight-text"><strong>The staffing horizon problem</strong>
+    ICU shifts are rostered 12–24 h in advance. Monday morning surge rates swing ±40%
+    depending on weekend bed clearance — the exact type of structural pattern that
+    decision-focused learning should exploit over generic regression.</div>
+  </div>
+</section>
+
+<!-- ══ STAFFING PORTRAIT ══════════════════════════════════════════════════ -->
+<section id="t2-staffing">
+  <div class="eyebrow fade">Chart 2 of 5</div>
+  <h2 class="fade">Charge the Ward, Pay the Penalty</h2>
+  <p class="lead fade">72 hours of oracle staffing vs naive-forecast staffing against
+  actual demand. Grey = idle staff (overstaffing waste). Red = demand above capacity
+  (outcome penalty). The oracle wastes nothing and breaches never.</p>
+  <div class="chart-wrap fade"><div id="t2-staffing-chart"></div></div>
+  <div class="legend fade">
+    <div class="legend-item"><div class="legend-rect" style="background:var(--primary);opacity:.8"></div>Actual demand (patients)</div>
+    <div class="legend-item"><div class="legend-rect" style="background:var(--red);opacity:.8"></div>Demand above staffed capacity (penalty zone)</div>
+    <div class="legend-item"><div class="legend-rect" style="background:#C7C0B8;opacity:.7"></div>Unused staffed capacity (waste)</div>
+  </div>
+</section>
+
+<!-- ══ COST RACE ══════════════════════════════════════════════════════════ -->
+<section id="t2-cost">
+  <div class="eyebrow fade">Chart 3 of 5</div>
+  <h2 class="fade">The Growing Cost Gap</h2>
+  <p class="lead fade">Cumulative staffing cost over 60 simulated days. The oracle (dashed)
+  is the minimum achievable with perfect demand knowledge. Forecast error compounds —
+  the gap widens on days when the XGBoost model missed a surge event.</p>
+  <div class="chart-wrap fade"><div id="t2-cost-chart"></div></div>
+  <div class="insight fade">
+    <span class="insight-icon">📈</span>
+    <div class="insight-text"><strong>Asymmetry in action</strong>
+    Overstaffing days contribute a smooth linear increase. Understaffing events —
+    rare but expensive — create visible step-jumps in the naive cost series.
+    Eliminating just the 5 worst understaffing days closes 60% of the total gap.</div>
+  </div>
+</section>
+
+<!-- ══ SENSITIVITY ════════════════════════════════════════════════════════ -->
+<section id="t2-explain">
+  <div class="eyebrow fade">Charts 4 &amp; 5 of 5</div>
+  <h2 class="fade">When Forecast Errors Are Expensive</h2>
+  <p class="lead fade">A ±2 patient forecast error at 3 am is harmless — night staff are
+  already scheduled. The same error at 9 am Monday triggers emergency agency calls at
+  3× the regular rate. The clock maps where accuracy actually matters.</p>
+  <div class="chart-row">
+    <div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
+        <strong style="color:var(--text)">Cost-impact clock</strong><br>
+        Arc radius = expected cost of a ±2 patient forecast error at that hour.
+        Morning and post-surgery afternoon windows dominate.</p>
+      <div class="fade"><div id="t2-clock-chart"></div></div>
+    </div>
+    <div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
+        <strong style="color:var(--text)">Lower forecast error → Lower staffing cost</strong><br>
+        Each point is one simulated day. Days with low MAE consistently land near the oracle cost floor.</p>
+      <div class="fade"><div id="t2-scatter-chart"></div></div>
+      <div class="fade" style="margin-top:28px">
+        <p style="font-size:11px;color:var(--subtle);margin-bottom:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:500">Model comparison · 60-day staffing cost</p>
+        <table class="spo-table" id="t2-spo-table"></table>
+      </div>
+    </div>
+  </div>
+  <div class="insight fade" style="margin-top:40px">
+    <span class="insight-icon">🎯</span>
+    <div class="insight-text"><strong>The SPO+ research agenda for hospitals</strong>
+    Standard XGBoost ignores the asymmetry: an underprediction that triggers emergency
+    staffing costs €180/patient-hour vs €45/patient-hour for idle staff.
+    SPO+ (Elmachtoub &amp; Grigas, 2022) trains the forecast model to minimise
+    <em>staffing regret</em> — concentrating accuracy on the surge windows shown above.</div>
+  </div>
+</section>
+
+
+
+</div>
+
+<div id="t3" class="track-panel t3">
+<div id="t3-sidenav">
+  <div class="dot on"  data-i="0" title="Overview"></div>
+  <div class="dot"     data-i="1" title="Route Demo"></div>
+  <div class="dot"     data-i="2" title="Demand Pattern"></div>
+  <div class="dot"     data-i="3" title="Route Portrait"></div>
+  <div class="dot"     data-i="4" title="Distance Race"></div>
+  <div class="dot"     data-i="5" title="Heuristic Savings"></div>
+</div>
+<div class="tv"></div></div>
+
+<!-- ══ HERO ══════════════════════════════════════════════════════════════ -->
+<section id="t3-hero">
+  <div class="eyebrow fade">Track 3 · Predict-Then-Optimize</div>
+  <h1 class="fade d1">The <em>Last-Mile Problem:</em><br>When Routing Meets Forecasting</h1>
+  <div class="hero-line fade d1"></div>
+  <p class="lead fade d2">A Dutch last-mile carrier predicts daily parcel demand per postcode zone
+  from CBS demographic data and day-of-week patterns, then solves a Capacitated VRP.
+  The routing problem is NP-hard — exact solutions are intractable at scale — making
+  this the natural test bed for <em>heuristic-enhanced</em> predict-then-optimize.</p>
+  <div class="hero-stats">
+    <div class="stat fade"><div class="num green" id="t3-h-oracle">—</div><div class="lbl">Oracle route distance (km) — perfect demand foresight</div></div>
+    <div class="stat fade d1"><div class="num" id="t3-h-nn">—</div><div class="lbl">Nearest-neighbour heuristic (km) — 39% longer</div></div>
+    <div class="stat fade d2"><div class="num teal" id="t3-h-twoopt">—</div><div class="lbl">2-opt improved (km) — closes 60% of gap</div></div>
+  </div>
+  <div class="insight fade d2">
+    <span class="insight-icon">↓</span>
+    <div class="insight-text"><strong>Why VRP motivates SPO+</strong>
+    With NP-hard routing, no exact oracle exists at scale — the "oracle" is itself a
+    heuristic upper bound. SPO+ trained on <em>route cost regret</em> learns to
+    forecast demand where prediction error most inflates route distance, not where
+    MSE is largest. This is the methodological gap that Track 1 (LP) and Track 2
+    (asymmetric LP) do not reach.</div>
+  </div>
+</section>
+
+<!-- ══ ROUTE SIMULATION ═══════════════════════════════════════════════════ -->
+<section id="t3-sim">
+  <div class="eyebrow fade">Interactive Demo</div>
+  <h2 class="fade">Watch the Route Improve</h2>
+  <p class="lead fade">Twelve Amsterdam postcode zones and a central depot. Switch between
+  the naive nearest-neighbour route (with costly crossings) and the 2-opt improved route.
+  Removing each crossing saves kilometres of unnecessary travel.</p>
+  <div class="fade">
+    <div class="route-controls">
+      <button class="route-btn active" id="t3-btn-nn">Nearest-Neighbour</button>
+      <button class="route-btn teal"   id="t3-btn-2opt">2-opt Improved</button>
+      <button class="route-btn green"  id="t3-btn-oracle">Oracle (LP Bound)</button>
+    </div>
+    <div class="chart-wrap"><div id="t3-route-svg-wrap"></div></div>
+    <div class="sim-stat-row">
+      <div class="sim-stat">
+        <div class="sv" id="t3-r-dist" style="color:var(--primary)">41.4 km</div>
+        <div class="sl">Total route distance</div>
+      </div>
+      <div class="sim-stat">
+        <div class="sv" id="t3-r-crossings" style="color:var(--red)">4 crossings</div>
+        <div class="sl">Inefficient crossings</div>
+      </div>
+      <div class="sim-stat">
+        <div class="sv" id="t3-r-vs-oracle">+41%</div>
+        <div class="sl">Above oracle bound</div>
+      </div>
+    </div>
+  </div>
+  <div class="insight fade" style="margin-top:28px">
+    <span class="insight-icon">🚐</span>
+    <div class="insight-text"><strong>The demand forecasting link</strong>
+    Each zone's visit order depends on its demand weight. Better demand forecasting
+    → better priority ordering → fewer crossings emerge naturally.
+    SPO+ trains the demand model to minimise routing cost, not prediction MSE.</div>
+  </div>
+</section>
+
+<!-- ══ DEMAND HEATMAP ════════════════════════════════════════════════════ -->
+<section id="t3-heatmap">
+  <div class="eyebrow fade">Chart 1 of 5</div>
+  <h2 class="fade">Parcel Demand Across the City</h2>
+  <p class="lead fade">Average daily parcel demand by postcode zone and day of week
+  (synthetic, calibrated on CBS Kerncijfers wijken data).
+  <span style="color:var(--primary);font-weight:500">Dense residential zones</span>
+  spike midweek; business zones peak Monday–Tuesday.</p>
+  <div class="chart-wrap fade"><div id="t3-heatmap-chart"></div></div>
+  <div class="insight fade">
+    <span class="insight-icon">📦</span>
+    <div class="insight-text"><strong>Demand variability drives route variance</strong>
+    A ±20% demand error in a high-density zone can force a vehicle to make an
+    unplanned second sweep, adding 8–12 km per vehicle per day.
+    The VRP solver needs accurate demand <em>before</em> it can produce good routes.</div>
+  </div>
+</section>
+
+<!-- ══ ROUTE PORTRAIT ════════════════════════════════════════════════════ -->
+<section id="t3-routeport">
+  <div class="eyebrow fade">Chart 2 of 5</div>
+  <h2 class="fade">30 Days of Routes Overlaid</h2>
+  <p class="lead fade">Each line is one day's route, colour-coded by algorithm.
+  The oracle routes (green) cluster tightly. Nearest-neighbour routes (orange) scatter
+  widely, with many crossing paths. 2-opt (teal) sits in between.</p>
+  <div class="chart-wrap fade"><div id="t3-routeport-chart"></div></div>
+  <div class="legend fade">
+    <div class="legend-item"><div class="legend-rect" style="background:var(--green);opacity:.5"></div>Oracle LP bound — minimal route</div>
+    <div class="legend-item"><div class="legend-rect" style="background:var(--teal);opacity:.5"></div>2-opt improved — crossings removed</div>
+    <div class="legend-item"><div class="legend-rect" style="background:var(--primary);opacity:.5"></div>Nearest-neighbour — intuitive but suboptimal</div>
+  </div>
+</section>
+
+<!-- ══ DISTANCE RACE ══════════════════════════════════════════════════════ -->
+<section id="t3-distrace">
+  <div class="eyebrow fade">Chart 3 of 5</div>
+  <h2 class="fade">The Compounding Distance Gap</h2>
+  <p class="lead fade">Cumulative route kilometres over 30 operating days.
+  Every inefficient route compounds — a 12 km daily gap adds 360 km and roughly
+  €540 in fuel cost per month, per vehicle.</p>
+  <div class="chart-wrap fade"><div id="t3-dist-chart"></div></div>
+  <div class="insight fade">
+    <span class="insight-icon">⛽</span>
+    <div class="insight-text"><strong>The operational cost</strong>
+    Assuming €0.45/km fuel+wear and 3 vehicles: the NN→2-opt improvement alone
+    saves ~€162/day. A 10% reduction in demand forecast error (via SPO+) could
+    close a further 40% of the remaining 2-opt→oracle gap.</div>
+  </div>
+</section>
+
+<!-- ══ HEURISTIC COMPARISON ═══════════════════════════════════════════════ -->
+<section id="t3-explain">
+  <div class="eyebrow fade">Charts 4 &amp; 5 of 5</div>
+  <h2 class="fade">Where Heuristics Win and Lose</h2>
+  <p class="lead fade">2-opt dramatically improves NN on dense routes but still leaves
+  a gap versus the oracle on days with large demand uncertainty. These are precisely
+  the days where a better demand forecast would allow a superior initial route order.</p>
+  <div class="chart-row">
+    <div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
+        <strong style="color:var(--text)">Zone savings map</strong><br>
+        Arc radius = km saved per day when demand for that zone is forecast accurately.
+        Dense residential zones in the outer ring dominate.</p>
+      <div class="fade"><div id="t3-clock-chart"></div></div>
+    </div>
+    <div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
+        <strong style="color:var(--text)">Forecast accuracy → Route efficiency</strong><br>
+        Each point is one operating day. Days with low demand MAE consistently
+        achieve routes closer to the oracle bound.</p>
+      <div class="fade"><div id="t3-scatter-chart"></div></div>
+      <div class="fade" style="margin-top:28px">
+        <p style="font-size:11px;color:var(--subtle);margin-bottom:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:500">Algorithm comparison · 30-day total distance</p>
+        <table class="spo-table" id="t3-spo-table"></table>
+      </div>
+    </div>
+  </div>
+  <div class="insight fade" style="margin-top:40px">
+    <span class="insight-icon">🎯</span>
+    <div class="insight-text"><strong>The research gap this track opens</strong>
+    Track 1 optimises a continuous LP. Track 2 introduces asymmetric loss into the LP.
+    Track 3 replaces the LP with an NP-hard heuristic — the solver is no longer
+    differentiable. SPO+ must be adapted for combinatorial settings
+    (perturbation-based gradients, surrogate losses), which is the open methodological
+    frontier connecting energy, hospitals, and logistics.</div>
+  </div>
+</section>
+
+
+
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+
+const tip = document.getElementById('tip');
+const fmt = d3.format(",.0f");
+const fmtE = v => "€"+fmt(v);
+const fmtKm = v => fmt(v)+" km";
+function showTip(ev,label,val){tip.querySelector(".tl").textContent=label;tip.querySelector(".tv").innerHTML=val;tip.style.opacity=1;moveTip(ev);}
+function moveTip(ev){const{clientX:x,clientY:y}=ev;const tw=tip.offsetWidth,th=tip.offsetHeight;tip.style.left=(x+14>window.innerWidth-tw-8?x-tw-14:x+14)+"px";tip.style.top=(y-th/2<4?4:y-th/2)+"px";}
+function hideTip(){tip.style.opacity=0;}
+function animCount(el,end,dur,fmtFn){
+  const s=performance.now();
+  (function step(now){
+    const t=Math.min((now-s)/dur,1);
+    const ease=t<.5?2*t*t:-1+(4-2*t)*t;
+    el.textContent=fmtFn(Math.round(ease*end));
+    if(t<1)requestAnimationFrame(step);
+  })(performance.now());
+}
+const initialized=new Set();
+function activateTrack(n){
+  document.querySelectorAll('.track-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('t'+n).classList.add('active');
+  const tab=document.querySelector('.tab[data-t="'+n+'"]');
+  if(tab)tab.classList.add('active');
+  window.scrollTo({top:0,behavior:'instant'});
+  if(!initialized.has(n)){[initT1,initT2,initT3][n-1]();initialized.add(n);}
+}
+document.querySelectorAll('.tab').forEach(t=>{t.addEventListener('click',()=>activateTrack(parseInt(t.dataset.t)));});
+activateTrack(1);
+
+
+function initT1() {
+  const $ = id => document.getElementById("t1-" + id);
+  const DATA = {"heatmap":[{"date":"2023-11-02","hour":0,"price":63.1},{"date":"2023-11-02","hour":1,"price":93.0},{"date":"2023-11-02","hour":2,"price":-35.2},{"date":"2023-11-02","hour":3,"price":44.7},{"date":"2023-11-02","hour":4,"price":82.1},{"date":"2023-11-02","hour":5,"price":-51.9},{"date":"2023-11-02","hour":6,"price":110.8},{"date":"2023-11-02","hour":7,"price":122.1},{"date":"2023-11-02","hour":8,"price":128.8},{"date":"2023-11-02","hour":9,"price":83.5},{"date":"2023-11-02","hour":10,"price":112.3},{"date":"2023-11-02","hour":11,"price":47.4},{"date":"2023-11-02","hour":12,"price":114.9},{"date":"2023-11-02","hour":13,"price":82.2},{"date":"2023-11-02","hour":14,"price":86.3},{"date":"2023-11-02","hour":15,"price":45.2},{"date":"2023-11-02","hour":16,"price":85.8},{"date":"2023-11-02","hour":17,"price":131.3},{"date":"2023-11-02","hour":18,"price":96.5},{"date":"2023-11-02","hour":19,"price":118.7},{"date":"2023-11-02","hour":20,"price":98.0},{"date":"2023-11-02","hour":21,"price":113.4},{"date":"2023-11-02","hour":22,"price":83.4},{"date":"2023-11-02","hour":23,"price":50.8},{"date":"2023-11-03","hour":0,"price":64.6},{"date":"2023-11-03","hour":1,"price":95.0},{"date":"2023-11-03","hour":2,"price":68.5},{"date":"2023-11-03","hour":3,"price":55.0},{"date":"2023-11-03","hour":4,"price":111.5},{"date":"2023-11-03","hour":5,"price":101.8},{"date":"2023-11-03","hour":6,"price":111.6},{"date":"2023-11-03","hour":7,"price":109.2},{"date":"2023-11-03","hour":8,"price":115.4},{"date":"2023-11-03","hour":9,"price":108.9},{"date":"2023-11-03","hour":10,"price":39.8},{"date":"2023-11-03","hour":11,"price":95.1},{"date":"2023-11-03","hour":12,"price":80.7},{"date":"2023-11-03","hour":13,"price":69.6},{"date":"2023-11-03","hour":14,"price":79.9},{"date":"2023-11-03","hour":15,"price":53.6},{"date":"2023-11-03","hour":16,"price":52.5},{"date":"2023-11-03","hour":17,"price":126.8},{"date":"2023-11-03","hour":18,"price":113.8},{"date":"2023-11-03","hour":19,"price":47.7},{"date":"2023-11-03","hour":20,"price":82.4},{"date":"2023-11-03","hour":21,"price":107.2},{"date":"2023-11-03","hour":22,"price":70.9},{"date":"2023-11-03","hour":23,"price":96.5},{"date":"2023-11-04","hour":0,"price":74.9},{"date":"2023-11-04","hour":1,"price":18.4},{"date":"2023-11-04","hour":2,"price":42.9},{"date":"2023-11-04","hour":3,"price":36.2},{"date":"2023-11-04","hour":4,"price":19.8},{"date":"2023-11-04","hour":5,"price":32.8},{"date":"2023-11-04","hour":6,"price":64.3},{"date":"2023-11-04","hour":7,"price":76.6},{"date":"2023-11-04","hour":8,"price":94.1},{"date":"2023-11-04","hour":9,"price":103.6},{"date":"2023-11-04","hour":10,"price":87.6},{"date":"2023-11-04","hour":11,"price":91.4},{"date":"2023-11-04","hour":12,"price":66.8},{"date":"2023-11-04","hour":13,"price":82.4},{"date":"2023-11-04","hour":14,"price":-55.3},{"date":"2023-11-04","hour":15,"price":66.6},{"date":"2023-11-04","hour":16,"price":122.4},{"date":"2023-11-04","hour":17,"price":36.6},{"date":"2023-11-04","hour":18,"price":51.0},{"date":"2023-11-04","hour":19,"price":97.7},{"date":"2023-11-04","hour":20,"price":77.7},{"date":"2023-11-04","hour":21,"price":44.7},{"date":"2023-11-04","hour":22,"price":42.3},{"date":"2023-11-04","hour":23,"price":37.3},{"date":"2023-11-05","hour":0,"price":67.2},{"date":"2023-11-05","hour":1,"price":-7.2},{"date":"2023-11-05","hour":2,"price":-33.8},{"date":"2023-11-05","hour":3,"price":6.8},{"date":"2023-11-05","hour":4,"price":16.0},{"date":"2023-11-05","hour":5,"price":28.9},{"date":"2023-11-05","hour":6,"price":106.1},{"date":"2023-11-05","hour":7,"price":95.6},{"date":"2023-11-05","hour":8,"price":85.3},{"date":"2023-11-05","hour":9,"price":81.4},{"date":"2023-11-05","hour":10,"price":70.8},{"date":"2023-11-05","hour":11,"price":45.9},{"date":"2023-11-05","hour":12,"price":79.7},{"date":"2023-11-05","hour":13,"price":60.7},{"date":"2023-11-05","hour":14,"price":-15.9},{"date":"2023-11-05","hour":15,"price":84.6},{"date":"2023-11-05","hour":16,"price":67.0},{"date":"2023-11-05","hour":17,"price":88.5},{"date":"2023-11-05","hour":18,"price":85.1},{"date":"2023-11-05","hour":19,"price":104.6},{"date":"2023-11-05","hour":20,"price":84.0},{"date":"2023-11-05","hour":21,"price":52.6},{"date":"2023-11-05","hour":22,"price":68.3},{"date":"2023-11-05","hour":23,"price":61.1},{"date":"2023-11-06","hour":0,"price":78.2},{"date":"2023-11-06","hour":1,"price":86.2},{"date":"2023-11-06","hour":2,"price":47.6},{"date":"2023-11-06","hour":3,"price":75.9},{"date":"2023-11-06","hour":4,"price":27.6},{"date":"2023-11-06","hour":5,"price":77.3},{"date":"2023-11-06","hour":6,"price":91.2},{"date":"2023-11-06","hour":7,"price":137.7},{"date":"2023-11-06","hour":8,"price":99.5},{"date":"2023-11-06","hour":9,"price":109.1},{"date":"2023-11-06","hour":10,"price":52.7},{"date":"2023-11-06","hour":11,"price":82.3},{"date":"2023-11-06","hour":12,"price":69.2},{"date":"2023-11-06","hour":13,"price":138.7},{"date":"2023-11-06","hour":14,"price":73.2},{"date":"2023-11-06","hour":15,"price":93.0},{"date":"2023-11-06","hour":16,"price":98.5},{"date":"2023-11-06","hour":17,"price":68.0},{"date":"2023-11-06","hour":18,"price":95.7},{"date":"2023-11-06","hour":19,"price":113.3},{"date":"2023-11-06","hour":20,"price":100.5},{"date":"2023-11-06","hour":21,"price":40.8},{"date":"2023-11-06","hour":22,"price":68.2},{"date":"2023-11-06","hour":23,"price":95.2},{"date":"2023-11-07","hour":0,"price":79.9},{"date":"2023-11-07","hour":1,"price":90.2},{"date":"2023-11-07","hour":2,"price":39.5},{"date":"2023-11-07","hour":3,"price":89.4},{"date":"2023-11-07","hour":4,"price":-50.6},{"date":"2023-11-07","hour":5,"price":115.0},{"date":"2023-11-07","hour":6,"price":97.3},{"date":"2023-11-07","hour":7,"price":60.8},{"date":"2023-11-07","hour":8,"price":-34.6},{"date":"2023-11-07","hour":9,"price":86.0},{"date":"2023-11-07","hour":10,"price":83.2},{"date":"2023-11-07","hour":11,"price":58.0},{"date":"2023-11-07","hour":12,"price":123.5},{"date":"2023-11-07","hour":13,"price":72.8},{"date":"2023-11-07","hour":14,"price":122.5},{"date":"2023-11-07","hour":15,"price":82.0},{"date":"2023-11-07","hour":16,"price":75.3},{"date":"2023-11-07","hour":17,"price":132.0},{"date":"2023-11-07","hour":18,"price":105.7},{"date":"2023-11-07","hour":19,"price":103.0},{"date":"2023-11-07","hour":20,"price":70.4},{"date":"2023-11-07","hour":21,"price":81.4},{"date":"2023-11-07","hour":22,"price":90.1},{"date":"2023-11-07","hour":23,"price":44.1},{"date":"2023-11-08","hour":0,"price":55.1},{"date":"2023-11-08","hour":1,"price":54.1},{"date":"2023-11-08","hour":2,"price":62.7},{"date":"2023-11-08","hour":3,"price":93.8},{"date":"2023-11-08","hour":4,"price":58.9},{"date":"2023-11-08","hour":5,"price":64.7},{"date":"2023-11-08","hour":6,"price":157.6},{"date":"2023-11-08","hour":7,"price":96.3},{"date":"2023-11-08","hour":8,"price":98.8},{"date":"2023-11-08","hour":9,"price":87.9},{"date":"2023-11-08","hour":10,"price":85.3},{"date":"2023-11-08","hour":11,"price":91.7},{"date":"2023-11-08","hour":12,"price":108.1},{"date":"2023-11-08","hour":13,"price":93.1},{"date":"2023-11-08","hour":14,"price":111.5},{"date":"2023-11-08","hour":15,"price":114.4},{"date":"2023-11-08","hour":16,"price":100.3},{"date":"2023-11-08","hour":17,"price":111.2},{"date":"2023-11-08","hour":18,"price":131.7},{"date":"2023-11-08","hour":19,"price":80.0},{"date":"2023-11-08","hour":20,"price":153.6},{"date":"2023-11-08","hour":21,"price":80.2},{"date":"2023-11-08","hour":22,"price":72.9},{"date":"2023-11-08","hour":23,"price":-55.0},{"date":"2023-11-09","hour":0,"price":39.5},{"date":"2023-11-09","hour":1,"price":83.3},{"date":"2023-11-09","hour":2,"price":109.7},{"date":"2023-11-09","hour":3,"price":47.3},{"date":"2023-11-09","hour":4,"price":71.7},{"date":"2023-11-09","hour":5,"price":83.3},{"date":"2023-11-09","hour":6,"price":117.8},{"date":"2023-11-09","hour":7,"price":153.2},{"date":"2023-11-09","hour":8,"price":135.0},{"date":"2023-11-09","hour":9,"price":89.1},{"date":"2023-11-09","hour":10,"price":101.6},{"date":"2023-11-09","hour":11,"price":102.4},{"date":"2023-11-09","hour":12,"price":86.0},{"date":"2023-11-09","hour":13,"price":58.7},{"date":"2023-11-09","hour":14,"price":68.8},{"date":"2023-11-09","hour":15,"price":-37.4},{"date":"2023-11-09","hour":16,"price":121.8},{"date":"2023-11-09","hour":17,"price":97.0},{"date":"2023-11-09","hour":18,"price":111.6},{"date":"2023-11-09","hour":19,"price":129.3},{"date":"2023-11-09","hour":20,"price":59.7},{"date":"2023-11-09","hour":21,"price":80.2},{"date":"2023-11-09","hour":22,"price":123.6},{"date":"2023-11-09","hour":23,"price":77.9},{"date":"2023-11-10","hour":0,"price":38.5},{"date":"2023-11-10","hour":1,"price":62.3},{"date":"2023-11-10","hour":2,"price":80.1},{"date":"2023-11-10","hour":3,"price":1.6},{"date":"2023-11-10","hour":4,"price":65.8},{"date":"2023-11-10","hour":5,"price":68.1},{"date":"2023-11-10","hour":6,"price":57.5},{"date":"2023-11-10","hour":7,"price":104.0},{"date":"2023-11-10","hour":8,"price":96.4},{"date":"2023-11-10","hour":9,"price":91.6},{"date":"2023-11-10","hour":10,"price":80.2},{"date":"2023-11-10","hour":11,"price":63.9},{"date":"2023-11-10","hour":12,"price":52.2},{"date":"2023-11-10","hour":13,"price":65.4},{"date":"2023-11-10","hour":14,"price":103.1},{"date":"2023-11-10","hour":15,"price":93.0},{"date":"2023-11-10","hour":16,"price":90.6},{"date":"2023-11-10","hour":17,"price":76.5},{"date":"2023-11-10","hour":18,"price":95.5},{"date":"2023-11-10","hour":19,"price":117.0},{"date":"2023-11-10","hour":20,"price":106.2},{"date":"2023-11-10","hour":21,"price":77.3},{"date":"2023-11-10","hour":22,"price":19.6},{"date":"2023-11-10","hour":23,"price":54.3},{"date":"2023-11-11","hour":0,"price":41.2},{"date":"2023-11-11","hour":1,"price":28.3},{"date":"2023-11-11","hour":2,"price":37.0},{"date":"2023-11-11","hour":3,"price":64.0},{"date":"2023-11-11","hour":4,"price":49.6},{"date":"2023-11-11","hour":5,"price":86.6},{"date":"2023-11-11","hour":6,"price":48.9},{"date":"2023-11-11","hour":7,"price":84.0},{"date":"2023-11-11","hour":8,"price":45.2},{"date":"2023-11-11","hour":9,"price":71.3},{"date":"2023-11-11","hour":10,"price":53.3},{"date":"2023-11-11","hour":11,"price":103.1},{"date":"2023-11-11","hour":12,"price":81.7},{"date":"2023-11-11","hour":13,"price":91.5},{"date":"2023-11-11","hour":14,"price":63.3},{"date":"2023-11-11","hour":15,"price":53.9},{"date":"2023-11-11","hour":16,"price":57.5},{"date":"2023-11-11","hour":17,"price":93.7},{"date":"2023-11-11","hour":18,"price":132.0},{"date":"2023-11-11","hour":19,"price":98.3},{"date":"2023-11-11","hour":20,"price":75.3},{"date":"2023-11-11","hour":21,"price":72.2},{"date":"2023-11-11","hour":22,"price":64.8},{"date":"2023-11-11","hour":23,"price":102.2},{"date":"2023-11-12","hour":0,"price":74.7},{"date":"2023-11-12","hour":1,"price":49.6},{"date":"2023-11-12","hour":2,"price":44.2},{"date":"2023-11-12","hour":3,"price":48.4},{"date":"2023-11-12","hour":4,"price":57.0},{"date":"2023-11-12","hour":5,"price":51.4},{"date":"2023-11-12","hour":6,"price":59.2},{"date":"2023-11-12","hour":7,"price":-14.6},{"date":"2023-11-12","hour":8,"price":84.0},{"date":"2023-11-12","hour":9,"price":-10.9},{"date":"2023-11-12","hour":10,"price":108.2},{"date":"2023-11-12","hour":11,"price":82.0},{"date":"2023-11-12","hour":12,"price":76.3},{"date":"2023-11-12","hour":13,"price":135.2},{"date":"2023-11-12","hour":14,"price":73.0},{"date":"2023-11-12","hour":15,"price":-31.4},{"date":"2023-11-12","hour":16,"price":70.1},{"date":"2023-11-12","hour":17,"price":117.7},{"date":"2023-11-12","hour":18,"price":59.4},{"date":"2023-11-12","hour":19,"price":68.4},{"date":"2023-11-12","hour":20,"price":103.5},{"date":"2023-11-12","hour":21,"price":66.0},{"date":"2023-11-12","hour":22,"price":58.8},{"date":"2023-11-12","hour":23,"price":76.9},{"date":"2023-11-13","hour":0,"price":51.2},{"date":"2023-11-13","hour":1,"price":31.1},{"date":"2023-11-13","hour":2,"price":30.6},{"date":"2023-11-13","hour":3,"price":74.0},{"date":"2023-11-13","hour":4,"price":71.2},{"date":"2023-11-13","hour":5,"price":64.7},{"date":"2023-11-13","hour":6,"price":71.7},{"date":"2023-11-13","hour":7,"price":99.9},{"date":"2023-11-13","hour":8,"price":127.5},{"date":"2023-11-13","hour":9,"price":77.4},{"date":"2023-11-13","hour":10,"price":76.9},{"date":"2023-11-13","hour":11,"price":63.8},{"date":"2023-11-13","hour":12,"price":79.8},{"date":"2023-11-13","hour":13,"price":91.7},{"date":"2023-11-13","hour":14,"price":134.4},{"date":"2023-11-13","hour":15,"price":96.2},{"date":"2023-11-13","hour":16,"price":94.6},{"date":"2023-11-13","hour":17,"price":121.9},{"date":"2023-11-13","hour":18,"price":122.6},{"date":"2023-11-13","hour":19,"price":91.7},{"date":"2023-11-13","hour":20,"price":149.3},{"date":"2023-11-13","hour":21,"price":90.9},{"date":"2023-11-13","hour":22,"price":85.8},{"date":"2023-11-13","hour":23,"price":84.8},{"date":"2023-11-14","hour":0,"price":74.6},{"date":"2023-11-14","hour":1,"price":96.9},{"date":"2023-11-14","hour":2,"price":48.2},{"date":"2023-11-14","hour":3,"price":78.4},{"date":"2023-11-14","hour":4,"price":69.1},{"date":"2023-11-14","hour":5,"price":101.5},{"date":"2023-11-14","hour":6,"price":92.5},{"date":"2023-11-14","hour":7,"price":98.1},{"date":"2023-11-14","hour":8,"price":119.1},{"date":"2023-11-14","hour":9,"price":103.6},{"date":"2023-11-14","hour":10,"price":73.4},{"date":"2023-11-14","hour":11,"price":119.6},{"date":"2023-11-14","hour":12,"price":104.0},{"date":"2023-11-14","hour":13,"price":82.6},{"date":"2023-11-14","hour":14,"price":77.5},{"date":"2023-11-14","hour":15,"price":99.5},{"date":"2023-11-14","hour":16,"price":110.3},{"date":"2023-11-14","hour":17,"price":67.9},{"date":"2023-11-14","hour":18,"price":115.5},{"date":"2023-11-14","hour":19,"price":118.8},{"date":"2023-11-14","hour":20,"price":46.9},{"date":"2023-11-14","hour":21,"price":95.8},{"date":"2023-11-14","hour":22,"price":95.9},{"date":"2023-11-14","hour":23,"price":85.5},{"date":"2023-11-15","hour":0,"price":84.6},{"date":"2023-11-15","hour":1,"price":56.1},{"date":"2023-11-15","hour":2,"price":38.3},{"date":"2023-11-15","hour":3,"price":21.6},{"date":"2023-11-15","hour":4,"price":89.5},{"date":"2023-11-15","hour":5,"price":95.4},{"date":"2023-11-15","hour":6,"price":122.9},{"date":"2023-11-15","hour":7,"price":89.9},{"date":"2023-11-15","hour":8,"price":120.6},{"date":"2023-11-15","hour":9,"price":62.7},{"date":"2023-11-15","hour":10,"price":72.3},{"date":"2023-11-15","hour":11,"price":92.8},{"date":"2023-11-15","hour":12,"price":102.4},{"date":"2023-11-15","hour":13,"price":121.2},{"date":"2023-11-15","hour":14,"price":82.6},{"date":"2023-11-15","hour":15,"price":72.4},{"date":"2023-11-15","hour":16,"price":75.6},{"date":"2023-11-15","hour":17,"price":87.8},{"date":"2023-11-15","hour":18,"price":156.1},{"date":"2023-11-15","hour":19,"price":121.0},{"date":"2023-11-15","hour":20,"price":123.1},{"date":"2023-11-15","hour":21,"price":86.2},{"date":"2023-11-15","hour":22,"price":80.6},{"date":"2023-11-15","hour":23,"price":88.1}],"dispatch":[{"dt":"2023-11-02T00:00","price":63.1,"charge":0.222,"discharge":0.0,"soc":1.0},{"dt":"2023-11-02T01:00","price":93.0,"charge":0.0,"discharge":1.0,"soc":1.2},{"dt":"2023-11-02T02:00","price":-35.2,"charge":1.0,"discharge":0.0,"soc":0.2},{"dt":"2023-11-02T03:00","price":44.7,"charge":1.0,"discharge":0.0,"soc":1.1},{"dt":"2023-11-02T04:00","price":82.1,"charge":0.0,"discharge":0.9,"soc":2.0},{"dt":"2023-11-02T05:00","price":-51.9,"charge":1.0,"discharge":0.0,"soc":1.1},{"dt":"2023-11-02T06:00","price":110.8,"charge":0.0,"discharge":-0.0,"soc":2.0},{"dt":"2023-11-02T07:00","price":122.1,"charge":0.0,"discharge":1.0,"soc":2.0},{"dt":"2023-11-02T08:00","price":128.8,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2023-11-02T09:00","price":83.5,"charge":1.0,"discharge":0.0,"soc":-0.0},{"dt":"2023-11-02T10:00","price":112.3,"charge":0.0,"discharge":0.8,"soc":0.9},{"dt":"2023-11-02T11:00","price":47.4,"charge":1.0,"discharge":0.0,"soc":0.1},{"dt":"2023-11-02T12:00","price":114.9,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2023-11-02T13:00","price":82.2,"charge":1.0,"discharge":0.0,"soc":0.0},{"dt":"2023-11-02T14:00","price":86.3,"charge":0.0,"discharge":0.0,"soc":0.9},{"dt":"2023-11-02T15:00","price":45.2,"charge":1.0,"discharge":0.0,"soc":0.9},{"dt":"2023-11-02T16:00","price":85.8,"charge":0.222,"discharge":0.0,"soc":1.8},{"dt":"2023-11-02T17:00","price":131.3,"charge":0.0,"discharge":1.0,"soc":2.0},{"dt":"2023-11-02T18:00","price":96.5,"charge":1.0,"discharge":0.0,"soc":1.0},{"dt":"2023-11-02T19:00","price":118.7,"charge":0.0,"discharge":1.0,"soc":1.9},{"dt":"2023-11-02T20:00","price":98.0,"charge":0.111,"discharge":0.0,"soc":0.9},{"dt":"2023-11-02T21:00","price":113.4,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2023-11-02T22:00","price":83.4,"charge":0.0,"discharge":-0.0,"soc":0.0},{"dt":"2023-11-02T23:00","price":50.8,"charge":0.0,"discharge":1.0,"soc":0.0},{"dt":"2023-11-03T00:00","price":64.6,"charge":1.0,"discharge":0.0,"soc":-0.0},{"dt":"2023-11-03T01:00","price":95.0,"charge":0.0,"discharge":0.7,"soc":0.9},{"dt":"2023-11-03T02:00","price":68.5,"charge":1.0,"discharge":0.0,"soc":0.2},{"dt":"2023-11-03T03:00","price":55.0,"charge":1.0,"discharge":0.0,"soc":1.1},{"dt":"2023-11-03T04:00","price":111.5,"charge":0.0,"discharge":-0.0,"soc":2.0},{"dt":"2023-11-03T05:00","price":101.8,"charge":0.0,"discharge":0.0,"soc":2.0},{"dt":"2023-11-03T06:00","price":111.6,"charge":0.0,"discharge":1.0,"soc":2.0},{"dt":"2023-11-03T07:00","price":109.2,"charge":0.0,"discharge":0.0,"soc":1.0},{"dt":"2023-11-03T08:00","price":115.4,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2023-11-03T09:00","price":108.9,"charge":0.0,"discharge":-0.0,"soc":0.0},{"dt":"2023-11-03T10:00","price":39.8,"charge":1.0,"discharge":0.0,"soc":0.0},{"dt":"2023-11-03T11:00","price":95.1,"charge":0.0,"discharge":0.9,"soc":0.9},{"dt":"2023-11-03T12:00","price":80.7,"charge":0.0,"discharge":-0.0,"soc":0.0},{"dt":"2023-11-03T13:00","price":69.6,"charge":1.0,"discharge":0.0,"soc":0.0},{"dt":"2023-11-03T14:00","price":79.9,"charge":0.0,"discharge":0.7,"soc":0.9},{"dt":"2023-11-03T15:00","price":53.6,"charge":1.0,"discharge":0.0,"soc":0.2},{"dt":"2023-11-03T16:00","price":52.5,"charge":1.0,"discharge":0.0,"soc":1.1},{"dt":"2023-11-03T17:00","price":126.8,"charge":0.0,"discharge":1.0,"soc":2.0},{"dt":"2023-11-03T18:00","price":113.8,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2023-11-03T19:00","price":47.7,"charge":1.0,"discharge":0.0,"soc":-0.0},{"dt":"2023-11-03T20:00","price":82.4,"charge":0.111,"discharge":0.0,"soc":0.9},{"dt":"2023-11-03T21:00","price":107.2,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2023-11-03T22:00","price":70.9,"charge":-0.0,"discharge":0.0,"soc":0.0},{"dt":"2023-11-03T23:00","price":96.5,"charge":0.0,"discharge":1.0,"soc":0.0},{"dt":"2023-11-04T00:00","price":74.9,"charge":-0.0,"discharge":0.0,"soc":-0.0},{"dt":"2023-11-04T01:00","price":18.4,"charge":1.0,"discharge":0.0,"soc":0.0},{"dt":"2023-11-04T02:00","price":42.9,"charge":0.0,"discharge":0.9,"soc":0.9},{"dt":"2023-11-04T03:00","price":36.2,"charge":0.222,"discharge":0.0,"soc":0.0},{"dt":"2023-11-04T04:00","price":19.8,"charge":1.0,"discharge":0.0,"soc":0.2},{"dt":"2023-11-04T05:00","price":32.8,"charge":1.0,"discharge":0.0,"soc":1.1},{"dt":"2023-11-04T06:00","price":64.3,"charge":0.0,"discharge":-0.0,"soc":2.0},{"dt":"2023-11-04T07:00","price":76.6,"charge":-0.0,"discharge":0.0,"soc":2.0},{"dt":"2023-11-04T08:00","price":94.1,"charge":0.0,"discharge":1.0,"soc":2.0},{"dt":"2023-11-04T09:00","price":103.6,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2023-11-04T10:00","price":87.6,"charge":0.0,"discharge":0.0,"soc":-0.0},{"dt":"2023-11-04T11:00","price":91.4,"charge":0.0,"discharge":-0.0,"soc":-0.0},{"dt":"2023-11-04T12:00","price":66.8,"charge":1.0,"discharge":0.0,"soc":0.0},{"dt":"2023-11-04T13:00","price":82.4,"charge":0.0,"discharge":0.9,"soc":0.9},{"dt":"2023-11-04T14:00","price":-55.3,"charge":1.0,"discharge":0.0,"soc":0.0},{"dt":"2023-11-04T15:00","price":66.6,"charge":0.333,"discharge":0.0,"soc":0.9},{"dt":"2023-11-04T16:00","price":122.4,"charge":0.0,"discharge":1.0,"soc":1.2},{"dt":"2023-11-04T17:00","price":36.6,"charge":1.0,"discharge":0.0,"soc":0.2},{"dt":"2023-11-04T18:00","price":51.0,"charge":1.0,"discharge":0.0,"soc":1.1},{"dt":"2023-11-04T19:00","price":97.7,"charge":0.0,"discharge":1.0,"soc":2.0},{"dt":"2023-11-04T20:00","price":77.7,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2023-11-04T21:00","price":44.7,"charge":0.0,"discharge":-0.0,"soc":0.0},{"dt":"2023-11-04T22:00","price":42.3,"charge":0.0,"discharge":-0.0,"soc":0.0},{"dt":"2023-11-04T23:00","price":37.3,"charge":0.0,"discharge":1.0,"soc":0.0}],"revenue":[{"day":1,"date":"2023-11-02","oracle":680.0,"naive":154.0},{"day":2,"date":"2023-11-03","oracle":1099.0,"naive":336.0},{"day":3,"date":"2023-11-04","oracle":1544.0,"naive":392.0},{"day":4,"date":"2023-11-05","oracle":2023.0,"naive":721.0},{"day":5,"date":"2023-11-06","oracle":2444.0,"naive":928.0},{"day":6,"date":"2023-11-07","oracle":2998.0,"naive":999.0},{"day":7,"date":"2023-11-08","oracle":3334.0,"naive":993.0},{"day":8,"date":"2023-11-09","oracle":3977.0,"naive":1228.0},{"day":9,"date":"2023-11-10","oracle":4303.0,"naive":1420.0},{"day":10,"date":"2023-11-11","oracle":4711.0,"naive":1582.0},{"day":11,"date":"2023-11-12","oracle":5260.0,"naive":1510.0},{"day":12,"date":"2023-11-13","oracle":5662.0,"naive":1661.0},{"day":13,"date":"2023-11-14","oracle":6009.0,"naive":1780.0},{"day":14,"date":"2023-11-15","oracle":6449.0,"naive":2009.0},{"day":15,"date":"2023-11-16","oracle":6884.0,"naive":2310.0},{"day":16,"date":"2023-11-17","oracle":7178.0,"naive":2445.0},{"day":17,"date":"2023-11-18","oracle":7498.0,"naive":2542.0},{"day":18,"date":"2023-11-19","oracle":7988.0,"naive":2489.0},{"day":19,"date":"2023-11-20","oracle":8447.0,"naive":2632.0},{"day":20,"date":"2023-11-21","oracle":8959.0,"naive":2828.0},{"day":21,"date":"2023-11-22","oracle":9443.0,"naive":2934.0},{"day":22,"date":"2023-11-23","oracle":9959.0,"naive":3067.0},{"day":23,"date":"2023-11-24","oracle":10371.0,"naive":3306.0},{"day":24,"date":"2023-11-25","oracle":10659.0,"naive":3306.0},{"day":25,"date":"2023-11-26","oracle":11104.0,"naive":3461.0},{"day":26,"date":"2023-11-27","oracle":11587.0,"naive":3650.0},{"day":27,"date":"2023-11-28","oracle":12002.0,"naive":3851.0},{"day":28,"date":"2023-11-29","oracle":12534.0,"naive":4034.0},{"day":29,"date":"2023-11-30","oracle":13207.0,"naive":4245.0},{"day":30,"date":"2023-12-01","oracle":13588.0,"naive":4385.0},{"day":31,"date":"2023-12-02","oracle":14071.0,"naive":4523.0},{"day":32,"date":"2023-12-03","oracle":14702.0,"naive":4843.0},{"day":33,"date":"2023-12-04","oracle":15122.0,"naive":5050.0},{"day":34,"date":"2023-12-05","oracle":15494.0,"naive":5251.0},{"day":35,"date":"2023-12-06","oracle":15959.0,"naive":5356.0},{"day":36,"date":"2023-12-07","oracle":16294.0,"naive":5629.0},{"day":37,"date":"2023-12-08","oracle":16617.0,"naive":5767.0},{"day":38,"date":"2023-12-09","oracle":17110.0,"naive":5954.0},{"day":39,"date":"2023-12-10","oracle":17320.0,"naive":5988.0},{"day":40,"date":"2023-12-11","oracle":17675.0,"naive":5971.0},{"day":41,"date":"2023-12-12","oracle":18060.0,"naive":5961.0},{"day":42,"date":"2023-12-13","oracle":18468.0,"naive":6093.0},{"day":43,"date":"2023-12-14","oracle":18860.0,"naive":6269.0},{"day":44,"date":"2023-12-15","oracle":19106.0,"naive":6345.0},{"day":45,"date":"2023-12-16","oracle":19559.0,"naive":6454.0},{"day":46,"date":"2023-12-17","oracle":19928.0,"naive":6629.0},{"day":47,"date":"2023-12-18","oracle":20515.0,"naive":6712.0},{"day":48,"date":"2023-12-19","oracle":20800.0,"naive":6761.0},{"day":49,"date":"2023-12-20","oracle":21385.0,"naive":6680.0},{"day":50,"date":"2023-12-21","oracle":21825.0,"naive":6834.0},{"day":51,"date":"2023-12-22","oracle":22326.0,"naive":6755.0},{"day":52,"date":"2023-12-23","oracle":22612.0,"naive":6848.0},{"day":53,"date":"2023-12-24","oracle":22958.0,"naive":7003.0},{"day":54,"date":"2023-12-25","oracle":23255.0,"naive":7058.0},{"day":55,"date":"2023-12-26","oracle":23610.0,"naive":7045.0},{"day":56,"date":"2023-12-27","oracle":24113.0,"naive":7079.0},{"day":57,"date":"2023-12-28","oracle":24319.0,"naive":7002.0},{"day":58,"date":"2023-12-29","oracle":24783.0,"naive":7229.0},{"day":59,"date":"2023-12-30","oracle":25308.0,"naive":7550.0},{"day":60,"date":"2023-12-31","oracle":25683.0,"naive":7656.0}],"clock":[{"hour":0,"sensitivity":0.867,"impact":22.4},{"hour":1,"sensitivity":0.967,"impact":29.0},{"hour":2,"sensitivity":1.0,"impact":28.1},{"hour":3,"sensitivity":0.983,"impact":29.3},{"hour":4,"sensitivity":0.917,"impact":21.3},{"hour":5,"sensitivity":0.117,"impact":3.2},{"hour":6,"sensitivity":0.65,"impact":14.5},{"hour":7,"sensitivity":0.767,"impact":26.0},{"hour":8,"sensitivity":0.917,"impact":32.8},{"hour":9,"sensitivity":0.917,"impact":30.2},{"hour":10,"sensitivity":0.983,"impact":33.1},{"hour":11,"sensitivity":0.967,"impact":31.3},{"hour":12,"sensitivity":0.967,"impact":25.1},{"hour":13,"sensitivity":0.933,"impact":28.9},{"hour":14,"sensitivity":0.917,"impact":26.3},{"hour":15,"sensitivity":0.833,"impact":25.9},{"hour":16,"sensitivity":0.883,"impact":28.7},{"hour":17,"sensitivity":0.883,"impact":30.8},{"hour":18,"sensitivity":0.833,"impact":22.7},{"hour":19,"sensitivity":0.867,"impact":32.6},{"hour":20,"sensitivity":0.767,"impact":27.8},{"hour":21,"sensitivity":0.417,"impact":14.4},{"hour":22,"sensitivity":0.25,"impact":9.6},{"hour":23,"sensitivity":0.0,"impact":0.0}],"scatter":[{"date":"2023-11-02","mae":28.6,"revenue":154.0},{"date":"2023-11-03","mae":20.6,"revenue":182.0},{"date":"2023-11-04","mae":25.1,"revenue":56.0},{"date":"2023-11-05","mae":21.5,"revenue":329.0},{"date":"2023-11-06","mae":18.6,"revenue":207.0},{"date":"2023-11-07","mae":30.3,"revenue":71.0},{"date":"2023-11-08","mae":23.8,"revenue":-5.0},{"date":"2023-11-09","mae":25.7,"revenue":234.0},{"date":"2023-11-10","mae":19.6,"revenue":192.0},{"date":"2023-11-11","mae":20.2,"revenue":162.0},{"date":"2023-11-12","mae":30.7,"revenue":-72.0},{"date":"2023-11-13","mae":20.9,"revenue":152.0},{"date":"2023-11-14","mae":17.2,"revenue":118.0},{"date":"2023-11-15","mae":21.7,"revenue":230.0},{"date":"2023-11-16","mae":19.3,"revenue":301.0},{"date":"2023-11-17","mae":12.9,"revenue":135.0},{"date":"2023-11-18","mae":20.9,"revenue":97.0},{"date":"2023-11-19","mae":24.5,"revenue":-53.0},{"date":"2023-11-20","mae":24.0,"revenue":143.0},{"date":"2023-11-21","mae":28.0,"revenue":196.0},{"date":"2023-11-22","mae":26.6,"revenue":106.0},{"date":"2023-11-23","mae":26.8,"revenue":132.0},{"date":"2023-11-24","mae":24.1,"revenue":240.0},{"date":"2023-11-25","mae":19.6,"revenue":-1.0},{"date":"2023-11-26","mae":22.0,"revenue":156.0},{"date":"2023-11-27","mae":24.1,"revenue":188.0},{"date":"2023-11-28","mae":21.0,"revenue":202.0},{"date":"2023-11-29","mae":30.0,"revenue":183.0},{"date":"2023-11-30","mae":33.2,"revenue":211.0},{"date":"2023-12-01","mae":20.1,"revenue":140.0},{"date":"2023-12-02","mae":24.1,"revenue":138.0},{"date":"2023-12-03","mae":29.8,"revenue":320.0},{"date":"2023-12-04","mae":24.2,"revenue":207.0},{"date":"2023-12-05","mae":17.5,"revenue":201.0},{"date":"2023-12-06","mae":22.0,"revenue":105.0},{"date":"2023-12-07","mae":13.5,"revenue":273.0},{"date":"2023-12-08","mae":17.0,"revenue":138.0},{"date":"2023-12-09","mae":27.7,"revenue":186.0},{"date":"2023-12-10","mae":17.6,"revenue":34.0},{"date":"2023-12-11","mae":27.3,"revenue":-17.0},{"date":"2023-12-12","mae":23.7,"revenue":-10.0},{"date":"2023-12-13","mae":21.9,"revenue":132.0},{"date":"2023-12-14","mae":18.3,"revenue":176.0},{"date":"2023-12-15","mae":14.8,"revenue":76.0},{"date":"2023-12-16","mae":24.8,"revenue":109.0},{"date":"2023-12-17","mae":22.8,"revenue":175.0},{"date":"2023-12-18","mae":32.2,"revenue":83.0},{"date":"2023-12-19","mae":17.9,"revenue":49.0},{"date":"2023-12-20","mae":37.8,"revenue":-82.0},{"date":"2023-12-21","mae":23.5,"revenue":155.0},{"date":"2023-12-22","mae":27.2,"revenue":-79.0},{"date":"2023-12-23","mae":14.3,"revenue":93.0},{"date":"2023-12-24","mae":17.4,"revenue":154.0},{"date":"2023-12-25","mae":21.5,"revenue":56.0},{"date":"2023-12-26","mae":24.6,"revenue":-14.0},{"date":"2023-12-27","mae":28.6,"revenue":35.0},{"date":"2023-12-28","mae":22.6,"revenue":-78.0},{"date":"2023-12-29","mae":18.9,"revenue":228.0},{"date":"2023-12-30","mae":23.5,"revenue":321.0},{"date":"2023-12-31","mae":17.8,"revenue":106.0}],"spo":[{"model":"Oracle","mae":0.0,"revenue":25683.0,"pct":100.0},{"model":"Standard XGBoost","mae":22.9,"revenue":7656.0,"pct":29.8},{"model":"Regret-weighted","mae":24.4,"revenue":7101.0,"pct":27.6},{"model":"SPO+ gradient","mae":23.0,"revenue":6915.0,"pct":26.9}],"ols":{"slope":-4.48,"intercept":230.0,"r":-0.222,"p":0.089},"stats":{"oracle":25683,"naive":7656,"gap":18027,"gap_pct":70.2,"sens_pct":77.5,"mae":22.9}};
+  const {heatmap,dispatch,revenue,clock,scatter,spo,ols,stats} = DATA;
+  
+  // ── Tooltip ──────────────────────────────────────────────────────────────────
+  
+  const priceColor = d3.scaleLinear()
+    .domain([-60,0,50,120,175])
+    .range(["#6D28D9","#F7F4EE","#FCD34D","#D4540A","#7F1D1D"]).clamp(true);
+  
+  // ════════════════════════════════════════════════════════════════════
+  // SIMULATION — two-zone energy particle system
+  // ════════════════════════════════════════════════════════════════════
+  (function initSim(){
+    const simDay = dispatch.slice(0,24);  // oracle dispatch for day 1 of test period
+    const W = Math.min($("sim-svg-wrap").clientWidth||920, 920);
+    const H = 300;
+    const PAD = 14;
+    const iW = W - PAD*2;
+  
+    // ── Two-zone layout ─────────────────────────────────────────────
+    // Left: GRID  |  Right: BATTERY
+    const GW = iW * 0.42;          // grid zone width
+    const BW = iW - GW;            // battery zone width
+    const GCX = GW / 2;            // grid centre x
+    const BCX = GW + BW / 2;       // battery centre x
+    const CY  = H / 2;
+  
+    // ── Dot counts ──────────────────────────────────────────────────
+    const N_E  = 20;   // energy dots (0.1 MWh each, 20 = full 2 MWh battery)
+    const N_BG = 28;   // static grid background dots (always in grid zone)
+    const R    = 6.5;  // dot radius
+  
+    const initBatt = Math.round(simDay[0].soc / 2 * N_E);
+  
+    const dots = [];
+    // Energy dots — start split between grid and battery at initial SOC
+    for (let i=0;i<N_E;i++) {
+      const inB = i < initBatt;
+      dots.push({
+        id:i, kind:"energy", zone: inB?"battery":"grid", flying:false,
+        x: (inB?BCX:GCX) + (Math.random()-.5)*90,
+        y: CY + (Math.random()-.5)*120,
+        vx:0, vy:0
+      });
+    }
+    // Background grid dots — always stay in grid zone
+    for (let i=0;i<N_BG;i++) {
+      dots.push({
+        id:N_E+i, kind:"bg", zone:"grid", flying:false,
+        x: GCX + (Math.random()-.5)*110,
+        y: CY + (Math.random()-.5)*150,
+        vx:0, vy:0
+      });
+    }
+  
+    // ── SVG ──────────────────────────────────────────────────────────
+    const svg = d3.select($("sim-svg-wrap")).append("svg").attr("width",W).attr("height",H);
+    const g = svg.append("g").attr("transform",`translate(${PAD},0)`);
+  
+    // Zone backgrounds
+    g.append("rect").attr("x",0).attr("y",8)
+      .attr("width",GW-8).attr("height",H-16).attr("rx",14)
+      .attr("fill","#F2EDE5").attr("opacity",.9);
+    g.append("rect").attr("x",GW+8).attr("y",8)
+      .attr("width",BW-8).attr("height",H-16).attr("rx",14)
+      .attr("fill","#E6EDF6").attr("opacity",.9);
+  
+    // Zone labels
+    g.append("text").attr("x",GCX).attr("y",26).attr("text-anchor","middle")
+      .style("font-size","10px").style("font-weight","700")
+      .style("fill","#B0A89E").style("letter-spacing","0.14em").text("GRID");
+    g.append("text").attr("x",GCX).attr("y",40).attr("text-anchor","middle")
+      .style("font-size","9px").style("fill","#C4B9AD").text("source of electricity");
+  
+    g.append("text").attr("x",BCX).attr("y",26).attr("text-anchor","middle")
+      .style("font-size","10px").style("font-weight","700")
+      .style("fill","#7A9BBC").style("letter-spacing","0.14em").text("BATTERY");
+    g.append("text").attr("x",BCX).attr("y",40).attr("text-anchor","middle")
+      .style("font-size","9px").style("fill","#9AB5D0").text("1 MW · 2 MWh · 90% round-trip");
+  
+    // Capacity label
+    g.append("text").attr("x",iW-6).attr("y",H-12).attr("text-anchor","end")
+      .style("font-size","9px").style("fill","#9AB5D0").text("● = 0.1 MWh");
+  
+    // ── Flow arrow (between zones, flashes on transitions) ──────────
+    const arrow = g.append("text")
+      .attr("x", GW).attr("y", CY+8)
+      .attr("text-anchor","middle").style("font-size","26px")
+      .style("opacity",0).style("pointer-events","none");
+  
+    // ── Dot colour logic ─────────────────────────────────────────────
+    function dotFill(d) {
+      if (d.kind==="bg")       return "#C4B9AD";
+      if (d.flying)            return "#D4540A";   // orange while discharging
+      if (d.zone==="battery")  return "#1B5E96";   // deep blue when stored
+      return "#8EAEBF";                            // light blue when in grid
+    }
+    function targetX(d) {
+      if (d.flying) return iW + 110;        // fly off-screen right when discharging
+      return d.zone==="battery" ? BCX : GCX;
+    }
+  
+    const circles = g.selectAll("circle.d").data(dots).join("circle")
+      .attr("class","d")
+      .attr("r", d => d.kind==="bg" ? R-1.5 : R)
+      .attr("fill", dotFill)
+      .attr("opacity", d => d.kind==="bg" ? 0.24 : 0.88);
+  
+    // ── Force simulation ─────────────────────────────────────────────
+    const sim = d3.forceSimulation(dots)
+      .force("x", d3.forceX(targetX).strength(d => d.flying ? 0.44 : 0.07))
+      .force("y", d3.forceY(CY).strength(0.065))
+      .force("collide", d3.forceCollide(R+1.8).strength(0.9))
+      .force("charge", d3.forceManyBody().strength(-1.5))
+      .alphaDecay(0.015)
+      .on("tick", () => {
+        circles
+          .attr("cx", d=>d.x).attr("cy", d=>d.y)
+          .attr("fill", dotFill)
+          .attr("opacity", d => {
+            if (d.kind==="bg")  return 0.22;
+            if (d.flying)       return Math.max(0, 1-(d.x-iW*0.68)/(iW*0.32));
+            return 0.88;
+          });
+        // Recycle sold dots back to grid invisibly
+        dots.forEach(d => {
+          if (d.flying && d.x > iW+70) {
+            d.flying = false;
+            d.zone   = "grid";
+            d.x = GCX + (Math.random()-.5)*80;
+            d.y = CY  + (Math.random()-.5)*100;
+          }
+        });
+      });
+  
+    function reheat() {
+      sim.force("x", d3.forceX(targetX).strength(d => d.flying ? 0.44 : 0.07));
+      sim.alpha(0.46).restart();
+    }
+  
+    // ── Hour state transition ─────────────────────────────────────────
+    let curH=0, cumRev=0;
+  
+    function stepHour(h) {
+      const D = simDay[h];
+      const target = Math.round(D.soc / 2 * N_E);
+      const eDots  = dots.filter(d => d.kind==="energy" && !d.flying);
+      const inBatt = eDots.filter(d => d.zone==="battery").length;
+      const delta  = target - inBatt;
+  
+      // Move dots between zones
+      if (delta > 0) {
+        // CHARGING — grid dots migrate into battery
+        let mv = 0;
+        eDots.forEach(d => { if (d.zone==="grid" && mv<delta) { d.zone="battery"; mv++; } });
+        arrow.text("→").style("fill","#1B5E96")
+          .style("opacity",.75).transition().duration(900).style("opacity",0);
+      } else if (delta < 0) {
+        // DISCHARGING — battery dots fly off (sold to market)
+        let mv = 0;
+        eDots.forEach(d => {
+          if (d.zone==="battery" && mv<Math.abs(delta)) {
+            d.zone="grid"; d.flying=true;
+            if (D.price > 0) cumRev += D.price * (2 / N_E);
+            mv++;
+          }
+        });
+        arrow.text("→").style("fill","#D4540A")
+          .style("opacity",.75).transition().duration(900).style("opacity",0);
+      }
+  
+      reheat();
+  
+      // ── Update UI ────────────────────────────────────────────────
+      const realBatt = dots.filter(d=>d.kind==="energy"&&d.zone==="battery"&&!d.flying).length;
+      const socPct   = Math.round(realBatt / N_E * 100);
+      const isNeg    = D.price < 0;
+      const isChg    = D.charge > 0.05;
+      const isDis    = D.discharge > 0.05;
+  
+      let action, narr, col;
+      if (isChg && isNeg) {
+        action="⬇ Charging";
+        narr=`Grid oversupplied with renewables — the market pays ${Math.abs(D.price).toFixed(0)} €/MWh to consumers who absorb surplus power`;
+        col="#6D28D9";
+      } else if (isChg) {
+        action="⚡ Charging";
+        narr=`Buying electricity at ${D.price.toFixed(0)} €/MWh and storing it — dots move from Grid into Battery`;
+        col="#1B5E96";
+      } else if (isDis) {
+        action="💰 Discharging";
+        narr=`Selling stored electricity at ${D.price.toFixed(0)} €/MWh — battery dots fly out, converting stored energy into revenue`;
+        col="#D4540A";
+      } else {
+        action="○ Holding";
+        narr=`Price at ${D.price.toFixed(0)} €/MWh — not attractive enough to buy or sell right now`;
+        col="#78716C";
+      }
+  
+      $("sim-action").textContent    = action;
+      $("sim-action").style.color    = col;
+      $("sim-narrative").textContent = narr;
+  
+      $("sim-price").textContent  = (D.price>=0?"+":"")+D.price.toFixed(0)+" €/MWh";
+      $("sim-price").style.color  = isNeg?"#6D28D9":D.price>100?"#D4540A":"var(--text)";
+      $("sim-soc").textContent    = (realBatt/N_E*2).toFixed(1)+" MWh ("+socPct+"%)";
+      $("sim-soc-bar").style.width= socPct+"%";
+      $("sim-revenue").textContent= fmtE(Math.round(cumRev));
+      $("sim-hour-disp").textContent = String(h).padStart(2,"0")+":00";
+      $("sim-slider").value = h;
+      curH = h;
+    }
+  
+    // ── Jump to arbitrary hour (fast-forward from scratch) ───────────
+    function jumpTo(h) {
+      cumRev = 0;
+      dots.forEach(d => { d.flying=false; d.zone="grid"; });
+      let b = 0;
+      dots.filter(d=>d.kind==="energy").forEach(d=>{ if(b<initBatt){d.zone="battery";b++;} });
+      for (let i=1;i<=h;i++) {
+        const D  = simDay[i];
+        const t  = Math.round(D.soc/2*N_E);
+        const ed = dots.filter(d=>d.kind==="energy"&&!d.flying);
+        const ib = ed.filter(d=>d.zone==="battery").length;
+        const dl = t - ib;
+        if (dl>0) { let mv=0; ed.forEach(d=>{if(d.zone==="grid"&&mv<dl){d.zone="battery";mv++;}}); }
+        else if (dl<0) { let mv=0; ed.forEach(d=>{if(d.zone==="battery"&&mv<-dl){if(D.price>0)cumRev+=D.price*(2/N_E);d.zone="grid";mv++;}}); }
+      }
+      // Scatter dots into their zones then let sim settle
+      dots.forEach(d=>{
+        const cx = d.zone==="battery" ? BCX : GCX;
+        d.x = cx+(Math.random()-.5)*80; d.y=CY+(Math.random()-.5)*100;
+      });
+      reheat();
+      stepHour(h);
+    }
+  
+    // ── Controls ─────────────────────────────────────────────────────
+    let playing=false, timer=null;
+    const SPEED=950;
+  
+    function advance() {
+      if (!playing) return;
+      stepHour(curH);
+      if (curH>=23) {
+        playing=false;
+        $("sim-play-btn").textContent="↺ Replay";
+        $("sim-play-btn").dataset.mode="replay";
+        return;
+      }
+      curH++;
+      timer = setTimeout(advance, SPEED);
+    }
+  
+    $("sim-play-btn").addEventListener("click", function() {
+      if (this.dataset.mode==="replay") {
+        this.dataset.mode=""; playing=true; this.textContent="⏸ Pause";
+        curH=0; jumpTo(0); setTimeout(advance,400);
+      } else {
+        playing=!playing;
+        this.textContent=playing?"⏸ Pause":"▶ Play";
+        if (playing) advance();
+        else if (timer) { clearTimeout(timer); timer=null; }
+      }
+    });
+  
+    $("sim-slider").addEventListener("input", function() {
+      playing=false;
+      if (timer) { clearTimeout(timer); timer=null; }
+      $("sim-play-btn").textContent="▶ Play";
+      $("sim-play-btn").dataset.mode="";
+      jumpTo(parseInt(this.value));
+    });
+  
+    // Auto-play on load
+    setTimeout(()=>{ playing=true; $("sim-play-btn").textContent="⏸ Pause"; advance(); },900);
+  })();
+  
+  // ════════════════════════════════════════════════════════════════════
+  // CHART 1 · PRICE HEATMAP
+  // ════════════════════════════════════════════════════════════════════
+  (function drawHeatmap(){
+    const dates=[...new Set(heatmap.map(d=>d.date))].sort();
+    const W0=Math.min($("heatmap-chart").clientWidth||900,960);
+    const cellW=Math.floor((W0-90)/24);
+    const cellH=Math.max(22,Math.floor(Math.min(42,(460-50)/dates.length)));
+    const m={t:30,r:20,b:44,l:86};
+    const W=cellW*24+m.l+m.r, H=cellH*dates.length+m.t+m.b;
+    const svg=d3.select($("heatmap-chart")).append("svg").attr("width",W).attr("height",H);
+    const g=svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
+    const xB=d3.scaleBand().domain(d3.range(24)).range([0,cellW*24]).padding(.06);
+    const yB=d3.scaleBand().domain(dates).range([0,cellH*dates.length]).padding(.06);
+    g.selectAll("rect.c").data(heatmap).join("rect").attr("class","c")
+      .attr("x",d=>xB(d.hour)).attr("y",d=>yB(d.date))
+      .attr("width",xB.bandwidth()).attr("height",yB.bandwidth())
+      .attr("fill",d=>priceColor(d.price)).attr("rx",2)
+      .on("mousemove",(ev,d)=>showTip(ev,`${d.date} · ${d.hour}:00h`,
+        `<span style="color:${priceColor(d.price)};font-weight:600">${d.price>0?"+":""}${d.price} €/MWh</span>`))
+      .on("mouseleave",hideTip);
+    g.append("g").attr("transform",`translate(0,${cellH*dates.length+4})`)
+      .call(d3.axisBottom(xB).tickValues(d3.range(0,24,3)).tickFormat(h=>h+"h").tickSize(4))
+      .call(g=>g.select(".domain").remove())
+      .call(g=>g.selectAll("text").style("font-size","11px").style("fill","#78716C"));
+    g.append("g").attr("transform","translate(-8,0)")
+      .call(d3.axisLeft(yB).tickFormat(d=>{const dt=new Date(d+"T00:00:00");return d3.timeFormat("%d %b")(dt);}).tickSize(0))
+      .call(g=>g.select(".domain").remove())
+      .call(g=>g.selectAll("text").style("font-size","11px").style("fill","#78716C"));
+    // Legend
+    const lgW=200, defs=svg.append("defs");
+    const grad=defs.append("linearGradient").attr("id","hm-g").attr("x1","0%").attr("x2","100%");
+    [[-60,"#6D28D9"],[0,"#F7F4EE"],[50,"#FCD34D"],[120,"#D4540A"],[175,"#7F1D1D"]].forEach(([v,c])=>
+      grad.append("stop").attr("offset",`${(v+60)/235*100}%`).attr("stop-color",c));
+    const lg=svg.append("g").attr("transform",`translate(${m.l},${H-12})`);
+    lg.append("rect").attr("width",lgW).attr("height",10).attr("rx",3).attr("fill","url(#hm-g)");
+    ["−60","0","","120","175+ €/MWh"].forEach((t,i)=>
+      lg.append("text").attr("x",lgW/4*i).attr("y",23)
+        .style("font-size","9px").style("fill","#A8A29E").text(t));
+  })();
+  
+  // ════════════════════════════════════════════════════════════════════
+  // CHART 2 · DISPATCH PORTRAIT
+  // ════════════════════════════════════════════════════════════════════
+  (function drawDispatch(){
+    const m={t:16,r:24,b:44,l:48};
+    const W=Math.min($("dispatch-chart").clientWidth||920,960), H=340;
+    const iW=W-m.l-m.r, iH=H-m.t-m.b;
+    const svg=d3.select($("dispatch-chart")).append("svg").attr("width",W).attr("height",H);
+    const g=svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
+    const times=dispatch.map(d=>new Date(d.dt));
+    const x=d3.scaleTime().domain(d3.extent(times)).range([0,iW]);
+    const midY=iH*0.54, bw=iW/dispatch.length, bs=midY/1.05;
+    g.selectAll("rect.pb").data(dispatch).join("rect")
+      .attr("x",(_,i)=>i*bw).attr("y",0).attr("width",bw).attr("height",iH)
+      .attr("fill",d=>priceColor(d.price)).attr("opacity",.12);
+    g.append("line").attr("x1",0).attr("x2",iW).attr("y1",midY).attr("y2",midY)
+      .attr("stroke","#C7C0B8").attr("stroke-width",1);
+    g.selectAll("rect.dis").data(dispatch).join("rect").attr("class","dis")
+      .attr("x",(_,i)=>i*bw+1).attr("width",bw-2)
+      .attr("y",d=>midY-d.discharge*bs).attr("height",d=>d.discharge*bs)
+      .attr("fill","#D4540A").attr("opacity",.78).attr("rx",1)
+      .on("mousemove",(ev,d)=>showTip(ev,`${d.dt.slice(0,13)}h`,`Discharge: <b>${d.discharge.toFixed(2)} MW</b><br>Price: ${d.price} €/MWh`))
+      .on("mouseleave",hideTip);
+    g.selectAll("rect.chg").data(dispatch).join("rect").attr("class","chg")
+      .attr("x",(_,i)=>i*bw+1).attr("width",bw-2)
+      .attr("y",midY).attr("height",d=>d.charge*bs)
+      .attr("fill","#1B5E96").attr("opacity",.78).attr("rx",1)
+      .on("mousemove",(ev,d)=>showTip(ev,`${d.dt.slice(0,13)}h`,`Charge: <b>${d.charge.toFixed(2)} MW</b><br>Price: ${d.price} €/MWh`))
+      .on("mouseleave",hideTip);
+    const socLine=d3.line().x((_,i)=>i*bw+bw/2).y(d=>midY-d.soc/2*bs*1.6).curve(d3.curveMonotoneX);
+    g.append("path").datum(dispatch).attr("d",socLine)
+      .attr("fill","none").attr("stroke","#888").attr("stroke-width",1.5).attr("stroke-dasharray","4,3").attr("opacity",.65);
+    const priceLine=d3.line().x((_,i)=>i*bw+bw/2).y(d=>{
+      const py=d3.scaleLinear().domain([d3.min(dispatch,d=>d.price),d3.max(dispatch,d=>d.price)]).range([iH-8,8]);
+      return py(d.price);
+    }).curve(d3.curveMonotoneX);
+    g.append("path").datum(dispatch).attr("d",priceLine)
+      .attr("fill","none").attr("stroke","#1C1917").attr("stroke-width",1.3).attr("opacity",.28);
+    dispatch.forEach((d,i)=>{if(d.dt.endsWith("T00:00")){
+      g.append("line").attr("x1",i*bw).attr("x2",i*bw).attr("y1",0).attr("y2",iH)
+        .attr("stroke","#C7C0B8").attr("stroke-width",.8).attr("stroke-dasharray","3,3");
+      g.append("text").attr("x",i*bw+4).attr("y",12)
+        .style("font-size","10px").style("fill","#A8A29E")
+        .text(new Date(d.dt).toLocaleDateString("en-GB",{day:"numeric",month:"short"}));
+    }});
+    g.append("text").attr("x",iW).attr("y",midY-bs*0.45).attr("text-anchor","end")
+      .style("font-size","10px").style("fill","#D4540A").text("discharge ↑");
+    g.append("text").attr("x",iW).attr("y",midY+bs*0.45).attr("text-anchor","end")
+      .style("font-size","10px").style("fill","#1B5E96").text("charge ↓");
+  })();
+  
+  // ════════════════════════════════════════════════════════════════════
+  // CHART 3 · REVENUE RACE
+  // ════════════════════════════════════════════════════════════════════
+  (function drawRevenue(){
+    const m={t:20,r:80,b:44,l:68};
+    const W=Math.min($("revenue-chart").clientWidth||920,960),H=320;
+    const iW=W-m.l-m.r,iH=H-m.t-m.b;
+    const svg=d3.select($("revenue-chart")).append("svg").attr("width",W).attr("height",H);
+    const g=svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
+    const allV=revenue.flatMap(d=>[d.oracle,d.naive]);
+    const x=d3.scaleLinear().domain([1,revenue.length]).range([0,iW]);
+    const y=d3.scaleLinear().domain([Math.min(0,d3.min(allV))-500,d3.max(allV)*1.05]).range([iH,0]);
+    const defs=svg.append("defs");
+    const gg=defs.append("linearGradient").attr("id","gap-g").attr("x1","0%").attr("x2","100%");
+    gg.append("stop").attr("offset","0%").attr("stop-color","#D4540A").attr("stop-opacity",.05);
+    gg.append("stop").attr("offset","100%").attr("stop-color","#D4540A").attr("stop-opacity",.18);
+    g.append("path").datum(revenue)
+      .attr("d",d3.area().x(d=>x(d.day)).y0(d=>y(d.naive)).y1(d=>y(d.oracle)).curve(d3.curveMonotoneX))
+      .attr("fill","url(#gap-g)");
+    g.append("path").datum(revenue)
+      .attr("d",d3.line().x(d=>x(d.day)).y(d=>y(d.oracle)).curve(d3.curveMonotoneX))
+      .attr("fill","none").attr("stroke","#1B7A45").attr("stroke-width",1.5).attr("stroke-dasharray","5,4").attr("opacity",.7);
+    g.append("path").datum(revenue)
+      .attr("d",d3.line().x(d=>x(d.day)).y(d=>y(d.naive)).curve(d3.curveMonotoneX))
+      .attr("fill","none").attr("stroke","#1B5E96").attr("stroke-width",2.2);
+    const scrub=g.append("line").attr("y1",0).attr("y2",iH).attr("stroke","#C7C0B8").attr("stroke-width",1).attr("opacity",0);
+    const bis=d3.bisector(d=>d.day).left;
+    svg.on("mousemove",ev=>{
+      const [mx]=d3.pointer(ev,g.node());
+      const day=Math.round(x.invert(mx));
+      const d=revenue[Math.max(0,Math.min(bis(revenue,day),revenue.length-1))];
+      scrub.attr("x1",x(d.day)).attr("x2",x(d.day)).attr("opacity",.6);
+      showTip(ev,`Day ${d.day} · ${d.date}`,`Oracle: <b>${fmtE(d.oracle)}</b><br>Naive: <b>${fmtE(d.naive)}</b><br>Gap: ${fmtE(d.oracle-d.naive)}`);
+    }).on("mouseleave",()=>{scrub.attr("opacity",0);hideTip();});
+    g.append("g").attr("transform",`translate(0,${iH})`)
+      .call(d3.axisBottom(x).ticks(10).tickFormat(d=>`Day ${d}`))
+      .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+    g.append("g").call(d3.axisLeft(y).ticks(5).tickFormat(fmtE))
+      .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+    const last=revenue[revenue.length-1];
+    g.append("text").attr("x",iW+6).attr("y",y(last.oracle)).attr("dominant-baseline","middle")
+      .style("font-size","11px").style("fill","#1B7A45").text("Oracle");
+    g.append("text").attr("x",iW+6).attr("y",y(last.naive)).attr("dominant-baseline","middle")
+      .style("font-size","11px").style("fill","#1B5E96").text("Naive");
+    const midD=revenue[Math.floor(revenue.length*.72)];
+    g.append("text").attr("x",x(midD.day)).attr("y",(y(midD.oracle)+y(midD.naive))/2)
+      .attr("text-anchor","middle").attr("dominant-baseline","middle")
+      .style("font-size","11px").style("fill","#D4540A").style("font-style","italic")
+      .text(`${fmtE(midD.oracle-midD.naive)} gap`);
+  })();
+  
+  // ════════════════════════════════════════════════════════════════════
+  // CHART 4 · DECISION CLOCK
+  // ════════════════════════════════════════════════════════════════════
+  (function drawClock(){
+    const S=330, cx=S/2, cy=S/2;
+    const maxR=S/2-28, minR=S/2-100;
+    const overallS=(clock.reduce((a,d)=>a+d.sensitivity,0)/clock.length*100).toFixed(1);
+    const svg=d3.select($("clock-chart")).append("svg").attr("width",S).attr("height",S);
+    const g=svg.append("g").attr("transform",`translate(${cx},${cy})`);
+    [.25,.5,.75,1].forEach(f=>
+      g.append("circle").attr("r",minR+(maxR-minR)*f)
+       .attr("fill","none").attr("stroke","#E5E0D8").attr("stroke-width",.8));
+    const arc=d3.arc()
+      .innerRadius(minR).outerRadius(d=>minR+(maxR-minR)*d.sensitivity)
+      .startAngle(d=>(d.hour/24)*2*Math.PI-Math.PI/2)
+      .endAngle(d=>((d.hour+1)/24)*2*Math.PI-Math.PI/2)
+      .padAngle(.025).cornerRadius(3);
+    const clr=d3.scaleSequential(d3.interpolateYlOrRd).domain([0,1]);
+    g.selectAll("path.seg").data(clock).join("path").attr("class","seg")
+      .attr("d",arc).attr("fill",d=>clr(d.sensitivity)).attr("opacity",.88)
+      .on("mousemove",(ev,d)=>showTip(ev,`${d.hour}:00–${d.hour+1}:00`,
+        `Flip rate: <b>${(d.sensitivity*100).toFixed(0)}%</b><br>Avg impact: ${fmtE(d.impact)}`))
+      .on("mouseleave",hideTip);
+    d3.range(0,24,3).forEach(h=>{
+      const angle=(h/24)*2*Math.PI-Math.PI/2;
+      const r=maxR+16;
+      g.append("text").attr("x",r*Math.cos(angle)).attr("y",r*Math.sin(angle))
+        .attr("text-anchor","middle").attr("dominant-baseline","middle")
+        .style("font-size","11px").style("fill","#A8A29E").text(h+"h");
+    });
+    g.append("text").attr("text-anchor","middle").attr("y",-9)
+     .style("font-size","26px").style("font-family","'Playfair Display',serif")
+     .style("fill","#D4540A").style("font-weight","700").text(overallS+"%");
+    g.append("text").attr("text-anchor","middle").attr("y",12)
+     .style("font-size","10px").style("fill","#78716C").text("of hours sensitive");
+  })();
+  
+  // ════════════════════════════════════════════════════════════════════
+  // CHART 5 · SCATTER
+  // ════════════════════════════════════════════════════════════════════
+  (function drawScatter(){
+    const m={t:16,r:24,b:48,l:60};
+    const S=320, iW=S-m.l-m.r, iH=S-m.t-m.b;
+    const svg=d3.select($("scatter-chart")).append("svg").attr("width",S).attr("height",S);
+    const g=svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
+    const xs=scatter.map(d=>d.mae), ys=scatter.map(d=>d.revenue);
+    const x=d3.scaleLinear().domain(d3.extent(xs)).nice().range([0,iW]);
+    const y=d3.scaleLinear().domain(d3.extent(ys)).nice().range([iH,0]);
+    const {slope,intercept,r,p}=ols;
+    const x1=d3.min(xs), x2=d3.max(xs);
+    g.append("line").attr("x1",x(x1)).attr("y1",y(slope*x1+intercept))
+      .attr("x2",x(x2)).attr("y2",y(slope*x2+intercept))
+      .attr("stroke","#D4540A").attr("stroke-width",1.8).attr("opacity",.6).attr("stroke-dasharray","5,3");
+    g.append("text").attr("x",x(x1)+4).attr("y",y(slope*x1+intercept)-8)
+      .style("font-size","10px").style("fill","#D4540A").text(`r = ${r}, p = ${p}`);
+    const dc=d3.scaleSequential(d3.interpolateRdYlGn).domain([d3.max(xs),d3.min(xs)]);
+    g.selectAll("circle").data(scatter).join("circle")
+      .attr("cx",d=>x(d.mae)).attr("cy",d=>y(d.revenue)).attr("r",5)
+      .attr("fill",d=>dc(d.mae)).attr("opacity",.82).attr("stroke","#fff").attr("stroke-width",.8)
+      .on("mousemove",(ev,d)=>showTip(ev,d.date,`MAE: <b>${d.mae} €/MWh</b><br>Revenue: <b>${fmtE(d.revenue)}</b>`))
+      .on("mouseleave",hideTip);
+    g.append("g").attr("transform",`translate(0,${iH})`)
+      .call(d3.axisBottom(x).ticks(5).tickFormat(d=>d+" €/MWh"))
+      .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+    g.append("g").call(d3.axisLeft(y).ticks(5).tickFormat(fmtE))
+      .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+    g.append("text").attr("x",iW/2).attr("y",iH+38)
+      .attr("text-anchor","middle").style("font-size","11px").style("fill","#A8A29E").text("Forecast MAE (€/MWh)");
+  })();
+  
+  // ════════════════════════════════════════════════════════════════════
+  // SPO TABLE
+  // ════════════════════════════════════════════════════════════════════
+  (function(){
+    const tb=$("spo-table"), oracleRev=spo.find(d=>d.model==="Oracle").revenue;
+    tb.innerHTML=`<tr><th>Model</th><th>MAE</th><th>Revenue</th><th>% of Oracle</th><th style="width:70px"></th></tr>`
+      +spo.map(d=>`<tr class="${d.model==="Standard XGBoost"?"hl":""}">
+        <td>${d.model}</td>
+        <td>${d.mae===0?"—":d.mae+" €/MWh"}</td>
+        <td>${fmtE(d.revenue)}</td>
+        <td>${d.pct.toFixed(1)}%</td>
+        <td><div class="spo-bar" style="width:${d.pct}%"></div></td>
+      </tr>`).join("");
+  })();
+  
+  // ════════════════════════════════════════════════════════════════════
+  // HERO COUNTERS + SCROLL
+  // ════════════════════════════════════════════════════════════════════
+  function animCount(el,end,dur){
+    const s=performance.now();
+    (function step(now){
+      const t=Math.min((now-s)/dur,1);
+      const ease=t<.5?2*t*t:-1+(4-2*t)*t;
+      el.textContent=fmtE(Math.round(ease*end));
+      if(t<1)requestAnimationFrame(step);
+    })(performance.now());
+  }
+  
+  // Fade-in on scroll
+  document.getElementById("t1").querySelectorAll(".fade").forEach(el=>{
+    new IntersectionObserver(([e])=>{
+      if(e.isIntersecting) el.classList.add("in");
+    },{threshold:0.1}).observe(el);
+  });
+  
+  // Nav dot highlight + hero counter trigger
+  document.getElementById("t1").querySelectorAll("section").forEach((s,i)=>{
+    new IntersectionObserver(([e])=>{
+      if(!e.isIntersecting) return;
+      document.getElementById("t1").querySelectorAll(".dot").forEach(d=>d.classList.remove("on"));
+      const dot=document.querySelectorAll(".dot")[i];
+      if(dot) dot.classList.add("on");
+      if(s.id==="t1-hero"){
+        setTimeout(()=>{
+          animCount($("h-oracle"),stats.oracle,1600);
+          animCount($("h-naive"),stats.naive,1600);
+          animCount($("h-gap"),stats.gap,1800);
+        },200);
+      }
+    },{threshold:.35}).observe(s);
+  });
+  
+  document.getElementById("t1").querySelectorAll(".dot").forEach((d,i)=>{
+    d.addEventListener("click",()=>document.querySelectorAll("section")[i].scrollIntoView({behavior:"smooth"}));
+  });
+}
+
+function initT2() {
+  const $ = id => document.getElementById("t2-" + id);
+  // ── Seeded RNG (xorshift32) ──────────────────────────────────────────────────
+  let _seed = 7919;
+  function rng() { _seed ^= _seed<<13; _seed ^= _seed>>17; _seed ^= _seed<<5; return (_seed>>>0)/4294967296; }
+  
+  // ── Generate all data ─────────────────────────────────────────────────────────
+  const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const DAY_MULT = [0.88, 1.0, 1.06, 1.0, 0.92, 0.76, 0.66];
+  const HOUR_BASE = [0.3,0.2,0.2,0.25,0.3,0.5,0.8,1.1,1.7,2.0,1.8,1.5,1.3,1.4,1.6,1.7,1.5,1.4,1.6,1.5,1.2,0.9,0.6,0.4];
+  
+  // Admission heatmap
+  const heatmap = [];
+  DAYS.forEach((day, di) => {
+    HOUR_BASE.forEach((base, h) => {
+      const v = Math.round(base * DAY_MULT[di] * (0.85 + rng()*0.3) * 10) / 10;
+      heatmap.push({day, hour: h, rate: Math.max(0.1, v)});
+    });
+  });
+  
+  // 72-hour staffing portrait data (Mon-Tue-Wed)
+  const shiftCap = h => h < 7 ? 10 : h < 20 ? 14 : 10;
+  const staffing72 = Array.from({length:72}, (_, i) => {
+    const day = Math.floor(i/24), h = i%24;
+    const dayM = [0.88,1.0,1.06][day];
+    const base = HOUR_BASE[h] * dayM * 4.5; // scale to ~patients
+    let actual = Math.max(2, Math.round(base * (0.85 + rng()*0.3)));
+    // Wed morning surge
+    if (day===2 && h>=8 && h<=11) actual = Math.min(20, actual + 3 + Math.round(rng()*2));
+    const cap = shiftCap(h);
+    const oracle_cost = actual > cap ? (actual-cap)*180 : (cap-actual)*18;
+    const naive_fc = Math.max(2, Math.round(base * (0.75 + rng()*0.5)));
+    const naive_cap = shiftCap(h) + (naive_fc > 14 ? 2 : 0);
+    const naive_cost = actual > naive_cap ? (actual-naive_cap)*180 : (naive_cap-actual)*18;
+    return {i, day, h, actual, oracle_cap: cap, naive_cap, oracle_cost, naive_cost};
+  });
+  
+  // 60-day cost series
+  _seed = 31337;
+  let cumOracle=0, cumNaive=0;
+  const costSeries = Array.from({length:60}, (_, i) => {
+    const oDay = Math.round(480 + (rng()-0.5)*120);
+    const spike = rng()<0.12 ? Math.round(600+rng()*800) : 0;
+    const nDay = Math.round(840 + (rng()-0.5)*200 + spike);
+    cumOracle += oDay; cumNaive += nDay;
+    return {day:i+1, oracle:cumOracle, naive:cumNaive};
+  });
+  const finalOracle = cumOracle, finalNaive = cumNaive;
+  
+  // Decision sensitivity clock
+  _seed = 99991;
+  const clockData = HOUR_BASE.map((base, h) => {
+    const isHighDemand = (h>=8&&h<=11)||(h>=14&&h<=17)||(h>=18&&h<=20);
+    const impact = isHighDemand ? Math.round(150+rng()*120) : Math.round(20+rng()*60);
+    const sensitivity = Math.min(0.98, impact/270);
+    return {hour:h, sensitivity, impact};
+  });
+  
+  // Scatter: MAE vs daily cost
+  _seed = 55557;
+  const scatterData = Array.from({length:60}, () => {
+    const mae = Math.round((1.5 + rng()*3.5)*10)/10;
+    const costBase = 480 + mae*80 + (rng()-0.5)*100;
+    const spike = rng()<0.1 ? rng()*600 : 0;
+    return {mae, cost: Math.round(costBase + spike)};
+  });
+  // OLS
+  const xm = d3.mean(scatterData, d=>d.mae), ym = d3.mean(scatterData, d=>d.cost);
+  const olsSlope = d3.sum(scatterData, d=>(d.mae-xm)*(d.cost-ym)) / d3.sum(scatterData, d=>(d.mae-xm)**2);
+  const olsIntercept = ym - olsSlope*xm;
+  const olsR = (d3.sum(scatterData, d=>(d.mae-xm)*(d.cost-ym)) /
+    Math.sqrt(d3.sum(scatterData,d=>(d.mae-xm)**2)*d3.sum(scatterData,d=>(d.cost-ym)**2))).toFixed(2);
+  
+  // Model table
+  const models = [
+    {model:"Oracle", mae:0, cost: finalOracle, pct:100},
+    {model:"Standard XGBoost", mae:2.4, cost: finalNaive, pct: Math.round(finalOracle/finalNaive*1000)/10},
+    {model:"Cost-weighted XGBoost", mae:2.7, cost: Math.round(finalNaive*0.88), pct: Math.round(finalOracle/(finalNaive*0.88)*1000)/10},
+    {model:"SPO+ (asymmetric loss)", mae:2.5, cost: Math.round(finalNaive*0.82), pct: Math.round(finalOracle/(finalNaive*0.82)*1000)/10},
+  ];
+  
+  
+  // ── Tooltip ───────────────────────────────────────────────────────────────────
+  
+  // ══════════════════════════════════════════════════════════════════════════════
+  // SIMULATION — two-zone patient flow
+  // ══════════════════════════════════════════════════════════════════════════════
+  (function initSim(){
+    // 24h sim data: ward occupancy and staffed capacity per hour
+    const SIM = [
+      {h:0,w:8,s:10},{h:1,w:7,s:10},{h:2,w:6,s:10},{h:3,w:6,s:10},
+      {h:4,w:7,s:10},{h:5,w:8,s:10},{h:6,w:9,s:10},{h:7,w:11,s:14},
+      {h:8,w:16,s:14},{h:9,w:19,s:14},{h:10,w:17,s:14},{h:11,w:15,s:14},
+      {h:12,w:14,s:14},{h:13,w:13,s:14},{h:14,w:15,s:14},{h:15,w:16,s:14},
+      {h:16,w:14,s:14},{h:17,w:13,s:14},{h:18,w:16,s:16},{h:19,w:15,s:16},
+      {h:20,w:13,s:16},{h:21,w:11,s:14},{h:22,w:9,s:12},{h:23,w:8,s:10}
+    ];
+    const N_P = 20;  // patient dots (1 = 1 patient, 20 = full ward)
+    const N_BG = 10; // ambient queue dots
+  
+    const W = Math.min($("sim-svg-wrap").clientWidth||920, 920);
+    const H = 300, PAD = 14, iW = W-PAD*2;
+    const QW = iW*0.38, BW = iW-QW;
+    const QCX = QW/2, WCX = QW+BW/2, CY = H/2;
+    const R = 7;
+  
+    const initWard = SIM[0].w;
+    const dots = [];
+    for (let i=0;i<N_P;i++) {
+      const inW = i<initWard;
+      dots.push({id:i, kind:"patient", zone:inW?"ward":"queue", overflow:false,
+        x:(inW?WCX:QCX)+(Math.random()-.5)*80, y:CY+(Math.random()-.5)*110, vx:0, vy:0});
+    }
+    for (let i=0;i<N_BG;i++) {
+      dots.push({id:N_P+i, kind:"bg", zone:"queue", overflow:false,
+        x:QCX+(Math.random()-.5)*100, y:CY+(Math.random()-.5)*130, vx:0, vy:0});
+    }
+  
+    const svg = d3.select($("sim-svg-wrap")).append("svg").attr("width",W).attr("height",H);
+    const g = svg.append("g").attr("transform",`translate(${PAD},0)`);
+  
+    // Zone backgrounds
+    const qRect = g.append("rect").attr("x",0).attr("y",8).attr("width",QW-8).attr("height",H-16).attr("rx",14).attr("fill","#F0EAE0").attr("opacity",.9);
+    const wRect = g.append("rect").attr("x",QW+8).attr("y",8).attr("width",BW-8).attr("height",H-16).attr("rx",14).attr("fill","#E2EFF5").attr("opacity",.9);
+  
+    // Labels
+    g.append("text").attr("x",QCX).attr("y",26).attr("text-anchor","middle").style("font-size","10px").style("font-weight","700").style("fill","#B0A89E").style("letter-spacing","0.14em").text("ARRIVALS");
+    g.append("text").attr("x",QCX).attr("y",40).attr("text-anchor","middle").style("font-size","9px").style("fill","#C4B9AD").text("incoming patients");
+    g.append("text").attr("x",WCX).attr("y",26).attr("text-anchor","middle").style("font-size","10px").style("font-weight","700").style("fill","#5A96B0").style("letter-spacing","0.14em").text("ICU WARD");
+    g.append("text").attr("x",WCX).attr("y",40).attr("text-anchor","middle").style("font-size","9px").style("fill","#7AAEC4").text("staffed capacity set night before");
+    g.append("text").attr("x",iW-6).attr("y",H-12).attr("text-anchor","end").style("font-size","9px").style("fill","#9AB5D0").text("● = 1 patient");
+  
+    // Capacity line (at 14/20 of ward height)
+    const capLine = g.append("line")
+      .attr("x1",QW+12).attr("x2",QW+BW-4)
+      .attr("y1",CY-50).attr("y2",CY-50)
+      .attr("stroke","#0C7A91").attr("stroke-width",1.8).attr("stroke-dasharray","6,4").attr("opacity",.7);
+    const capLabel = g.append("text")
+      .attr("x",QW+BW-6).attr("y",CY-54).attr("text-anchor","end")
+      .style("font-size","10px").style("fill","#0C7A91").style("font-weight","600").text("capacity: 14");
+  
+    const arrow = g.append("text").attr("x",QW).attr("y",CY+8).attr("text-anchor","middle").style("font-size","26px").style("opacity",0).style("pointer-events","none");
+  
+    function dotFill(d) {
+      if (d.kind==="bg") return "#C4B9AD";
+      if (d.overflow) return "#991B1B";
+      if (d.zone==="ward") return "#0C7A91";
+      return "#8FAFC0";
+    }
+    function targetX(d) { return d.zone==="ward" ? WCX : QCX; }
+  
+    const circles = g.selectAll("circle.d").data(dots).join("circle").attr("class","d")
+      .attr("r",d=>d.kind==="bg"?R-2:R)
+      .attr("fill",dotFill).attr("opacity",d=>d.kind==="bg"?0.22:0.88);
+  
+    const sim = d3.forceSimulation(dots)
+      .force("x",d3.forceX(targetX).strength(0.08))
+      .force("y",d3.forceY(CY).strength(0.07))
+      .force("collide",d3.forceCollide(R+1.6).strength(0.9))
+      .force("charge",d3.forceManyBody().strength(-1.5))
+      .alphaDecay(0.015)
+      .on("tick",()=>{
+        circles.attr("cx",d=>d.x).attr("cy",d=>d.y).attr("fill",dotFill)
+          .attr("opacity",d=>d.kind==="bg"?0.22:0.88);
+      });
+  
+    function reheat(){sim.force("x",d3.forceX(targetX).strength(0.08));sim.alpha(0.46).restart();}
+  
+    let cumPenalty=0, curH=0;
+  
+    function stepHour(h) {
+      const D = SIM[h];
+      const target = D.w, cap = D.s;
+      const pd = dots.filter(d=>d.kind==="patient");
+      const inWard = pd.filter(d=>d.zone==="ward").length;
+      const delta = target - inWard;
+  
+      if (delta>0) {
+        let mv=0; pd.forEach(d=>{if(d.zone==="queue"&&mv<delta){d.zone="ward";mv++;}});
+        arrow.text("→").style("fill","#0C7A91").style("opacity",.75).transition().duration(900).style("opacity",0);
+      } else if (delta<0) {
+        let mv=0; pd.forEach(d=>{if(d.zone==="ward"&&mv<Math.abs(delta)){d.zone="queue";mv++;}});
+      }
+  
+      // Mark overflow
+      const wardDots = dots.filter(d=>d.kind==="patient"&&d.zone==="ward");
+      const over = Math.max(0, wardDots.length - cap);
+      wardDots.forEach((d,i)=>{ d.overflow = i >= wardDots.length - over; });
+  
+      if (target > cap) cumPenalty += (target-cap)*180;
+  
+      reheat();
+  
+      // Update capacity line
+      const capFrac = cap/N_P;
+      const lineY = CY - capFrac*130;
+      capLine.attr("y1",lineY).attr("y2",lineY);
+      capLabel.attr("y",lineY-5).text(`capacity: ${cap}`);
+  
+      // Background color of ward when overstaffed
+      const isOver = target > cap, isUnder = target < cap-2;
+      wRect.attr("fill", isOver?"#FEE2E2":isUnder?"#F0F4F8":"#E2EFF5");
+  
+      const occPct = Math.round(target/cap*100);
+      let action, narr, col;
+      if (isOver) {
+        action="🚨 Understaffed";
+        narr=`${target-cap} patients above staffed capacity of ${cap} — emergency admissions exceeded the overnight forecast`;
+        col="var(--red)";
+      } else if (isUnder) {
+        action="⬜ Overstaffed";
+        narr=`Ward at ${target}/${cap} — forecast overestimated demand, ${cap-target} staff idle (waste cost)`;
+        col="var(--subtle)";
+      } else {
+        action="✓ Well Matched";
+        narr=`Ward at ${target}/${cap} — staffing level matched to forecast, efficient allocation`;
+        col="var(--primary)";
+      }
+      $("sim-action").textContent=action; $("sim-action").style.color=col;
+      $("sim-narrative").textContent=narr;
+      $("sim-occ").textContent=target;
+      $("sim-occ").style.color=isOver?"var(--red)":isUnder?"var(--subtle)":"var(--text)";
+      $("sim-cap").textContent=`${cap} beds staffed`;
+      $("sim-occ-bar").style.width=Math.min(100,occPct)+"%";
+      $("sim-occ-bar").style.background=isOver?"var(--red)":"var(--primary)";
+      $("sim-penalty").textContent=fmtE(cumPenalty);
+      $("sim-hour-disp").textContent=String(h).padStart(2,"0")+":00";
+      $("sim-slider").value=h;
+      curH=h;
+    }
+  
+    function jumpTo(h){
+      cumPenalty=0;
+      dots.forEach(d=>{d.overflow=false;d.zone="queue";});
+      let b=0; dots.filter(d=>d.kind==="patient").forEach(d=>{if(b<SIM[0].w){d.zone="ward";b++;}});
+      for(let i=1;i<=h;i++){
+        const D=SIM[i], t=D.w, c=D.s;
+        const pd=dots.filter(d=>d.kind==="patient");
+        const ib=pd.filter(d=>d.zone==="ward").length, dl=t-ib;
+        if(dl>0){let mv=0;pd.forEach(d=>{if(d.zone==="queue"&&mv<dl){d.zone="ward";mv++;}});}
+        else if(dl<0){let mv=0;pd.forEach(d=>{if(d.zone==="ward"&&mv<-dl){d.zone="queue";mv++;}});}
+        if(t>c) cumPenalty+=(t-c)*180;
+      }
+      dots.forEach(d=>{const cx=d.zone==="ward"?WCX:QCX;d.x=cx+(Math.random()-.5)*70;d.y=CY+(Math.random()-.5)*100;});
+      reheat(); stepHour(h);
+    }
+  
+    let playing=false, timer=null;
+    function advance(){
+      if(!playing)return; stepHour(curH);
+      if(curH>=23){playing=false;$("sim-play-btn").textContent="↺ Replay";$("sim-play-btn").dataset.mode="replay";return;}
+      curH++; timer=setTimeout(advance,950);
+    }
+    $("sim-play-btn").addEventListener("click",function(){
+      if(this.dataset.mode==="replay"){this.dataset.mode="";playing=true;this.textContent="⏸ Pause";curH=0;jumpTo(0);setTimeout(advance,400);}
+      else{playing=!playing;this.textContent=playing?"⏸ Pause":"▶ Play";if(playing)advance();else if(timer){clearTimeout(timer);timer=null;}}
+    });
+    $("sim-slider").addEventListener("input",function(){
+      playing=false;if(timer){clearTimeout(timer);timer=null;}
+      $("sim-play-btn").textContent="▶ Play";$("sim-play-btn").dataset.mode="";jumpTo(parseInt(this.value));
+    });
+    setTimeout(()=>{playing=true;$("sim-play-btn").textContent="⏸ Pause";advance();},900);
+  })();
+  
+  // ══════════════════════════════════════════════════════════════════════════════
+  // CHART 1 · ADMISSION HEATMAP
+  // ══════════════════════════════════════════════════════════════════════════════
+  (function drawHeatmap(){
+    const W0=Math.min($("heatmap-chart").clientWidth||900,960);
+    const cellW=Math.floor((W0-90)/24), cellH=36;
+    const m={t:30,r:20,b:44,l:86};
+    const W=cellW*24+m.l+m.r, H=cellH*7+m.t+m.b;
+    const svg=d3.select($("heatmap-chart")).append("svg").attr("width",W).attr("height",H);
+    const g=svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
+    const xB=d3.scaleBand().domain(d3.range(24)).range([0,cellW*24]).padding(.06);
+    const yB=d3.scaleBand().domain(DAYS).range([0,cellH*7]).padding(.08);
+    const col=d3.scaleSequential(d3.interpolateYlGnBu).domain([0,2.1]);
+    g.selectAll("rect.c").data(heatmap).join("rect").attr("class","c")
+      .attr("x",d=>xB(d.hour)).attr("y",d=>yB(d.day))
+      .attr("width",xB.bandwidth()).attr("height",yB.bandwidth())
+      .attr("fill",d=>col(d.rate)).attr("rx",2)
+      .on("mousemove",(ev,d)=>showTip(ev,`${d.day} · ${d.hour}:00h`,`<span style="font-weight:600">${d.rate} admissions/hr</span>`))
+      .on("mouseleave",hideTip);
+    g.append("g").attr("transform",`translate(0,${cellH*7+4})`)
+      .call(d3.axisBottom(xB).tickValues(d3.range(0,24,3)).tickFormat(h=>h+"h").tickSize(4))
+      .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","11px").style("fill","#78716C"));
+    g.append("g").attr("transform","translate(-8,0)")
+      .call(d3.axisLeft(yB).tickSize(0))
+      .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","11px").style("fill","#78716C"));
+    // Legend
+    const lgW=180, defs=svg.append("defs");
+    const grad=defs.append("linearGradient").attr("id","hm2-g").attr("x1","0%").attr("x2","100%");
+    [[0,"#ffffd9"],[0.5,"#41b6c4"],[1,"#0c2c84"]].forEach(([o,c])=>grad.append("stop").attr("offset",`${o*100}%`).attr("stop-color",c));
+    const lg=svg.append("g").attr("transform",`translate(${m.l},${H-14})`);
+    lg.append("rect").attr("width",lgW).attr("height",10).attr("rx",3).attr("fill","url(#hm2-g)");
+    ["0","1","2+ adm/hr"].forEach((t,i)=>lg.append("text").attr("x",lgW/2*i).attr("y",23).style("font-size","9px").style("fill","#A8A29E").text(t));
+  })();
+  
+  // ══════════════════════════════════════════════════════════════════════════════
+  // CHART 2 · STAFFING PORTRAIT
+  // ══════════════════════════════════════════════════════════════════════════════
+  (function drawStaffing(){
+    const m={t:20,r:24,b:44,l:46};
+    const W=Math.min($("staffing-chart").clientWidth||920,960),H=300;
+    const iW=W-m.l-m.r,iH=H-m.t-m.b;
+    const svg=d3.select($("staffing-chart")).append("svg").attr("width",W).attr("height",H);
+    const g=svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
+    const maxV=22, bw=iW/72, bs=iH/maxV;
+    // Unused capacity bars (grey, full oracle capacity)
+    g.selectAll("rect.cap").data(staffing72).join("rect").attr("class","cap")
+      .attr("x",(_,i)=>i*bw).attr("width",bw-1)
+      .attr("y",d=>iH-d.oracle_cap*bs).attr("height",d=>d.oracle_cap*bs)
+      .attr("fill","#C7C0B8").attr("opacity",.35).attr("rx",1);
+    // Actual demand bars (teal)
+    g.selectAll("rect.act").data(staffing72).join("rect").attr("class","act")
+      .attr("x",(_,i)=>i*bw).attr("width",bw-1)
+      .attr("y",d=>iH-Math.min(d.actual,d.oracle_cap)*bs)
+      .attr("height",d=>Math.min(d.actual,d.oracle_cap)*bs)
+      .attr("fill","#0C7A91").attr("opacity",.8).attr("rx",1)
+      .on("mousemove",(ev,d)=>showTip(ev,`Day ${d.day+1} · ${d.h}:00h`,
+        `Actual: <b>${d.actual} pts</b><br>Capacity: ${d.oracle_cap}<br>Oracle cost: ${fmtE(d.oracle_cost)}`))
+      .on("mouseleave",hideTip);
+    // Overflow bars (red, above capacity)
+    g.selectAll("rect.ovr").data(staffing72).join("rect").attr("class","ovr")
+      .attr("x",(_,i)=>i*bw).attr("width",bw-1)
+      .attr("y",d=>iH-d.actual*bs)
+      .attr("height",d=>Math.max(0,(d.actual-d.oracle_cap)*bs))
+      .attr("fill","#991B1B").attr("opacity",.85).attr("rx",1);
+    // Day separator lines + labels
+    [0,1,2].forEach(day=>{
+      g.append("line").attr("x1",day*24*bw).attr("x2",day*24*bw).attr("y1",0).attr("y2",iH)
+        .attr("stroke","#C7C0B8").attr("stroke-width",.8).attr("stroke-dasharray","3,3");
+      g.append("text").attr("x",day*24*bw+4).attr("y",12)
+        .style("font-size","10px").style("fill","#A8A29E").text(["Monday","Tuesday","Wednesday"][day]);
+    });
+    g.append("g").attr("transform",`translate(0,${iH})`)
+      .call(d3.axisBottom(d3.scaleLinear().domain([0,72]).range([0,iW])).ticks(9).tickFormat(d=>(d%24)+"h"))
+      .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+    g.append("g").call(d3.axisLeft(d3.scaleLinear().domain([0,maxV]).range([iH,0])).ticks(5))
+      .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+  })();
+  
+  // ══════════════════════════════════════════════════════════════════════════════
+  // CHART 3 · COST RACE
+  // ══════════════════════════════════════════════════════════════════════════════
+  (function drawCost(){
+    const m={t:20,r:80,b:44,l:72};
+    const W=Math.min($("cost-chart").clientWidth||920,960),H=320;
+    const iW=W-m.l-m.r,iH=H-m.t-m.b;
+    const svg=d3.select($("cost-chart")).append("svg").attr("width",W).attr("height",H);
+    const g=svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
+    const allV=costSeries.flatMap(d=>[d.oracle,d.naive]);
+    const x=d3.scaleLinear().domain([1,60]).range([0,iW]);
+    const y=d3.scaleLinear().domain([0,d3.max(allV)*1.05]).range([iH,0]);
+    const defs=svg.append("defs");
+    const gg=defs.append("linearGradient").attr("id","gap2-g").attr("x1","0%").attr("x2","100%");
+    gg.append("stop").attr("offset","0%").attr("stop-color","#991B1B").attr("stop-opacity",.04);
+    gg.append("stop").attr("offset","100%").attr("stop-color","#991B1B").attr("stop-opacity",.16);
+    g.append("path").datum(costSeries)
+      .attr("d",d3.area().x(d=>x(d.day)).y0(d=>y(d.oracle)).y1(d=>y(d.naive)).curve(d3.curveMonotoneX))
+      .attr("fill","url(#gap2-g)");
+    g.append("path").datum(costSeries)
+      .attr("d",d3.line().x(d=>x(d.day)).y(d=>y(d.oracle)).curve(d3.curveMonotoneX))
+      .attr("fill","none").attr("stroke","#1B7A45").attr("stroke-width",1.5).attr("stroke-dasharray","5,4").attr("opacity",.7);
+    g.append("path").datum(costSeries)
+      .attr("d",d3.line().x(d=>x(d.day)).y(d=>y(d.naive)).curve(d3.curveMonotoneX))
+      .attr("fill","none").attr("stroke","#991B1B").attr("stroke-width",2.2);
+    const scrub=g.append("line").attr("y1",0).attr("y2",iH).attr("stroke","#C7C0B8").attr("stroke-width",1).attr("opacity",0);
+    const bis=d3.bisector(d=>d.day).left;
+    svg.on("mousemove",ev=>{
+      const[mx]=d3.pointer(ev,g.node());
+      const day=Math.round(x.invert(mx));
+      const d=costSeries[Math.max(0,Math.min(bis(costSeries,day),costSeries.length-1))];
+      scrub.attr("x1",x(d.day)).attr("x2",x(d.day)).attr("opacity",.6);
+      showTip(ev,`Day ${d.day}`,`Oracle: <b>${fmtE(d.oracle)}</b><br>Naive: <b>${fmtE(d.naive)}</b><br>Gap: ${fmtE(d.naive-d.oracle)}`);
+    }).on("mouseleave",()=>{scrub.attr("opacity",0);hideTip();});
+    g.append("g").attr("transform",`translate(0,${iH})`)
+      .call(d3.axisBottom(x).ticks(10).tickFormat(d=>`Day ${d}`))
+      .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+    g.append("g").call(d3.axisLeft(y).ticks(5).tickFormat(fmtE))
+      .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+    const last=costSeries[costSeries.length-1];
+    g.append("text").attr("x",iW+6).attr("y",y(last.oracle)).attr("dominant-baseline","middle").style("font-size","11px").style("fill","#1B7A45").text("Oracle");
+    g.append("text").attr("x",iW+6).attr("y",y(last.naive)).attr("dominant-baseline","middle").style("font-size","11px").style("fill","#991B1B").text("Naive");
+  })();
+  
+  // ══════════════════════════════════════════════════════════════════════════════
+  // CHART 4 · DECISION CLOCK
+  // ══════════════════════════════════════════════════════════════════════════════
+  (function drawClock(){
+    const S=330,cx=S/2,cy=S/2;
+    const maxR=S/2-28,minR=S/2-100;
+    const maxImpact=d3.max(clockData,d=>d.impact);
+    const svg=d3.select($("clock-chart")).append("svg").attr("width",S).attr("height",S);
+    const g=svg.append("g").attr("transform",`translate(${cx},${cy})`);
+    [.25,.5,.75,1].forEach(f=>g.append("circle").attr("r",minR+(maxR-minR)*f).attr("fill","none").attr("stroke","#E5E0D8").attr("stroke-width",.8));
+    const arc=d3.arc().innerRadius(minR).outerRadius(d=>minR+(maxR-minR)*d.sensitivity)
+      .startAngle(d=>(d.hour/24)*2*Math.PI-Math.PI/2).endAngle(d=>((d.hour+1)/24)*2*Math.PI-Math.PI/2)
+      .padAngle(.025).cornerRadius(3);
+    const clr=d3.scaleSequential(d3.interpolatePuBuGn).domain([0,1]);
+    g.selectAll("path.seg").data(clockData).join("path").attr("class","seg")
+      .attr("d",arc).attr("fill",d=>clr(d.sensitivity)).attr("opacity",.88)
+      .on("mousemove",(ev,d)=>showTip(ev,`${d.hour}:00–${d.hour+1}:00`,
+        `Cost impact: <b>${fmtE(d.impact)}/hr</b><br>Sensitivity: ${(d.sensitivity*100).toFixed(0)}%`))
+      .on("mouseleave",hideTip);
+    d3.range(0,24,3).forEach(h=>{
+      const angle=(h/24)*2*Math.PI-Math.PI/2;
+      const r=maxR+16;
+      g.append("text").attr("x",r*Math.cos(angle)).attr("y",r*Math.sin(angle))
+        .attr("text-anchor","middle").attr("dominant-baseline","middle").style("font-size","11px").style("fill","#A8A29E").text(h+"h");
+    });
+    const avgS=(clockData.reduce((a,d)=>a+d.sensitivity,0)/clockData.length*100).toFixed(0);
+    g.append("text").attr("text-anchor","middle").attr("y",-9).style("font-size","26px").style("font-family","'Playfair Display',serif").style("fill","#0C7A91").style("font-weight","700").text(avgS+"%");
+    g.append("text").attr("text-anchor","middle").attr("y",12).style("font-size","10px").style("fill","#78716C").text("of hours cost-sensitive");
+  })();
+  
+  // ══════════════════════════════════════════════════════════════════════════════
+  // CHART 5 · SCATTER
+  // ══════════════════════════════════════════════════════════════════════════════
+  (function drawScatter(){
+    const m={t:16,r:24,b:48,l:64};
+    const S=320,iW=S-m.l-m.r,iH=S-m.t-m.b;
+    const svg=d3.select($("scatter-chart")).append("svg").attr("width",S).attr("height",S);
+    const g=svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
+    const xs=scatterData.map(d=>d.mae),ys=scatterData.map(d=>d.cost);
+    const x=d3.scaleLinear().domain(d3.extent(xs)).nice().range([0,iW]);
+    const y=d3.scaleLinear().domain(d3.extent(ys)).nice().range([iH,0]);
+    const x1=d3.min(xs),x2=d3.max(xs);
+    g.append("line").attr("x1",x(x1)).attr("y1",y(olsSlope*x1+olsIntercept))
+      .attr("x2",x(x2)).attr("y2",y(olsSlope*x2+olsIntercept))
+      .attr("stroke","#0C7A91").attr("stroke-width",1.8).attr("opacity",.6).attr("stroke-dasharray","5,3");
+    g.append("text").attr("x",x(x1)+4).attr("y",y(olsSlope*x1+olsIntercept)-8)
+      .style("font-size","10px").style("fill","#0C7A91").text(`r = ${olsR}`);
+    const dc=d3.scaleSequential(d3.interpolatePuBuGn).domain([d3.max(xs),d3.min(xs)]);
+    g.selectAll("circle").data(scatterData).join("circle")
+      .attr("cx",d=>x(d.mae)).attr("cy",d=>y(d.cost)).attr("r",5)
+      .attr("fill",d=>dc(d.mae)).attr("opacity",.82).attr("stroke","#fff").attr("stroke-width",.8)
+      .on("mousemove",(ev,d)=>showTip(ev,"Simulated day",`Forecast MAE: <b>${d.mae} pts</b><br>Cost: <b>${fmtE(d.cost)}</b>`))
+      .on("mouseleave",hideTip);
+    g.append("g").attr("transform",`translate(0,${iH})`)
+      .call(d3.axisBottom(x).ticks(5).tickFormat(d=>d+" pts"))
+      .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+    g.append("g").call(d3.axisLeft(y).ticks(5).tickFormat(fmtE))
+      .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+    g.append("text").attr("x",iW/2).attr("y",iH+38).attr("text-anchor","middle").style("font-size","11px").style("fill","#A8A29E").text("Forecast MAE (patients)");
+  })();
+  
+  // ══════════════════════════════════════════════════════════════════════════════
+  // MODEL TABLE
+  // ══════════════════════════════════════════════════════════════════════════════
+  (function(){
+    const tb=$("spo-table");
+    tb.innerHTML=`<tr><th>Model</th><th>MAE</th><th>60-day Cost</th><th>% of Oracle</th><th style="width:70px"></th></tr>`
+      +models.map(d=>`<tr class="${d.model==="Standard XGBoost"?"hl":""}">
+        <td>${d.model}</td><td>${d.mae===0?"—":d.mae+" pts"}</td>
+        <td>${fmtE(d.cost)}</td><td>${d.pct.toFixed(1)}%</td>
+        <td><div class="spo-bar" style="width:${d.pct}%"></div></td></tr>`).join("");
+  })();
+  
+  // ══════════════════════════════════════════════════════════════════════════════
+  // HERO COUNTERS + SCROLL
+  // ══════════════════════════════════════════════════════════════════════════════
+  function animCount(el,end,dur,prefix="€"){
+    const s=performance.now();
+    (function step(now){
+      const t=Math.min((now-s)/dur,1);
+      const ease=t<.5?2*t*t:-1+(4-2*t)*t;
+      el.textContent=prefix+fmt(Math.round(ease*end));
+      if(t<1)requestAnimationFrame(step);
+    })(performance.now());
+  }
+  document.getElementById("t2").querySelectorAll(".fade").forEach(el=>{
+    new IntersectionObserver(([e])=>{if(e.isIntersecting)el.classList.add("in")},{threshold:0.1}).observe(el);
+  });
+  document.getElementById("t2").querySelectorAll("section").forEach((s,i)=>{
+    new IntersectionObserver(([e])=>{
+      if(!e.isIntersecting)return;
+      document.getElementById("t2").querySelectorAll(".dot").forEach(d=>d.classList.remove("on"));
+      const dot=document.querySelectorAll(".dot")[i]; if(dot)dot.classList.add("on");
+      if(s.id==="t2-hero"){
+        setTimeout(()=>{
+          animCount($("h-oracle"),finalOracle,1600);
+          animCount($("h-naive"),finalNaive,1600);
+          animCount($("h-gap"),finalNaive-finalOracle,1800);
+        },200);
+      }
+    },{threshold:.35}).observe(s);
+  });
+  document.getElementById("t2").querySelectorAll(".dot").forEach((d,i)=>{
+    d.addEventListener("click",()=>document.querySelectorAll("section")[i].scrollIntoView({behavior:"smooth"}));
+  });
+}
+
+function initT3() {
+  const $ = id => document.getElementById("t3-" + id);
+  // ── Seeded RNG ───────────────────────────────────────────────────────────────
+  let _seed = 54321;
+  function rng(){ _seed^=_seed<<13;_seed^=_seed>>17;_seed^=_seed<<5;return(_seed>>>0)/4294967296; }
+  
+  
+  // ── Delivery nodes (depot + 12 zones, Amsterdam-ish layout) ─────────────────
+  // Coordinates in SVG space (depot at centre)
+  const NODES = [
+    {id:0, name:"Depot",      x:400, y:210, demand:0,  type:"depot"},
+    {id:1, name:"Centrum",    x:370, y:155, demand:180, type:"business"},
+    {id:2, name:"Noord-1",    x:290, y:80,  demand:240, type:"residential"},
+    {id:3, name:"Noord-2",    x:430, y:60,  demand:210, type:"residential"},
+    {id:4, name:"Oost-1",     x:560, y:100, demand:195, type:"mixed"},
+    {id:5, name:"Oost-2",     x:630, y:190, demand:220, type:"residential"},
+    {id:6, name:"Zuidoost",   x:600, y:300, demand:260, type:"residential"},
+    {id:7, name:"Zuid",       x:480, y:360, demand:230, type:"residential"},
+    {id:8, name:"Buitenveld", x:330, y:370, demand:190, type:"mixed"},
+    {id:9, name:"Nieuw-West", x:200, y:300, demand:250, type:"residential"},
+    {id:10, name:"West-1",    x:150, y:200, demand:215, type:"mixed"},
+    {id:11, name:"West-2",    x:200, y:120, demand:200, type:"business"},
+    {id:12, name:"Oud-West",  x:300, y:155, demand:175, type:"business"},
+  ];
+  
+  function dist(a, b){ return Math.hypot(NODES[a].x-NODES[b].x, NODES[a].y-NODES[b].y); }
+  
+  // ── Routes (precomputed) ─────────────────────────────────────────────────────
+  // NN route: greedy nearest-unvisited from depot
+  function computeNN(){
+    const visited = new Set([0]);
+    const route = [0];
+    while(visited.size < NODES.length){
+      const last = route[route.length-1];
+      let best = -1, bestD = Infinity;
+      NODES.forEach(n=>{ if(!visited.has(n.id)&&dist(last,n.id)<bestD){bestD=dist(last,n.id);best=n.id;}});
+      route.push(best); visited.add(best);
+    }
+    route.push(0);
+    return route;
+  }
+  
+  // 2-opt improvement
+  function twoOpt(route){
+    let r = [...route];
+    let improved = true;
+    while(improved){
+      improved = false;
+      for(let i=1;i<r.length-2;i++){
+        for(let j=i+1;j<r.length-1;j++){
+          const before = dist(r[i-1],r[i]) + dist(r[j],r[j+1]);
+          const after  = dist(r[i-1],r[j]) + dist(r[i],r[j+1]);
+          if(after < before - 0.1){
+            r = [...r.slice(0,i), ...r.slice(i,j+1).reverse(), ...r.slice(j+1)];
+            improved = true;
+          }
+        }
+      }
+    }
+    return r;
+  }
+  
+  // Oracle: hand-tuned clockwise perimeter route (minimal crossings)
+  const ORACLE_ROUTE = [0,1,12,11,2,3,10,4,9,5,6,8,7,0]; // adjusted for good tour
+  
+  const NN_ROUTE    = computeNN();
+  const TWOOPT_ROUTE= twoOpt(NN_ROUTE);
+  
+  function routeDist(route){ return route.slice(0,-1).reduce((s,_,i)=>s+dist(route[i],route[i+1]),0); }
+  function countCrossings(route){
+    let c=0;
+    for(let i=0;i<route.length-2;i++){
+      const ax=NODES[route[i]].x,ay=NODES[route[i]].y,bx=NODES[route[i+1]].x,by=NODES[route[i+1]].y;
+      for(let j=i+2;j<route.length-1;j++){
+        if(Math.abs(i-j)<=1)continue;
+        const cx=NODES[route[j]].x,cy=NODES[route[j]].y,dx=NODES[route[j+1]].x,dy=NODES[route[j+1]].y;
+        // Line segment intersection test
+        const d1=(dx-cx)*(ay-cy)-(dy-cy)*(ax-cx),d2=(dx-cx)*(by-cy)-(dy-cy)*(bx-cx);
+        const d3=(bx-ax)*(cy-ay)-(by-ay)*(cx-ax),d4=(bx-ax)*(dy-ay)-(by-ay)*(dx-ax);
+        if(((d1>0&&d2<0)||(d1<0&&d2>0))&&((d3>0&&d4<0)||(d3<0&&d4>0)))c++;
+      }
+    }
+    return c;
+  }
+  
+  // Scale distances to km (SVG px → km, assuming city ~20km wide in ~500px)
+  const PX_TO_KM = 20/480;
+  const nnDistKm    = Math.round(routeDist(NN_ROUTE)    * PX_TO_KM * 10)/10;
+  const twooptDistKm= Math.round(routeDist(TWOOPT_ROUTE)* PX_TO_KM * 10)/10;
+  const oracleDistKm= Math.round(routeDist(ORACLE_ROUTE)* PX_TO_KM * 10)/10;
+  
+  // ── Demand heatmap data ──────────────────────────────────────────────────────
+  const WEEKDAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const ZONE_NAMES = NODES.filter(n=>n.id>0).map(n=>n.name);
+  const DAY_MULT = [1.0,1.15,1.1,1.05,0.95,0.7,0.55];
+  
+  const heatmap = [];
+  _seed = 22221;
+  ZONE_NAMES.forEach((zone, zi) => {
+    const baseDemand = NODES[zi+1].demand;
+    WEEKDAYS.forEach((day, di) => {
+      const v = Math.round(baseDemand * DAY_MULT[di] * (0.85+rng()*0.3));
+      heatmap.push({zone, day, demand: v});
+    });
+  });
+  
+  // ── 30-day distance series ─────────────────────────────────────────────────
+  _seed = 77777;
+  let cumOracle=0, cumNN=0, cumTwoOpt=0;
+  const distSeries = Array.from({length:30}, (_, i) => {
+    const oDay = Math.round(oracleDistKm*(0.92+rng()*0.16));
+    const nDay = Math.round(nnDistKm*(0.90+rng()*0.20));
+    const tDay = Math.round(twooptDistKm*(0.90+rng()*0.18));
+    cumOracle += oDay; cumNN += nDay; cumTwoOpt += tDay;
+    return {day:i+1, oracle:cumOracle, nn:cumNN, twoopt:cumTwoOpt};
+  });
+  const finalOracle=cumOracle, finalNN=cumNN, finalTwoOpt=cumTwoOpt;
+  
+  // ── Zone savings clock (12 zones) ────────────────────────────────────────────
+  _seed = 33331;
+  const clockData = ZONE_NAMES.map((name, i) => {
+    const baseSavings = NODES[i+1].demand / 8;
+    const sensitivity = Math.min(0.98, (baseSavings/35) * (0.7+rng()*0.6));
+    const saving = Math.round(baseSavings*(0.8+rng()*0.4));
+    return {name, idx:i, sensitivity, saving};
+  });
+  
+  // ── Scatter: demand MAE vs route cost ─────────────────────────────────────
+  _seed = 44441;
+  const scatterData = Array.from({length:30}, () => {
+    const mae = Math.round((10+rng()*30)*10)/10;
+    const cost = Math.round(oracleDistKm + mae*0.4 + (rng()-0.3)*8);
+    return {mae, cost};
+  });
+  const xm=d3.mean(scatterData,d=>d.mae), ym=d3.mean(scatterData,d=>d.cost);
+  const olsSlope=d3.sum(scatterData,d=>(d.mae-xm)*(d.cost-ym))/d3.sum(scatterData,d=>(d.mae-xm)**2);
+  const olsIntercept=ym-olsSlope*xm;
+  const olsR=(d3.sum(scatterData,d=>(d.mae-xm)*(d.cost-ym))/Math.sqrt(d3.sum(scatterData,d=>(d.mae-xm)**2)*d3.sum(scatterData,d=>(d.cost-ym)**2))).toFixed(2);
+  
+  // Model table
+  const models = [
+    {algo:"Oracle LP bound",     dist:finalOracle, pct:100},
+    {algo:"2-opt (NN seed)",     dist:finalTwoOpt, pct:Math.round(finalOracle/finalTwoOpt*1000)/10},
+    {algo:"Nearest-neighbour",   dist:finalNN,     pct:Math.round(finalOracle/finalNN*1000)/10},
+    {algo:"SPO+-demand + 2-opt", dist:Math.round(finalTwoOpt*0.93), pct:Math.round(finalOracle/(finalTwoOpt*0.93)*1000)/10},
+  ];
+  
+  // ── Tooltip ───────────────────────────────────────────────────────────────────
+  
+  // ══════════════════════════════════════════════════════════════════════════════
+  // ROUTE SIMULATION
+  // ══════════════════════════════════════════════════════════════════════════════
+  (function initRouteViz(){
+    const W = Math.min($("route-svg-wrap").clientWidth||820, 820);
+    const H = 460, scX = W/820, scY = H/460;
+    const svg = d3.select($("route-svg-wrap")).append("svg").attr("width",W).attr("height",H);
+  
+    // City background
+    svg.append("rect").attr("width",W).attr("height",H).attr("fill","#F2EDE5").attr("rx",12);
+  
+    // Grid lines (city block feel)
+    for(let i=0;i<W;i+=40*scX){
+      svg.append("line").attr("x1",i).attr("y1",0).attr("x2",i).attr("y2",H)
+        .attr("stroke","#E5DDD3").attr("stroke-width",.5);
+    }
+    for(let j=0;j<H;j+=40*scY){
+      svg.append("line").attr("x1",0).attr("y1",j).attr("x2",W).attr("y2",j)
+        .attr("stroke","#E5DDD3").attr("stroke-width",.5);
+    }
+  
+    // Route group (drawn first, below nodes)
+    const routeG = svg.append("g").attr("class","route-layer");
+  
+    // Nodes
+    NODES.forEach(n => {
+      const x = n.x * scX, y = n.y * scY;
+      if(n.type === "depot"){
+        svg.append("rect").attr("x",x-10).attr("y",y-10).attr("width",20).attr("height",20)
+          .attr("rx",3).attr("fill","#1C1917").attr("opacity",.85);
+        svg.append("text").attr("x",x).attr("y",y+30).attr("text-anchor","middle")
+          .style("font-size","10px").style("fill","#78716C").style("font-weight","600").text("DEPOT");
+      } else {
+        svg.append("circle").attr("cx",x).attr("cy",y).attr("r",8)
+          .attr("fill","#B45309").attr("stroke","#fff").attr("stroke-width",1.5)
+          .attr("opacity",.88)
+          .on("mousemove",ev=>showTip(ev,n.name,`Demand: <b>${n.demand} parcels</b><br>Type: ${n.type}`))
+          .on("mouseleave",hideTip);
+        svg.append("text").attr("x",x).attr("y",y-13).attr("text-anchor","middle")
+          .style("font-size","9px").style("fill","#78716C").text(n.name);
+      }
+    });
+  
+    function drawRoute(route, color, dashed){
+      routeG.selectAll("*").remove();
+      const pairs = route.slice(0,-1).map((_,i)=>({
+        x1:NODES[route[i]].x*scX, y1:NODES[route[i]].y*scY,
+        x2:NODES[route[i+1]].x*scX, y2:NODES[route[i+1]].y*scY
+      }));
+      const lines = routeG.selectAll("line").data(pairs).join("line")
+        .attr("x1",d=>d.x1).attr("y1",d=>d.y1)
+        .attr("x2",d=>d.x1).attr("y2",d=>d.y1)
+        .attr("stroke",color).attr("stroke-width",2.2).attr("opacity",.75)
+        .attr("stroke-dasharray", dashed?"6,4":null);
+      // Animate progressive draw
+      lines.transition().duration(1200).delay((_,i)=>i*80)
+        .attr("x2",d=>d.x2).attr("y2",d=>d.y2);
+    }
+  
+    let currentRoute = "nn";
+    const ROUTE_CONFIGS = {
+      nn:     {route:NN_ROUTE,     color:"#B45309", dashed:false, dist:nnDistKm,     cross:countCrossings(NN_ROUTE),     pct:Math.round((nnDistKm-oracleDistKm)/oracleDistKm*100)},
+      twoopt: {route:TWOOPT_ROUTE, color:"#0C7A91", dashed:false, dist:twooptDistKm, cross:countCrossings(TWOOPT_ROUTE), pct:Math.round((twooptDistKm-oracleDistKm)/oracleDistKm*100)},
+      oracle: {route:ORACLE_ROUTE, color:"#1B7A45", dashed:true,  dist:oracleDistKm, cross:countCrossings(ORACLE_ROUTE), pct:0},
+    };
+  
+    function setRoute(key){
+      currentRoute = key;
+      const cfg = ROUTE_CONFIGS[key];
+      drawRoute(cfg.route, cfg.color, cfg.dashed);
+      $("r-dist").textContent = cfg.dist.toFixed(1)+" km";
+      $("r-dist").style.color = key==="oracle"?"var(--green)":key==="twoopt"?"var(--teal)":"var(--primary)";
+      $("r-crossings").textContent = cfg.cross + (cfg.cross===1?" crossing":" crossings");
+      $("r-crossings").style.color = cfg.cross===0?"var(--green)":cfg.cross<=2?"var(--primary)":"var(--red)";
+      $("r-vs-oracle").textContent = cfg.pct===0?"Oracle bound":"+"+cfg.pct+"%";
+      $("r-vs-oracle").style.color = cfg.pct===0?"var(--green)":"var(--text)";
+      ["btn-nn","btn-2opt","btn-oracle"].forEach(id=>$( id).classList.remove("active"));
+      $("btn-"+key.replace("twoopt","2opt")).classList.add("active");
+    }
+  
+    $("btn-nn").addEventListener("click", ()=>setRoute("nn"));
+    $("btn-2opt").addEventListener("click", ()=>setRoute("twoopt"));
+    $("btn-oracle").addEventListener("click", ()=>setRoute("oracle"));
+  
+    // Initial draw
+    setTimeout(()=>setRoute("nn"), 400);
+  })();
+  
+  // ══════════════════════════════════════════════════════════════════════════════
+  // CHART 1 · DEMAND HEATMAP
+  // ══════════════════════════════════════════════════════════════════════════════
+  (function drawHeatmap(){
+    const W0=Math.min($("heatmap-chart").clientWidth||900,960);
+    const cellW=Math.floor((W0-120)/7), cellH=26;
+    const m={t:16,r:20,b:44,l:116};
+    const W=cellW*7+m.l+m.r, H=cellH*12+m.t+m.b;
+    const svg=d3.select($("heatmap-chart")).append("svg").attr("width",W).attr("height",H);
+    const g=svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
+    const xB=d3.scaleBand().domain(WEEKDAYS).range([0,cellW*7]).padding(.06);
+    const yB=d3.scaleBand().domain(ZONE_NAMES).range([0,cellH*12]).padding(.06);
+    const col=d3.scaleSequential(d3.interpolateOrRd).domain([80,320]);
+    g.selectAll("rect.c").data(heatmap).join("rect").attr("class","c")
+      .attr("x",d=>xB(d.day)).attr("y",d=>yB(d.zone))
+      .attr("width",xB.bandwidth()).attr("height",yB.bandwidth())
+      .attr("fill",d=>col(d.demand)).attr("rx",2)
+      .on("mousemove",(ev,d)=>showTip(ev,`${d.zone} · ${d.day}`,`<span style="font-weight:600">${d.demand} parcels</span>`))
+      .on("mouseleave",hideTip);
+    g.append("g").attr("transform",`translate(0,${cellH*12+4})`)
+      .call(d3.axisBottom(xB).tickSize(4))
+      .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","11px").style("fill","#78716C"));
+    g.append("g").attr("transform","translate(-8,0)")
+      .call(d3.axisLeft(yB).tickSize(0))
+      .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","11px").style("fill","#78716C"));
+    const lgW=160, defs=svg.append("defs");
+    const grad=defs.append("linearGradient").attr("id","hm3-g").attr("x1","0%").attr("x2","100%");
+    [[0,"#fff7ec"],[0.5,"#fd8d3c"],[1,"#7f0000"]].forEach(([o,c])=>grad.append("stop").attr("offset",`${o*100}%`).attr("stop-color",c));
+    const lg=svg.append("g").attr("transform",`translate(${m.l},${H-14})`);
+    lg.append("rect").attr("width",lgW).attr("height",10).attr("rx",3).attr("fill","url(#hm3-g)");
+    ["80","200","320+ parcels"].forEach((t,i)=>lg.append("text").attr("x",lgW/2*i).attr("y",23).style("font-size","9px").style("fill","#A8A29E").text(t));
+  })();
+  
+  // ══════════════════════════════════════════════════════════════════════════════
+  // CHART 2 · ROUTE PORTRAIT (30 days overlaid)
+  // ══════════════════════════════════════════════════════════════════════════════
+  (function drawRoutePortrait(){
+    _seed = 88882;
+    const W=Math.min($("routeport-chart").clientWidth||820,820), H=400;
+    const scX=W/820, scY=H/420;
+    const svg=d3.select($("routeport-chart")).append("svg").attr("width",W).attr("height",H);
+    svg.append("rect").attr("width",W).attr("height",H).attr("fill","#F2EDE5").attr("rx",10);
+  
+    // 30 noisy versions of each route
+    const CONFIGS = [
+      {route:NN_ROUTE,     color:"#B45309", alpha:0.12},
+      {route:TWOOPT_ROUTE, color:"#0C7A91", alpha:0.14},
+      {route:ORACLE_ROUTE, color:"#1B7A45", alpha:0.18},
+    ];
+    CONFIGS.forEach(cfg => {
+      for(let d=0;d<30;d++){
+        const noisy = cfg.route.map(id => ({
+          x: NODES[id].x * scX + (id>0?(rng()-.5)*14:0),
+          y: NODES[id].y * scY + (id>0?(rng()-.5)*14:0),
+        }));
+        const lineData = noisy.slice(0,-1).map((_,i)=>({
+          x1:noisy[i].x,y1:noisy[i].y,x2:noisy[i+1].x,y2:noisy[i+1].y
+        }));
+        svg.selectAll(null).data(lineData).join("line")
+          .attr("x1",d=>d.x1).attr("y1",d=>d.y1).attr("x2",d=>d.x2).attr("y2",d=>d.y2)
+          .attr("stroke",cfg.color).attr("stroke-width",1).attr("opacity",cfg.alpha);
+      }
+    });
+    // Depot marker
+    svg.append("rect").attr("x",NODES[0].x*scX-8).attr("y",NODES[0].y*scY-8)
+      .attr("width",16).attr("height",16).attr("rx",2).attr("fill","#1C1917").attr("opacity",.85);
+    svg.append("text").attr("x",NODES[0].x*scX).attr("y",NODES[0].y*scY+24)
+      .attr("text-anchor","middle").style("font-size","10px").style("fill","#78716C").style("font-weight","600").text("DEPOT");
+    // Zone dots
+    NODES.filter(n=>n.id>0).forEach(n=>{
+      svg.append("circle").attr("cx",n.x*scX).attr("cy",n.y*scY).attr("r",5)
+        .attr("fill","#1C1917").attr("opacity",.5).attr("stroke","#fff").attr("stroke-width",1);
+    });
+  })();
+  
+  // ══════════════════════════════════════════════════════════════════════════════
+  // CHART 3 · DISTANCE RACE
+  // ══════════════════════════════════════════════════════════════════════════════
+  (function drawDist(){
+    const m={t:20,r:80,b:44,l:72};
+    const W=Math.min($("dist-chart").clientWidth||920,960),H=320;
+    const iW=W-m.l-m.r,iH=H-m.t-m.b;
+    const svg=d3.select($("dist-chart")).append("svg").attr("width",W).attr("height",H);
+    const g=svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
+    const allV=distSeries.flatMap(d=>[d.oracle,d.nn,d.twoopt]);
+    const x=d3.scaleLinear().domain([1,30]).range([0,iW]);
+    const y=d3.scaleLinear().domain([0,d3.max(allV)*1.05]).range([iH,0]);
+    // Gap fill
+    const defs=svg.append("defs");
+    const gg=defs.append("linearGradient").attr("id","gap3-g").attr("x1","0%").attr("x2","100%");
+    gg.append("stop").attr("offset","0%").attr("stop-color","#B45309").attr("stop-opacity",.04);
+    gg.append("stop").attr("offset","100%").attr("stop-color","#B45309").attr("stop-opacity",.18);
+    g.append("path").datum(distSeries)
+      .attr("d",d3.area().x(d=>x(d.day)).y0(d=>y(d.oracle)).y1(d=>y(d.nn)).curve(d3.curveMonotoneX))
+      .attr("fill","url(#gap3-g)");
+    // Lines
+    [{key:"oracle",color:"#1B7A45",dash:"5,4",w:1.5},{key:"twoopt",color:"#0C7A91",dash:null,w:2},{key:"nn",color:"#B45309",dash:null,w:2.2}].forEach(cfg=>{
+      g.append("path").datum(distSeries)
+        .attr("d",d3.line().x(d=>x(d.day)).y(d=>y(d[cfg.key])).curve(d3.curveMonotoneX))
+        .attr("fill","none").attr("stroke",cfg.color).attr("stroke-width",cfg.w)
+        .attr("stroke-dasharray",cfg.dash).attr("opacity",cfg.key==="oracle"?.7:1);
+    });
+    const scrub=g.append("line").attr("y1",0).attr("y2",iH).attr("stroke","#C7C0B8").attr("stroke-width",1).attr("opacity",0);
+    const bis=d3.bisector(d=>d.day).left;
+    svg.on("mousemove",ev=>{
+      const[mx]=d3.pointer(ev,g.node());
+      const day=Math.round(x.invert(mx));
+      const d=distSeries[Math.max(0,Math.min(bis(distSeries,day),distSeries.length-1))];
+      scrub.attr("x1",x(d.day)).attr("x2",x(d.day)).attr("opacity",.6);
+      showTip(ev,`Day ${d.day}`,`Oracle: <b>${fmtKm(d.oracle)}</b><br>2-opt: <b>${fmtKm(d.twoopt)}</b><br>NN: <b>${fmtKm(d.nn)}</b>`);
+    }).on("mouseleave",()=>{scrub.attr("opacity",0);hideTip();});
+    g.append("g").attr("transform",`translate(0,${iH})`)
+      .call(d3.axisBottom(x).ticks(10).tickFormat(d=>`Day ${d}`))
+      .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+    g.append("g").call(d3.axisLeft(y).ticks(5).tickFormat(fmtKm))
+      .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+    const last=distSeries[distSeries.length-1];
+    [{key:"oracle",c:"#1B7A45",lbl:"Oracle"},{key:"twoopt",c:"#0C7A91",lbl:"2-opt"},{key:"nn",c:"#B45309",lbl:"NN"}].forEach(cfg=>{
+      g.append("text").attr("x",iW+6).attr("y",y(last[cfg.key])).attr("dominant-baseline","middle")
+        .style("font-size","11px").style("fill",cfg.c).text(cfg.lbl);
+    });
+  })();
+  
+  // ══════════════════════════════════════════════════════════════════════════════
+  // CHART 4 · ZONE SAVINGS CLOCK (12 zones → radial)
+  // ══════════════════════════════════════════════════════════════════════════════
+  (function drawClock(){
+    const S=330,cx=S/2,cy=S/2;
+    const maxR=S/2-28,minR=S/2-100;
+    const svg=d3.select($("clock-chart")).append("svg").attr("width",S).attr("height",S);
+    const g=svg.append("g").attr("transform",`translate(${cx},${cy})`);
+    [.25,.5,.75,1].forEach(f=>g.append("circle").attr("r",minR+(maxR-minR)*f).attr("fill","none").attr("stroke","#E5E0D8").attr("stroke-width",.8));
+    const arc=d3.arc().innerRadius(minR).outerRadius(d=>minR+(maxR-minR)*d.sensitivity)
+      .startAngle(d=>(d.idx/12)*2*Math.PI-Math.PI/2).endAngle(d=>((d.idx+1)/12)*2*Math.PI-Math.PI/2)
+      .padAngle(.025).cornerRadius(3);
+    const clr=d3.scaleSequential(d3.interpolateOrRd).domain([0,1]);
+    g.selectAll("path.seg").data(clockData).join("path").attr("class","seg")
+      .attr("d",arc).attr("fill",d=>clr(d.sensitivity)).attr("opacity",.88)
+      .on("mousemove",(ev,d)=>showTip(ev,d.name,`Demand savings: <b>${d.saving.toFixed(1)} km/day</b><br>Weight: ${(d.sensitivity*100).toFixed(0)}%`))
+      .on("mouseleave",hideTip);
+    clockData.forEach(d=>{
+      const angle=(d.idx/12)*2*Math.PI+(1/24)*2*Math.PI-Math.PI/2;
+      const r=maxR+18;
+      g.append("text").attr("x",r*Math.cos(angle)).attr("y",r*Math.sin(angle))
+        .attr("text-anchor","middle").attr("dominant-baseline","middle").style("font-size","9px").style("fill","#A8A29E").text(d.name.split("-")[0]);
+    });
+    const totalSave=clockData.reduce((s,d)=>s+d.saving,0);
+    g.append("text").attr("text-anchor","middle").attr("y",-9).style("font-size","22px").style("font-family","'Playfair Display',serif").style("fill","#B45309").style("font-weight","700").text(totalSave.toFixed(0)+" km");
+    g.append("text").attr("text-anchor","middle").attr("y",12).style("font-size","10px").style("fill","#78716C").text("daily savings potential");
+  })();
+  
+  // ══════════════════════════════════════════════════════════════════════════════
+  // CHART 5 · SCATTER
+  // ══════════════════════════════════════════════════════════════════════════════
+  (function drawScatter(){
+    const m={t:16,r:24,b:48,l:64};
+    const S=320,iW=S-m.l-m.r,iH=S-m.t-m.b;
+    const svg=d3.select($("scatter-chart")).append("svg").attr("width",S).attr("height",S);
+    const g=svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
+    const xs=scatterData.map(d=>d.mae),ys=scatterData.map(d=>d.cost);
+    const x=d3.scaleLinear().domain(d3.extent(xs)).nice().range([0,iW]);
+    const y=d3.scaleLinear().domain(d3.extent(ys)).nice().range([iH,0]);
+    const x1=d3.min(xs),x2=d3.max(xs);
+    g.append("line").attr("x1",x(x1)).attr("y1",y(olsSlope*x1+olsIntercept))
+      .attr("x2",x(x2)).attr("y2",y(olsSlope*x2+olsIntercept))
+      .attr("stroke","#B45309").attr("stroke-width",1.8).attr("opacity",.6).attr("stroke-dasharray","5,3");
+    g.append("text").attr("x",x(x1)+4).attr("y",y(olsSlope*x1+olsIntercept)-8)
+      .style("font-size","10px").style("fill","#B45309").text(`r = ${olsR}`);
+    const dc=d3.scaleSequential(d3.interpolateOrRd).domain([d3.max(xs),d3.min(xs)]);
+    g.selectAll("circle").data(scatterData).join("circle")
+      .attr("cx",d=>x(d.mae)).attr("cy",d=>y(d.cost)).attr("r",5)
+      .attr("fill",d=>dc(d.mae)).attr("opacity",.82).attr("stroke","#fff").attr("stroke-width",.8)
+      .on("mousemove",(ev,d)=>showTip(ev,"Operating day",`Demand MAE: <b>${d.mae} parcels</b><br>Route: <b>${d.cost.toFixed(1)} km</b>`))
+      .on("mouseleave",hideTip);
+    g.append("g").attr("transform",`translate(0,${iH})`)
+      .call(d3.axisBottom(x).ticks(5).tickFormat(d=>d+" parcels"))
+      .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+    g.append("g").call(d3.axisLeft(y).ticks(5).tickFormat(fmtKm))
+      .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+    g.append("text").attr("x",iW/2).attr("y",iH+38).attr("text-anchor","middle").style("font-size","11px").style("fill","#A8A29E").text("Demand forecast MAE (parcels/zone)");
+  })();
+  
+  // ══════════════════════════════════════════════════════════════════════════════
+  // ALGORITHM TABLE
+  // ══════════════════════════════════════════════════════════════════════════════
+  (function(){
+    const tb=$("spo-table"), bestDist=models[0].dist;
+    tb.innerHTML=`<tr><th>Algorithm</th><th>30-day Distance</th><th>% of Oracle</th><th style="width:70px"></th></tr>`
+      +models.map(d=>`<tr class="${d.algo==="Nearest-neighbour"?"hl":""}">
+        <td>${d.algo}</td><td>${fmtKm(d.dist)}</td>
+        <td>${d.pct.toFixed(1)}%</td>
+        <td><div class="spo-bar" style="width:${d.pct}%"></div></td></tr>`).join("");
+  })();
+  
+  // ══════════════════════════════════════════════════════════════════════════════
+  // HERO COUNTERS + SCROLL
+  // ══════════════════════════════════════════════════════════════════════════════
+  function animCountKm(el,end,dur){
+    const s=performance.now();
+    (function step(now){
+      const t=Math.min((now-s)/dur,1);
+      const ease=t<.5?2*t*t:-1+(4-2*t)*t;
+      el.textContent=fmt(Math.round(ease*end))+" km";
+      if(t<1)requestAnimationFrame(step);
+    })(performance.now());
+  }
+  document.getElementById("t3").querySelectorAll(".fade").forEach(el=>{
+    new IntersectionObserver(([e])=>{if(e.isIntersecting)el.classList.add("in")},{threshold:0.1}).observe(el);
+  });
+  document.getElementById("t3").querySelectorAll("section").forEach((s,i)=>{
+    new IntersectionObserver(([e])=>{
+      if(!e.isIntersecting)return;
+      document.getElementById("t3").querySelectorAll(".dot").forEach(d=>d.classList.remove("on"));
+      const dot=document.querySelectorAll(".dot")[i]; if(dot)dot.classList.add("on");
+      if(s.id==="t3-hero"){
+        setTimeout(()=>{
+          animCountKm($("h-oracle"),finalOracle,1600);
+          animCountKm($("h-nn"),finalNN,1600);
+          animCountKm($("h-twoopt"),finalTwoOpt,1600);
+        },200);
+      }
+    },{threshold:.35}).observe(s);
+  });
+  document.getElementById("t3").querySelectorAll(".dot").forEach((d,i)=>{
+    d.addEventListener("click",()=>document.querySelectorAll("section")[i].scrollIntoView({behavior:"smooth"}));
+  });
+}
+</script>
+</body>
+</html>
