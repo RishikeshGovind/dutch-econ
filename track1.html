@@ -23,12 +23,12 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,sa
 .dot.on{background:var(--orange);transform:scale(1.4)}
 
 /* Sections */
-section{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px 80px;max-width:1600px;margin:0 auto;position:relative}
+section{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px clamp(48px,6vw,120px);width:100%;position:relative}
 section+section{border-top:1px solid var(--border)}
 .eyebrow{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:10px}
 h1{font-family:'Playfair Display',serif;font-size:clamp(32px,4vw,56px);line-height:1.15;margin-bottom:18px}
 h2{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-height:1.2;margin-bottom:14px}
-.lead{font-size:16px;color:var(--muted);max-width:760px;margin-bottom:36px;font-weight:300}
+.lead{font-size:16px;color:var(--muted);max-width:min(820px,72%);margin-bottom:36px;font-weight:300}
 
 /* Hero */
 #hero{min-height:100vh;padding-top:120px}
@@ -40,8 +40,7 @@ h2{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-heig
 .stat .lbl{font-size:11px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.1em}
 
 /* Insight */
-.insight{display:inline-flex;gap:14px;align-items:flex-start;background:var(--surface);border-left:3px solid var(--orange);padding:14px 20px;border-radius:0 8px 8px 0;margin-top:24px;max-width:620px}
-.insight-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.insight{display:inline-flex;gap:14px;align-items:flex-start;background:var(--surface);border-left:3px solid var(--orange);padding:14px 20px;border-radius:0 8px 8px 0;margin-top:24px;max-width:min(820px,72%);flex-shrink:0;margin-top:1px}
 .insight-text{font-size:13px;color:var(--muted);line-height:1.6}
 .insight-text strong{display:block;color:var(--text);margin-bottom:3px;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
 
@@ -68,7 +67,7 @@ h2{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-heig
 
 /* Chart common */
 .chart-wrap{width:100%;overflow-x:auto}
-.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}
+.chart-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:56px;align-items:start}
 
 /* Tooltip */
 #tip{position:fixed;background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12.5px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.09);max-width:210px;line-height:1.5}
