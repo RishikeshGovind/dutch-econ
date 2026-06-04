@@ -9,3 +9,5 @@ joblib>=1.3.0
 scipy>=1.11.0
 matplotlib>=3.7.0
 requests>=2.31.0
+pyarrow>=14.0.0        # parquet read/write for nl_panel
+entsoe-py>=0.6.0       # optional: convenience wrapper (entsoe_fetch_rich.py uses raw REST API, so not strictly required)
