@@ -132,9 +132,9 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <section id="sim">
   <div class="eyebrow fade">Live Simulation</div>
   <h2 class="fade">Watch the Battery Work</h2>
-  <p class="lead fade">Each dot is an energy packet (0.1 MWh). As the day unfolds, dots migrate
-  between the <strong>grid</strong> and the <strong>battery</strong> following the oracle dispatch decisions.
-  The banner tells you exactly what is happening and why.</p>
+  <p class="lead fade">One decision every hour: <strong>charge</strong> (buy cheap electricity and store it)
+  or <strong>sell</strong> (release stored energy at peak prices). The oracle sees the full day in advance —
+  watch it exploit every swing in the market.</p>
 
   <div class="fade">
     <!-- Status banner — tells the story each hour -->
@@ -148,7 +148,7 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
       <input type="range" id="sim-slider" min="0" max="23" value="0" step="1">
       <span class="sim-time" id="sim-hour-disp">00:00</span>
     </div>
-    <div class="chart-wrap"><div id="sim-svg-wrap"></div></div>
+    <div class="chart-wrap"><div id="sim-viz"></div></div>
     <div class="sim-stat-row">
       <div class="sim-stat">
         <div class="sv" id="sim-price">—</div>
@@ -277,272 +277,200 @@ const priceColor = d3.scaleLinear()
   .range(["#6D28D9","#F7F4EE","#FCD34D","#D4540A","#7F1D1D"]).clamp(true);
 
 // ════════════════════════════════════════════════════════════════════
-// SIMULATION — two-zone energy particle system
+// SIMULATION — battery + price strip story
 // ════════════════════════════════════════════════════════════════════
 (function initSim(){
-  const simDay = dispatch.slice(0,24);  // oracle dispatch for day 1 of test period
-  const W = Math.min($("sim-svg-wrap").clientWidth||920, 920);
-  const H = 300;
-  const PAD = 14;
-  const iW = W - PAD*2;
+  const simDay = dispatch.slice(0,24);
+  const W = Math.min($("sim-viz").clientWidth||960, 1400);
+  const H = 260;
+  const svg = d3.select($("sim-viz")).append("svg")
+    .attr("width",W).attr("height",H).style("display","block");
 
-  // ── Two-zone layout ─────────────────────────────────────────────
-  // Left: GRID  |  Right: BATTERY
-  const GW = iW * 0.42;          // grid zone width
-  const BW = iW - GW;            // battery zone width
-  const GCX = GW / 2;            // grid centre x
-  const BCX = GW + BW / 2;       // battery centre x
-  const CY  = H / 2;
+  // ── Layout ────────────────────────────────────────────────────────
+  const BG_W = Math.min(140, Math.floor(W*0.14));  // battery column
+  const GAP   = 36;
+  const SX    = BG_W + GAP;                         // strip x
+  const SW    = W - SX - 8;                         // strip width
+  const SH    = 170;
+  const SY    = (H - SH) / 2 - 8;
+  // Battery body centred in BG_W
+  const BW = 44, BH = 150;
+  const BX = Math.floor((BG_W - BW) / 2);
+  const BY = Math.floor((H - BH) / 2);
 
-  // ── Dot counts ──────────────────────────────────────────────────
-  const N_E  = 20;   // energy dots (0.1 MWh each, 20 = full 2 MWh battery)
-  const N_BG = 28;   // static grid background dots (always in grid zone)
-  const R    = 6.5;  // dot radius
+  // ── Battery icon ──────────────────────────────────────────────────
+  svg.append("rect")                                 // body outline
+    .attr("x",BX).attr("y",BY)
+    .attr("width",BW).attr("height",BH)
+    .attr("rx",6).attr("fill","none")
+    .attr("stroke","#C7C0B8").attr("stroke-width",2);
+  svg.append("rect")                                 // terminal nub
+    .attr("x",BX+BW/2-10).attr("y",BY-9)
+    .attr("width",20).attr("height",10)
+    .attr("rx",3).attr("fill","#C7C0B8");
 
-  const initBatt = Math.round(simDay[0].soc / 2 * N_E);
+  const fillBar = svg.append("rect")                 // dynamic fill
+    .attr("x",BX+3).attr("y",BY+BH-3)
+    .attr("width",BW-6).attr("height",0).attr("rx",4)
+    .attr("fill","#1B5E96");
 
-  const dots = [];
-  // Energy dots — start split between grid and battery at initial SOC
-  for (let i=0;i<N_E;i++) {
-    const inB = i < initBatt;
-    dots.push({
-      id:i, kind:"energy", zone: inB?"battery":"grid", flying:false,
-      x: (inB?BCX:GCX) + (Math.random()-.5)*90,
-      y: CY + (Math.random()-.5)*120,
-      vx:0, vy:0
-    });
-  }
-  // Background grid dots — always stay in grid zone
-  for (let i=0;i<N_BG;i++) {
-    dots.push({
-      id:N_E+i, kind:"bg", zone:"grid", flying:false,
-      x: GCX + (Math.random()-.5)*110,
-      y: CY + (Math.random()-.5)*150,
-      vx:0, vy:0
-    });
-  }
+  const pctTxt = svg.append("text")
+    .attr("x",BX+BW/2).attr("y",BY+BH/2-5).attr("text-anchor","middle")
+    .style("font-family","'Playfair Display',serif")
+    .style("font-size","17px").style("font-weight","700")
+    .style("fill","#1C1917").text("50%");
+  const mwhTxt = svg.append("text")
+    .attr("x",BX+BW/2).attr("y",BY+BH/2+13).attr("text-anchor","middle")
+    .style("font-size","10px").style("fill","#78716C").text("1.0 MWh");
+  svg.append("text")
+    .attr("x",BX+BW/2).attr("y",BY+BH+18).attr("text-anchor","middle")
+    .style("font-size","9px").style("font-weight","700")
+    .style("letter-spacing","0.14em").style("fill","#A8A29E").text("BATTERY");
 
-  // ── SVG ──────────────────────────────────────────────────────────
-  const svg = d3.select("#sim-svg-wrap").append("svg").attr("width",W).attr("height",H);
-  const g = svg.append("g").attr("transform",`translate(${PAD},0)`);
+  // ── Price strip ───────────────────────────────────────────────────
+  const prices  = simDay.map(d=>d.price);
+  const yDomain = Math.max(Math.abs(d3.min(prices)), d3.max(prices)) * 1.1;
+  const yS      = d3.scaleLinear().domain([-yDomain, yDomain]).range([SY+SH, SY]);
+  const zY      = yS(0);
+  const rawBW   = SW / 24;
+  const bW      = Math.max(4, rawBW - 3);
 
-  // Zone backgrounds
-  g.append("rect").attr("x",0).attr("y",8)
-    .attr("width",GW-8).attr("height",H-16).attr("rx",14)
-    .attr("fill","#F2EDE5").attr("opacity",.9);
-  g.append("rect").attr("x",GW+8).attr("y",8)
-    .attr("width",BW-8).attr("height",H-16).attr("rx",14)
-    .attr("fill","#E6EDF6").attr("opacity",.9);
+  // Zero line
+  svg.append("line")
+    .attr("x1",SX).attr("x2",SX+SW).attr("y1",zY).attr("y2",zY)
+    .attr("stroke","#C7C0B8").attr("stroke-width",1);
+  svg.append("text").attr("x",SX-6).attr("y",zY+4).attr("text-anchor","end")
+    .style("font-size","9px").style("fill","#A8A29E").text("0");
 
-  // Zone labels
-  g.append("text").attr("x",GCX).attr("y",26).attr("text-anchor","middle")
-    .style("font-size","10px").style("font-weight","700")
-    .style("fill","#B0A89E").style("letter-spacing","0.14em").text("GRID");
-  g.append("text").attr("x",GCX).attr("y",40).attr("text-anchor","middle")
-    .style("font-size","9px").style("fill","#C4B9AD").text("source of electricity");
+  // Colour scale for bars
+  const barCol = d3.scaleLinear()
+    .domain([d3.min(prices), 0, d3.max(prices)*0.45, d3.max(prices)])
+    .range(["#6D28D9","#E0DAD2","#FCD34D","#D4540A"]).clamp(true);
 
-  g.append("text").attr("x",BCX).attr("y",26).attr("text-anchor","middle")
-    .style("font-size","10px").style("font-weight","700")
-    .style("fill","#7A9BBC").style("letter-spacing","0.14em").text("BATTERY");
-  g.append("text").attr("x",BCX).attr("y",40).attr("text-anchor","middle")
-    .style("font-size","9px").style("fill","#9AB5D0").text("1 MW · 2 MWh · 90% round-trip");
+  const bars = svg.selectAll("rect.sb").data(simDay).join("rect").attr("class","sb")
+    .attr("x",(_, i)=>SX + i*rawBW + (rawBW-bW)/2)
+    .attr("y",d => d.price>=0 ? yS(d.price) : zY)
+    .attr("width",bW)
+    .attr("height",d => Math.abs(yS(d.price)-zY))
+    .attr("fill",d=>barCol(d.price)).attr("rx",2).attr("opacity",0.5);
 
-  // Capacity label
-  g.append("text").attr("x",iW-6).attr("y",H-12).attr("text-anchor","end")
-    .style("font-size","9px").style("fill","#9AB5D0").text("● = 0.1 MWh");
+  // Current-hour highlight box
+  const hlBox = svg.insert("rect","rect.sb")
+    .attr("y",SY-8).attr("height",SH+16).attr("width",rawBW+2).attr("rx",4)
+    .attr("fill","#D4540A").attr("opacity",0);
 
-  // ── Flow arrow (between zones, flashes on transitions) ──────────
-  const arrow = g.append("text")
-    .attr("x", GW).attr("y", CY+8)
-    .attr("text-anchor","middle").style("font-size","26px")
-    .style("opacity",0).style("pointer-events","none");
+  // Price callout label
+  const callout = svg.append("text").attr("text-anchor","middle")
+    .style("font-size","11px").style("font-weight","600").style("fill","#1C1917");
 
-  // ── Dot colour logic ─────────────────────────────────────────────
-  function dotFill(d) {
-    if (d.kind==="bg")       return "#C4B9AD";
-    if (d.flying)            return "#D4540A";   // orange while discharging
-    if (d.zone==="battery")  return "#1B5E96";   // deep blue when stored
-    return "#8EAEBF";                            // light blue when in grid
-  }
-  function targetX(d) {
-    if (d.flying) return iW + 110;        // fly off-screen right when discharging
-    return d.zone==="battery" ? BCX : GCX;
-  }
+  // Hour axis
+  [0,6,12,18,23].forEach(h=>{
+    svg.append("text")
+      .attr("x", SX+h*rawBW+rawBW/2).attr("y", SY+SH+16)
+      .attr("text-anchor","middle").style("font-size","10px").style("fill","#A8A29E")
+      .text(h===0?"midnight":h===12?"noon":h+"h");
+  });
+  svg.append("text")
+    .attr("x",SX+SW/2).attr("y",SY-18).attr("text-anchor","middle")
+    .style("font-size","9px").style("fill","#A8A29E").style("letter-spacing","0.12em")
+    .text("ELECTRICITY PRICE EACH HOUR (€/MWh)  ·  purple = negative price");
 
-  const circles = g.selectAll("circle.d").data(dots).join("circle")
-    .attr("class","d")
-    .attr("r", d => d.kind==="bg" ? R-1.5 : R)
-    .attr("fill", dotFill)
-    .attr("opacity", d => d.kind==="bg" ? 0.24 : 0.88);
+  // ── Step function ─────────────────────────────────────────────────
+  let cumRev=0, curH=0;
 
-  // ── Force simulation ─────────────────────────────────────────────
-  const sim = d3.forceSimulation(dots)
-    .force("x", d3.forceX(targetX).strength(d => d.flying ? 0.44 : 0.07))
-    .force("y", d3.forceY(CY).strength(0.065))
-    .force("collide", d3.forceCollide(R+1.8).strength(0.9))
-    .force("charge", d3.forceManyBody().strength(-1.5))
-    .alphaDecay(0.015)
-    .on("tick", () => {
-      circles
-        .attr("cx", d=>d.x).attr("cy", d=>d.y)
-        .attr("fill", dotFill)
-        .attr("opacity", d => {
-          if (d.kind==="bg")  return 0.22;
-          if (d.flying)       return Math.max(0, 1-(d.x-iW*0.68)/(iW*0.32));
-          return 0.88;
-        });
-      // Recycle sold dots back to grid invisibly
-      dots.forEach(d => {
-        if (d.flying && d.x > iW+70) {
-          d.flying = false;
-          d.zone   = "grid";
-          d.x = GCX + (Math.random()-.5)*80;
-          d.y = CY  + (Math.random()-.5)*100;
-        }
-      });
-    });
+  function stepHour(h){
+    const D    = simDay[h];
+    const soc  = Math.max(0, Math.min(2, D.soc));
+    const pct  = Math.round(soc/2*100);
+    const isNeg= D.price < 0;
+    const isChg= D.charge > 0.05;
+    const isDis= D.discharge > 0.05;
 
-  function reheat() {
-    sim.force("x", d3.forceX(targetX).strength(d => d.flying ? 0.44 : 0.07));
-    sim.alpha(0.46).restart();
-  }
+    // Battery fill + colour
+    const fc = isNeg?"#6D28D9":isDis?"#D4540A":"#1B5E96";
+    fillBar.transition().duration(350).ease(d3.easeQuadOut)
+      .attr("y",  BY+BH-3-(BH-6)*(soc/2))
+      .attr("height",(BH-6)*(soc/2))
+      .attr("fill",fc);
+    pctTxt.text(pct+"%").style("fill", pct>55?"#fff":"#1C1917");
+    mwhTxt.text(soc.toFixed(1)+" MWh").style("fill", pct>55?"rgba(255,255,255,.7)":"#78716C");
 
-  // ── Hour state transition ─────────────────────────────────────────
-  let curH=0, cumRev=0;
+    // Bars: dim all, brighten current
+    bars.attr("opacity",(_, i)=>i===h?1:0.38)
+        .attr("stroke",(_, i)=>i===h?"#1C1917":"none").attr("stroke-width",1.5);
+    hlBox.transition().duration(220)
+      .attr("x",SX+h*rawBW-1).attr("opacity",0.07);
+    const labelY = D.price>=0 ? yS(D.price)-7 : zY+Math.abs(yS(D.price)-zY)+15;
+    callout.attr("x",SX+h*rawBW+rawBW/2).attr("y",labelY)
+      .text((D.price>=0?"+":"")+D.price.toFixed(0));
 
-  function stepHour(h) {
-    const D = simDay[h];
-    const target = Math.round(D.soc / 2 * N_E);
-    const eDots  = dots.filter(d => d.kind==="energy" && !d.flying);
-    const inBatt = eDots.filter(d => d.zone==="battery").length;
-    const delta  = target - inBatt;
-
-    // Move dots between zones
-    if (delta > 0) {
-      // CHARGING — grid dots migrate into battery
-      let mv = 0;
-      eDots.forEach(d => { if (d.zone==="grid" && mv<delta) { d.zone="battery"; mv++; } });
-      arrow.text("→").style("fill","#1B5E96")
-        .style("opacity",.75).transition().duration(900).style("opacity",0);
-    } else if (delta < 0) {
-      // DISCHARGING — battery dots fly off (sold to market)
-      let mv = 0;
-      eDots.forEach(d => {
-        if (d.zone==="battery" && mv<Math.abs(delta)) {
-          d.zone="grid"; d.flying=true;
-          if (D.price > 0) cumRev += D.price * (2 / N_E);
-          mv++;
-        }
-      });
-      arrow.text("→").style("fill","#D4540A")
-        .style("opacity",.75).transition().duration(900).style("opacity",0);
-    }
-
-    reheat();
-
-    // ── Update UI ────────────────────────────────────────────────
-    const realBatt = dots.filter(d=>d.kind==="energy"&&d.zone==="battery"&&!d.flying).length;
-    const socPct   = Math.round(realBatt / N_E * 100);
-    const isNeg    = D.price < 0;
-    const isChg    = D.charge > 0.05;
-    const isDis    = D.discharge > 0.05;
-
+    // Narrative
     let action, narr, col;
-    if (isChg && isNeg) {
-      action="⬇ Charging";
-      narr=`Grid oversupplied with renewables — the market pays ${Math.abs(D.price).toFixed(0)} €/MWh to consumers who absorb surplus power`;
+    if(isChg && isNeg){
+      action="⬇ Charging — Grid is paying us";
+      narr=`Wind farms are overproducing. Prices went negative: ${D.price.toFixed(0)} €/MWh. The grid pays us ${Math.abs(D.price).toFixed(0)} € per MWh to absorb the surplus — so we charge the battery for free and collect the payment.`;
       col="#6D28D9";
-    } else if (isChg) {
-      action="⚡ Charging";
-      narr=`Buying electricity at ${D.price.toFixed(0)} €/MWh and storing it — dots move from Grid into Battery`;
+    } else if(isChg){
+      action="⬇ Charging — Buying cheap";
+      narr=`Price is ${D.price.toFixed(0)} €/MWh — well below today's peak. We buy electricity and store it. The plan: sell it back when prices spike later.`;
       col="#1B5E96";
-    } else if (isDis) {
-      action="💰 Discharging";
-      narr=`Selling stored electricity at ${D.price.toFixed(0)} €/MWh — battery dots fly out, converting stored energy into revenue`;
+    } else if(isDis){
+      const earned=(D.price*D.discharge).toFixed(0);
+      action="↑ Selling — Cashing in";
+      narr=`Demand has spiked to ${D.price.toFixed(0)} €/MWh. We release ${D.discharge.toFixed(1)} MW of stored energy and earn €${earned} this hour. This is the payoff for charging cheaply earlier.`;
       col="#D4540A";
     } else {
       action="○ Holding";
-      narr=`Price at ${D.price.toFixed(0)} €/MWh — not attractive enough to buy or sell right now`;
+      narr=`Price is ${D.price.toFixed(0)} €/MWh — not cheap enough to buy, not high enough to sell. We wait.`;
       col="#78716C";
     }
-
-    $("sim-action").textContent    = action;
-    $("sim-action").style.color    = col;
-    $("sim-narrative").textContent = narr;
-
-    $("sim-price").textContent  = (D.price>=0?"+":"")+D.price.toFixed(0)+" €/MWh";
-    $("sim-price").style.color  = isNeg?"#6D28D9":D.price>100?"#D4540A":"var(--text)";
-    $("sim-soc").textContent    = (realBatt/N_E*2).toFixed(1)+" MWh ("+socPct+"%)";
-    $("sim-soc-bar").style.width= socPct+"%";
-    $("sim-revenue").textContent= fmtE(Math.round(cumRev));
-    $("sim-hour-disp").textContent = String(h).padStart(2,"0")+":00";
-    $("sim-slider").value = h;
-    curH = h;
+    $("sim-action").textContent=action; $("sim-action").style.color=col;
+    $("sim-narrative").textContent=narr;
+    $("sim-price").textContent=(D.price>=0?"+":"")+D.price.toFixed(0)+" €/MWh";
+    $("sim-price").style.color=isNeg?"#6D28D9":D.price>100?"#D4540A":"var(--text)";
+    $("sim-soc").textContent=soc.toFixed(1)+" MWh ("+pct+"%)";
+    $("sim-soc-bar").style.width=pct+"%";
+    $("sim-revenue").textContent=fmtE(Math.round(cumRev));
+    $("sim-hour-disp").textContent=String(h).padStart(2,"0")+":00";
+    $("sim-slider").value=h; curH=h;
   }
 
-  // ── Jump to arbitrary hour (fast-forward from scratch) ───────────
-  function jumpTo(h) {
-    cumRev = 0;
-    dots.forEach(d => { d.flying=false; d.zone="grid"; });
-    let b = 0;
-    dots.filter(d=>d.kind==="energy").forEach(d=>{ if(b<initBatt){d.zone="battery";b++;} });
-    for (let i=1;i<=h;i++) {
-      const D  = simDay[i];
-      const t  = Math.round(D.soc/2*N_E);
-      const ed = dots.filter(d=>d.kind==="energy"&&!d.flying);
-      const ib = ed.filter(d=>d.zone==="battery").length;
-      const dl = t - ib;
-      if (dl>0) { let mv=0; ed.forEach(d=>{if(d.zone==="grid"&&mv<dl){d.zone="battery";mv++;}}); }
-      else if (dl<0) { let mv=0; ed.forEach(d=>{if(d.zone==="battery"&&mv<-dl){if(D.price>0)cumRev+=D.price*(2/N_E);d.zone="grid";mv++;}}); }
+  function jumpTo(h){
+    cumRev=0;
+    for(let i=0;i<=h;i++){
+      const D=simDay[i];
+      if(D.discharge>0.05&&D.price>0) cumRev+=D.price*D.discharge;
     }
-    // Scatter dots into their zones then let sim settle
-    dots.forEach(d=>{
-      const cx = d.zone==="battery" ? BCX : GCX;
-      d.x = cx+(Math.random()-.5)*80; d.y=CY+(Math.random()-.5)*100;
-    });
-    reheat();
     stepHour(h);
   }
 
-  // ── Controls ─────────────────────────────────────────────────────
   let playing=false, timer=null;
-  const SPEED=950;
-
-  function advance() {
-    if (!playing) return;
+  function advance(){
+    if(!playing)return;
+    const D=simDay[curH];
+    if(D.discharge>0.05&&D.price>0) cumRev+=D.price*D.discharge;
     stepHour(curH);
-    if (curH>=23) {
-      playing=false;
-      $("sim-play-btn").textContent="↺ Replay";
-      $("sim-play-btn").dataset.mode="replay";
-      return;
-    }
-    curH++;
-    timer = setTimeout(advance, SPEED);
+    if(curH>=23){playing=false;$("sim-play-btn").textContent="↺ Replay";$("sim-play-btn").dataset.mode="replay";return;}
+    curH++; timer=setTimeout(advance,1100);
   }
 
-  $("sim-play-btn").addEventListener("click", function() {
-    if (this.dataset.mode==="replay") {
-      this.dataset.mode=""; playing=true; this.textContent="⏸ Pause";
-      curH=0; jumpTo(0); setTimeout(advance,400);
+  $("sim-play-btn").addEventListener("click",function(){
+    if(this.dataset.mode==="replay"){
+      this.dataset.mode="";playing=true;this.textContent="⏸ Pause";
+      cumRev=0;curH=0;stepHour(0);setTimeout(advance,400);
     } else {
-      playing=!playing;
-      this.textContent=playing?"⏸ Pause":"▶ Play";
-      if (playing) advance();
-      else if (timer) { clearTimeout(timer); timer=null; }
+      playing=!playing;this.textContent=playing?"⏸ Pause":"▶ Play";
+      if(playing)advance(); else if(timer){clearTimeout(timer);timer=null;}
     }
   });
-
-  $("sim-slider").addEventListener("input", function() {
-    playing=false;
-    if (timer) { clearTimeout(timer); timer=null; }
-    $("sim-play-btn").textContent="▶ Play";
-    $("sim-play-btn").dataset.mode="";
+  $("sim-slider").addEventListener("input",function(){
+    playing=false;if(timer){clearTimeout(timer);timer=null;}
+    $("sim-play-btn").textContent="▶ Play";$("sim-play-btn").dataset.mode="";
     jumpTo(parseInt(this.value));
   });
 
-  // Auto-play on load
-  setTimeout(()=>{ playing=true; $("sim-play-btn").textContent="⏸ Pause"; advance(); },900);
+  stepHour(0);
+  setTimeout(()=>{playing=true;$("sim-play-btn").textContent="⏸ Pause";advance();},1000);
 })();
 
 // ════════════════════════════════════════════════════════════════════
