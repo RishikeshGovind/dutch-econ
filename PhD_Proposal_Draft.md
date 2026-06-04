@@ -1,4 +1,7 @@
-# PhD Research Proposal
+# Archive: Aalborg PhD Draft
+
+This markdown file is an earlier Aalborg / MaMTEP proposal draft preserved for reference.
+The current Maastricht application demo in this repository is the predict-then-optimize package built around `proposal.html` and the three track pages.
 
 **Programme:** MaMTEP — Macroeconomics and Theory of Economic Policy
 **Institution:** Aalborg University, Department of Economics and Politics

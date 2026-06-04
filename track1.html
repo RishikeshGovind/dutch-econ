@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Track 1 · Predict-Then-Optimize · NL Battery Dispatch</title>
+<title>Core Case · Maastricht PhD Demo · NL Battery Dispatch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -113,32 +113,33 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 
 <!-- ══════════════════════════════════════════════════════════════ HERO -->
 <section id="hero">
-  <div class="eyebrow fade">Track 1 · Predict-Then-Optimize</div>
-  <h1 class="fade d1">Between <em>Oracle</em> and Reality:<br>A 60-Day Energy Storage Experiment</h1>
+  <div class="eyebrow fade">Core Case · Maastricht Operations Research Fit</div>
+  <h1 class="fade d1">Decision-Focused Energy Storage:<br>Forecasting for <em>Battery Dispatch</em></h1>
   <div class="hero-line fade d1"></div>
-  <p class="lead fade d2">A 1 MW / 2 MWh battery charges from the Dutch day-ahead electricity market when prices are low
-  and sells when they peak. The only problem — prices must be forecast 24 hours ahead.
-  How much does forecast error cost?</p>
+  <p class="lead fade d2">This is the primary demo for the Maastricht call on data-driven decision-making in operations.
+  A 1 MW / 2 MWh battery charges when Dutch day-ahead prices are low and sells when they peak,
+  so forecast error can be evaluated directly in downstream dispatch profit.</p>
   <div class="hero-stats">
-    <div class="stat fade"><div class="num green" id="h-oracle">—</div><div class="lbl">Oracle revenue (€) — perfect foresight</div></div>
+    <div class="stat fade"><div class="num green" id="h-oracle">—</div><div class="lbl">Clairvoyant benchmark revenue (€) — perfect foresight</div></div>
     <div class="stat fade d1"><div class="num blue" id="h-naive">—</div><div class="lbl">Naive P-T-O revenue (€) — XGBoost forecast</div></div>
     <div class="stat fade d2"><div class="num" id="h-gap">—</div><div class="lbl">Decision quality gap (€) — lost to forecast error</div></div>
   </div>
   <div class="insight fade d2">
     <span class="insight-icon">↓</span>
-    <div class="insight-text"><strong>The Research Question</strong>
+    <div class="insight-text"><strong>The Core Research Question</strong>
     Minimising forecast MSE is not the same as maximising dispatch profit.
-    The sections below trace exactly where and why this gap opens — and motivate
-    decision-focused learning (SPO+) as the remedy.</div>
+    The sections below show where that gap opens in a prototype battery problem and why
+    decision-focused learning (SPO+) is a plausible research direction.</div>
   
   <div class="data-src fade d2">
     <strong>Data &amp; Methods</strong>
-    Prices: synthetic 60-day dataset (Nov–Dec 2023) calibrated on
+    Prototype dataset: synthetic 60-day panel (Nov–Dec 2023) calibrated on
     <a href="https://transparency.entsoe.eu" target="_blank" rel="noopener">ENTSO-E Transparency Platform</a>
     Netherlands day-ahead market (bidding zone NL) ·
     Battery: 1 MW / 2 MWh utility-scale BESS, 90 % round-trip efficiency ·
     Dispatch optimisation: linear programme (PuLP / GLPK) ·
     Forecast: XGBoost trained on lag features ·
+    This page is a methods demo rather than a claim about partner deployment results ·
     SPO+ gradient: <a href="https://doi.org/10.1287/mnsc.2020.3922" target="_blank" rel="noopener">Elmachtoub &amp; Grigas (2022)</a>, <em>Management Science</em>
   </div>
 </div>
@@ -149,14 +150,14 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
   <div class="eyebrow fade">Live Simulation</div>
   <h2 class="fade">Watch the Battery Work</h2>
   <p class="lead fade">One decision every hour: <strong>charge</strong> (buy cheap electricity and store it)
-  or <strong>sell</strong> (release stored energy at peak prices). The oracle sees the full day in advance —
-  watch it exploit every swing in the market.</p>
+  or <strong>sell</strong> (release stored energy at peak prices). The clairvoyant benchmark sees the full day in advance —
+  watch how that benchmark defines the upper bound for dispatch quality.</p>
 
   <div class="fade">
     <!-- Status banner — tells the story each hour -->
     <div id="sim-banner">
       <span id="sim-action" style="color:var(--muted)">○ Ready</span>
-      <span id="sim-narrative">Press Play to simulate a day of oracle dispatch decisions</span>
+      <span id="sim-narrative">Press Play to simulate a day of benchmark dispatch decisions</span>
     </div>
     <!-- Controls above the canvas -->
     <div id="sim-controls">
@@ -204,7 +205,7 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <section id="dispatch">
   <div class="eyebrow fade">Chart 2 of 5</div>
   <h2 class="fade">Charge Low, Sell High</h2>
-  <p class="lead fade">72 hours of oracle dispatch. The battery charges during cheap or negative-price periods
+  <p class="lead fade">72 hours of benchmark dispatch. The battery charges during cheap or negative-price periods
   (blue, below zero) and discharges at peaks (orange, above zero).
   The grey dashed line is the state of charge — what is physically possible at each moment.</p>
   <div class="chart-wrap fade"><div id="dispatch-chart"></div></div>
@@ -219,7 +220,7 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <section id="revenue">
   <div class="eyebrow fade">Chart 3 of 5</div>
   <h2 class="fade">The Growing Gap</h2>
-  <p class="lead fade">Cumulative revenue over 60 test days. The oracle (dashed) is the upper bound of what
+  <p class="lead fade">Cumulative revenue over 60 test days. The clairvoyant benchmark (dashed) is the upper bound of what
   is physically achievable with perfect foresight. Every missed negative-price hour and misjudged
   peak compounds the loss.</p>
   <div class="chart-wrap fade"><div id="revenue-chart"></div></div>
@@ -248,7 +249,7 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
     <div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
         <strong style="color:var(--text)">Lower MAE → Higher revenue</strong><br>
-        Each point is one test day. OLS confirms: forecast accuracy and decision quality move together.</p>
+        Each point is one test day. In this prototype, lower forecast error generally lines up with better dispatch revenue.</p>
       <div class="fade"><div id="scatter-chart"></div></div>
       <div class="fade" style="margin-top:28px">
         <p style="font-size:11px;color:var(--subtle);margin-bottom:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:500">Model comparison · 60-day dispatch revenue</p>
@@ -297,7 +298,7 @@ const priceColor = d3.scaleLinear()
 // ════════════════════════════════════════════════════════════════════
 (function initSim(){
   const simDay = dispatch.slice(0,24);
-  const W = Math.min($("sim-viz").clientWidth||960, 1400);
+  const W = Math.max(520, Math.min($("sim-viz").clientWidth||960, 1400));
   const H = 260;
   const svg = d3.select($("sim-viz")).append("svg")
     .attr("width",W).attr("height",H).style("display","block");
@@ -494,7 +495,7 @@ const priceColor = d3.scaleLinear()
 // ════════════════════════════════════════════════════════════════════
 (function drawHeatmap(){
   const dates=[...new Set(heatmap.map(d=>d.date))].sort();
-  const W0=Math.min($("heatmap-chart").clientWidth||900,960);
+  const W0=Math.max(420, Math.min($("heatmap-chart").clientWidth||900,960));
   const cellW=Math.floor((W0-90)/24);
   const cellH=Math.max(22,Math.floor(Math.min(42,(460-50)/dates.length)));
   const m={t:30,r:20,b:44,l:86};
@@ -535,7 +536,7 @@ const priceColor = d3.scaleLinear()
 // ════════════════════════════════════════════════════════════════════
 (function drawDispatch(){
   const m={t:16,r:24,b:44,l:48};
-  const W=Math.min($("dispatch-chart").clientWidth||920,960), H=340;
+  const W=Math.max(420, Math.min($("dispatch-chart").clientWidth||920,960)), H=340;
   const iW=W-m.l-m.r, iH=H-m.t-m.b;
   const svg=d3.select("#dispatch-chart").append("svg").attr("width",W).attr("height",H);
   const g=svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
@@ -586,7 +587,7 @@ const priceColor = d3.scaleLinear()
 // ════════════════════════════════════════════════════════════════════
 (function drawRevenue(){
   const m={t:20,r:80,b:44,l:68};
-  const W=Math.min($("revenue-chart").clientWidth||920,960),H=320;
+  const W=Math.max(420, Math.min($("revenue-chart").clientWidth||920,960)),H=320;
   const iW=W-m.l-m.r,iH=H-m.t-m.b;
   const svg=d3.select("#revenue-chart").append("svg").attr("width",W).attr("height",H);
   const g=svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
@@ -613,7 +614,7 @@ const priceColor = d3.scaleLinear()
     const day=Math.round(x.invert(mx));
     const d=revenue[Math.max(0,Math.min(bis(revenue,day),revenue.length-1))];
     scrub.attr("x1",x(d.day)).attr("x2",x(d.day)).attr("opacity",.6);
-    showTip(ev,`Day ${d.day} · ${d.date}`,`Oracle: <b>${fmtE(d.oracle)}</b><br>Naive: <b>${fmtE(d.naive)}</b><br>Gap: ${fmtE(d.oracle-d.naive)}`);
+    showTip(ev,`Day ${d.day} · ${d.date}`,`Benchmark: <b>${fmtE(d.oracle)}</b><br>Naive: <b>${fmtE(d.naive)}</b><br>Gap: ${fmtE(d.oracle-d.naive)}`);
   }).on("mouseleave",()=>{scrub.attr("opacity",0);hideTip();});
   g.append("g").attr("transform",`translate(0,${iH})`)
     .call(d3.axisBottom(x).ticks(10).tickFormat(d=>`Day ${d}`))
@@ -622,7 +623,7 @@ const priceColor = d3.scaleLinear()
     .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
   const last=revenue[revenue.length-1];
   g.append("text").attr("x",iW+6).attr("y",y(last.oracle)).attr("dominant-baseline","middle")
-    .style("font-size","11px").style("fill","#1B7A45").text("Oracle");
+    .style("font-size","11px").style("fill","#1B7A45").text("Benchmark");
   g.append("text").attr("x",iW+6).attr("y",y(last.naive)).attr("dominant-baseline","middle")
     .style("font-size","11px").style("fill","#1B5E96").text("Naive");
   const midD=revenue[Math.floor(revenue.length*.72)];
@@ -707,7 +708,7 @@ const priceColor = d3.scaleLinear()
 // ════════════════════════════════════════════════════════════════════
 (function(){
   const tb=$("spo-table"), oracleRev=spo.find(d=>d.model==="Oracle").revenue;
-  tb.innerHTML=`<tr><th>Model</th><th>MAE</th><th>Revenue</th><th>% of Oracle</th><th style="width:70px"></th></tr>`
+  tb.innerHTML=`<tr><th>Model</th><th>MAE</th><th>Revenue</th><th>% of Benchmark</th><th style="width:70px"></th></tr>`
     +spo.map(d=>`<tr class="${d.model==="Standard XGBoost"?"hl":""}">
       <td>${d.model}</td>
       <td>${d.mae===0?"—":d.mae+" €/MWh"}</td>

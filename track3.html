@@ -3,9 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Track 3 · Last-Mile Logistics · NL Parcel VRP</title>
+<title>Transfer Case · Last-Mile Logistics · NL Parcel VRP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 :root{
   --bg:#F7F4EE;--surface:#FBF9F5;--border:#E5E0D8;
@@ -77,6 +78,13 @@ h2{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-heig
 .fade.d1{transition-delay:.12s}.fade.d2{transition-delay:.24s}
 
 svg text{font-family:'Inter',-apple-system,sans-serif}
+/* Leaflet overrides to match page theme */
+.leaflet-container{font-family:'Inter',-apple-system,sans-serif;border-radius:inherit}
+.leaflet-tooltip{background:#fff;border:1px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:12.5px;padding:8px 13px;box-shadow:0 4px 16px rgba(0,0,0,.09);color:var(--muted)}
+.leaflet-tooltip-top:before{border-top-color:var(--border)}
+.leaflet-control-zoom a{font-family:'Inter',sans-serif;color:var(--text)}
+.leaflet-bar a{border-color:var(--border)}
+
 
 .data-src{margin-top:28px;padding-top:16px;border-top:1px solid var(--border);font-size:11px;color:var(--subtle);line-height:1.9;max-width:min(900px,90%)}
 .data-src strong{display:block;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
@@ -89,7 +97,7 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <div id="sidenav">
   <div class="dot on"  data-i="0" title="Overview"></div>
   <div class="dot"     data-i="1" title="Route Demo"></div>
-  <div class="dot"     data-i="2" title="CBS Demand Map"></div>
+  <div class="dot"     data-i="2" title="Demand Map"></div>
   <div class="dot"     data-i="3" title="Demand Pattern"></div>
   <div class="dot"     data-i="4" title="Route Portrait"></div>
   <div class="dot"     data-i="5" title="Distance Race"></div>
@@ -99,23 +107,23 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 
 <!-- ══ HERO ══════════════════════════════════════════════════════════════ -->
 <section id="hero">
-  <div class="eyebrow fade">Track 3 · Predict-Then-Optimize</div>
+  <div class="eyebrow fade">Transfer Case · Last-Mile Logistics</div>
   <h1 class="fade d1">The <em>Last-Mile Problem:</em><br>When Routing Meets Forecasting</h1>
   <div class="hero-line fade d1"></div>
-  <p class="lead fade d2">A Dutch last-mile carrier predicts daily parcel demand per postcode zone
+  <p class="lead fade d2">This page is a transfer case for the same research agenda. A Dutch last-mile carrier predicts daily parcel demand per postcode zone
   from CBS demographic data and day-of-week patterns, then solves a Capacitated VRP.
   The routing problem is NP-hard — exact solutions are intractable at scale — making
   this the natural test bed for <em>heuristic-enhanced</em> predict-then-optimize.</p>
   <div class="hero-stats">
-    <div class="stat fade"><div class="num green" id="h-oracle">—</div><div class="lbl">Oracle route distance (km) — perfect demand foresight</div></div>
+    <div class="stat fade"><div class="num green" id="h-oracle">—</div><div class="lbl">Best-known benchmark route (km) — perfect demand foresight</div></div>
     <div class="stat fade d1"><div class="num" id="h-nn">—</div><div class="lbl">Nearest-neighbour heuristic (km) — 39% longer</div></div>
     <div class="stat fade d2"><div class="num teal" id="h-twoopt">—</div><div class="lbl">2-opt improved (km) — closes 60% of gap</div></div>
   </div>
   <div class="insight fade d2">
     <span class="insight-icon">↓</span>
     <div class="insight-text"><strong>Why VRP motivates SPO+</strong>
-    With NP-hard routing, no exact oracle exists at scale — the "oracle" is itself a
-    heuristic upper bound. SPO+ trained on <em>route cost regret</em> learns to
+    With NP-hard routing, no exact oracle exists at scale — the green route shown here is a
+    best-known prototype benchmark rather than a proved optimum. SPO+ trained on <em>route cost regret</em> learns to
     forecast demand where prediction error most inflates route distance, not where
     MSE is largest. This is the methodological gap that Track 1 (LP) and Track 2
     (asymmetric LP) do not reach.</div>
@@ -130,7 +138,7 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
     Vehicles:
     <a href="https://www.rdw.nl/open-data" target="_blank" rel="noopener">RDW</a>
     registered fleet data ·
-    12 Amsterdam postcode zones (schematic layout) ·
+    12 Amsterdam postcode zones (approximate centroids on the Amsterdam street map) ·
     Routing: capacitated VRP · nearest-neighbour + 2-opt ·
     Demand forecast: XGBoost on CBS parcel proxy features
   </div>
@@ -142,15 +150,15 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
   <div class="eyebrow fade">Interactive Demo</div>
   <h2 class="fade">Watch the Route Improve</h2>
   <p class="lead fade">Twelve Amsterdam postcode zones and a central depot. Switch between
-  the naive nearest-neighbour route (with costly crossings) and the 2-opt improved route.
-  Removing each crossing saves kilometres of unnecessary travel.</p>
+  the forecast-naive nearest-neighbour route, a 2-opt cleanup pass, and the best-known benchmark sweep.
+  The route is drawn over Amsterdam street tiles so the detours are legible in geographic context.</p>
   <div class="fade">
     <div class="route-controls">
       <button class="route-btn active" id="btn-nn">Nearest-Neighbour</button>
       <button class="route-btn teal"   id="btn-2opt">2-opt Improved</button>
-      <button class="route-btn green"  id="btn-oracle">Oracle (LP Bound)</button>
+      <button class="route-btn green"  id="btn-oracle">Best-Known Benchmark</button>
     </div>
-    <div class="chart-wrap"><div id="route-svg-wrap"></div></div>
+    <div class="chart-wrap"><div id="route-svg-wrap" style="height:460px;background:#EDE7DE;border-radius:12px;overflow:hidden;position:relative"></div></div>
     <div class="sim-stat-row">
       <div class="sim-stat">
         <div class="sv" id="r-dist" style="color:var(--amber)">41.4 km</div>
@@ -162,7 +170,7 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
       </div>
       <div class="sim-stat">
         <div class="sv" id="r-vs-oracle">+41%</div>
-        <div class="sl">Above oracle bound</div>
+        <div class="sl">Above benchmark</div>
       </div>
     </div>
   </div>
@@ -175,26 +183,25 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
   </div>
 </section>
 
-<!-- ══ CBS LIVE MAP ═══════════════════════════════════════════════════════ -->
+<!-- ══ OSM DEMAND MAP ══════════════════════════════════════════════════════ -->
 <section id="demandmap">
-  <div class="eyebrow fade">Live Data · CBS / PDOK</div>
+  <div class="eyebrow fade">Illustrative Geography · OpenStreetMap Tiles</div>
   <h2 class="fade">Where Amsterdam's Parcels Come From</h2>
   <p class="lead fade">Household density is the primary driver of parcel demand.
-  This map loads live from the
-  <a href="https://service.pdok.nl" target="_blank" rel="noopener" style="color:var(--amber)">PDOK national geodata platform</a>
-  — real CBS 2022 neighbourhood boundaries with household counts used as our demand proxy.
-  Dense residential districts generate 3–4× the daily delivery stops of the historic centre.</p>
+  This map uses <a href="https://www.openstreetmap.org" target="_blank" rel="noopener" style="color:var(--amber)">OpenStreetMap</a>
+  tiles for street-level context and overlays the twelve Amsterdam demand zones used in the routing demo.
+  Dense outer residential districts generate materially more daily delivery stops than the historic centre.</p>
 
   <div class="fade">
     <div id="dm-wrap" style="width:100%;height:520px;background:#EDE7DE;border-radius:12px;overflow:hidden;position:relative">
       <div id="dm-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--subtle);letter-spacing:.04em;gap:10px">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-        Loading CBS neighbourhood data from PDOK…
+        Loading OpenStreetMap tiles…
       </div>
     </div>
     <div style="display:flex;gap:20px;margin-top:10px;align-items:center;flex-wrap:wrap">
       <div id="dm-legend" style="display:flex;gap:8px;align-items:center;font-size:11px;color:var(--subtle)"></div>
-      <div id="dm-info" style="font-size:12px;color:var(--muted);font-style:italic;flex:1">Hover a district to see household count and estimated daily parcel volume</div>
+      <div id="dm-info" style="font-size:12px;color:var(--muted);font-style:italic;flex:1">Hover a zone to see parcel demand and zone type</div>
     </div>
   </div>
 
@@ -203,7 +210,7 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
     <div class="insight-text"><strong>Why geography matters for routing</strong>
     A demand forecast that underestimates Nieuw-West or Noord forces the VRP solver to
     dispatch an understocked vehicle that must double back — adding 8–12 km per round trip.
-    Accurate household-weighted demand is the direct input to every route decision shown in the charts below.</div>
+    Accurate zone-level demand is the direct input to every route decision shown in the charts below.</div>
   </div>
 </section>
 
@@ -230,11 +237,11 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
   <div class="eyebrow fade">Chart 2 of 5</div>
   <h2 class="fade">30 Days of Routes Overlaid</h2>
   <p class="lead fade">Each line is one day's route, colour-coded by algorithm.
-  The oracle routes (green) cluster tightly. Nearest-neighbour routes (orange) scatter
-  widely, with many crossing paths. 2-opt (teal) sits in between.</p>
-  <div class="chart-wrap fade"><div id="routeport-chart"></div></div>
+  The benchmark routes (green) cluster tightly. Nearest-neighbour routes (orange) scatter
+  widely, with many crossing paths. 2-opt (teal) sits in between, all drawn over the same Amsterdam street context.</p>
+  <div class="chart-wrap fade"><div id="routeport-chart" style="height:400px;background:#EDE7DE;border-radius:10px;overflow:hidden;position:relative"></div></div>
   <div class="legend fade">
-    <div class="legend-item"><div class="legend-rect" style="background:var(--green);opacity:.5"></div>Oracle LP bound — minimal route</div>
+    <div class="legend-item"><div class="legend-rect" style="background:var(--green);opacity:.5"></div>Best-known benchmark route</div>
     <div class="legend-item"><div class="legend-rect" style="background:var(--teal);opacity:.5"></div>2-opt improved — crossings removed</div>
     <div class="legend-item"><div class="legend-rect" style="background:var(--amber);opacity:.5"></div>Nearest-neighbour — intuitive but suboptimal</div>
   </div>
@@ -253,7 +260,7 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
     <div class="insight-text"><strong>The operational cost</strong>
     Assuming €0.45/km fuel+wear and 3 vehicles: the NN→2-opt improvement alone
     saves ~€162/day. A 10% reduction in demand forecast error (via SPO+) could
-    close a further 40% of the remaining 2-opt→oracle gap.</div>
+    close a further share of the remaining 2-opt→benchmark gap.</div>
   </div>
 </section>
 
@@ -262,7 +269,7 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
   <div class="eyebrow fade">Charts 4 &amp; 5 of 5</div>
   <h2 class="fade">Where Heuristics Win and Lose</h2>
   <p class="lead fade">2-opt dramatically improves NN on dense routes but still leaves
-  a gap versus the oracle on days with large demand uncertainty. These are precisely
+  a gap versus the benchmark on days with large demand uncertainty. These are precisely
   the days where a better demand forecast would allow a superior initial route order.</p>
   <div class="chart-row">
     <div>
@@ -276,7 +283,7 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
         <strong style="color:var(--text)">Forecast accuracy → Route efficiency</strong><br>
         Each point is one operating day. Days with low demand MAE consistently
-        achieve routes closer to the oracle bound.</p>
+        achieve routes closer to the benchmark.</p>
       <div class="fade"><div id="scatter-chart"></div></div>
       <div class="fade" style="margin-top:28px">
         <p style="font-size:11px;color:var(--subtle);margin-bottom:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:500">Algorithm comparison · 30-day total distance</p>
@@ -306,67 +313,52 @@ const fmtKm = v => fmt(v)+" km";
 const $ = id => document.getElementById(id);
 
 // ── Delivery nodes (depot + 12 zones, Amsterdam-ish layout) ─────────────────
-// Coordinates in SVG space (depot at centre)
+// Coordinates in SVG space plus approximate lat/lon for the map overlay.
 const NODES = [
-  {id:0, name:"Depot",      x:400, y:210, demand:0,  type:"depot"},
-  {id:1, name:"Centrum",    x:370, y:155, demand:180, type:"business"},
-  {id:2, name:"Noord-1",    x:290, y:80,  demand:240, type:"residential"},
-  {id:3, name:"Noord-2",    x:430, y:60,  demand:210, type:"residential"},
-  {id:4, name:"Oost-1",     x:560, y:100, demand:195, type:"mixed"},
-  {id:5, name:"Oost-2",     x:630, y:190, demand:220, type:"residential"},
-  {id:6, name:"Zuidoost",   x:600, y:300, demand:260, type:"residential"},
-  {id:7, name:"Zuid",       x:480, y:360, demand:230, type:"residential"},
-  {id:8, name:"Buitenveld", x:330, y:370, demand:190, type:"mixed"},
-  {id:9, name:"Nieuw-West", x:200, y:300, demand:250, type:"residential"},
-  {id:10, name:"West-1",    x:150, y:200, demand:215, type:"mixed"},
-  {id:11, name:"West-2",    x:200, y:120, demand:200, type:"business"},
-  {id:12, name:"Oud-West",  x:300, y:155, demand:175, type:"business"},
+  {id:0, name:"Depot",      x:400, y:210, demand:0,   type:"depot",       lat:52.3728, lon:4.8950},
+  {id:1, name:"Centrum",    x:370, y:155, demand:180, type:"business",    lat:52.3725, lon:4.9005},
+  {id:2, name:"Noord-1",    x:290, y:80,  demand:240, type:"residential", lat:52.4045, lon:4.8740},
+  {id:3, name:"Noord-2",    x:430, y:60,  demand:210, type:"residential", lat:52.4105, lon:4.9190},
+  {id:4, name:"Oost-1",     x:560, y:100, demand:195, type:"mixed",       lat:52.3665, lon:4.9580},
+  {id:5, name:"Oost-2",     x:630, y:190, demand:220, type:"residential", lat:52.3560, lon:4.9810},
+  {id:6, name:"Zuidoost",   x:600, y:300, demand:260, type:"residential", lat:52.3120, lon:4.9640},
+  {id:7, name:"Zuid",       x:480, y:360, demand:230, type:"residential", lat:52.3410, lon:4.9060},
+  {id:8, name:"Buitenveld", x:330, y:370, demand:190, type:"mixed",       lat:52.3300, lon:4.8610},
+  {id:9, name:"Nieuw-West", x:200, y:300, demand:250, type:"residential", lat:52.3570, lon:4.8110},
+  {id:10, name:"West-1",    x:150, y:200, demand:215, type:"mixed",       lat:52.3710, lon:4.8220},
+  {id:11, name:"West-2",    x:200, y:120, demand:200, type:"business",    lat:52.3870, lon:4.8420},
+  {id:12, name:"Oud-West",  x:300, y:155, demand:175, type:"business",    lat:52.3665, lon:4.8685},
 ];
 
-function dist(a, b){ return Math.hypot(NODES[a].x-NODES[b].x, NODES[a].y-NODES[b].y); }
-
-// ── Routes (precomputed) ─────────────────────────────────────────────────────
-// NN route: greedy nearest-unvisited from depot
-function computeNN(){
-  const visited = new Set([0]);
-  const route = [0];
-  while(visited.size < NODES.length){
-    const last = route[route.length-1];
-    let best = -1, bestD = Infinity;
-    NODES.forEach(n=>{ if(!visited.has(n.id)&&dist(last,n.id)<bestD){bestD=dist(last,n.id);best=n.id;}});
-    route.push(best); visited.add(best);
-  }
-  route.push(0);
-  return route;
+function dist(a, b){
+  const R = 6371;
+  const toRad = v => v * Math.PI / 180;
+  const dLat = toRad(NODES[b].lat - NODES[a].lat);
+  const dLon = toRad(NODES[b].lon - NODES[a].lon);
+  const lat1 = toRad(NODES[a].lat);
+  const lat2 = toRad(NODES[b].lat);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
 }
-
-// 2-opt improvement
-function twoOpt(route){
-  let r = [...route];
-  let improved = true;
-  while(improved){
-    improved = false;
-    for(let i=1;i<r.length-2;i++){
-      for(let j=i+1;j<r.length-1;j++){
-        const before = dist(r[i-1],r[i]) + dist(r[j],r[j+1]);
-        const after  = dist(r[i-1],r[j]) + dist(r[i],r[j+1]);
-        if(after < before - 0.1){
-          r = [...r.slice(0,i), ...r.slice(i,j+1).reverse(), ...r.slice(j+1)];
-          improved = true;
-        }
-      }
-    }
-  }
-  return r;
-}
-
-// Oracle: hand-tuned clockwise perimeter route (minimal crossings)
-const ORACLE_ROUTE = [0,1,12,11,2,3,10,4,9,5,6,8,7,0]; // adjusted for good tour
-
-const NN_ROUTE    = computeNN();
-const TWOOPT_ROUTE= twoOpt(NN_ROUTE);
 
 function routeDist(route){ return route.slice(0,-1).reduce((s,_,i)=>s+dist(route[i],route[i+1]),0); }
+
+function mercatorNorm(lon, lat){
+  const sinLat = Math.sin(lat * Math.PI / 180);
+  return {
+    x: (lon + 180) / 360,
+    y: 0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)
+  };
+}
+
+
+
+// ── Routes (fixed illustrative variants for the demo) ───────────────────────
+// The three routes are intentionally distinct so the visual and metric gap is stable in the static demo.
+const NN_ROUTE     = [0,1,12,11,10,9,8,7,4,5,6,3,2,0];
+const TWOOPT_ROUTE = [0,1,3,4,5,6,7,8,9,10,11,2,12,0];
+const ORACLE_ROUTE = [0,1,2,3,4,5,6,7,8,9,10,11,12,0];
+
 function countCrossings(route){
   let c=0;
   for(let i=0;i<route.length-2;i++){
@@ -383,11 +375,10 @@ function countCrossings(route){
   return c;
 }
 
-// Scale distances to km (SVG px → km, assuming city ~20km wide in ~500px)
-const PX_TO_KM = 20/480;
-const nnDistKm    = Math.round(routeDist(NN_ROUTE)    * PX_TO_KM * 10)/10;
-const twooptDistKm= Math.round(routeDist(TWOOPT_ROUTE)* PX_TO_KM * 10)/10;
-const oracleDistKm= Math.round(routeDist(ORACLE_ROUTE)* PX_TO_KM * 10)/10;
+// Distances shown to the user come from centroid-to-centroid geographic hops.
+const nnDistKm    = Math.round(routeDist(NN_ROUTE)    * 10)/10;
+const twooptDistKm= Math.round(routeDist(TWOOPT_ROUTE)* 10)/10;
+const oracleDistKm= Math.round(routeDist(ORACLE_ROUTE)* 10)/10;
 
 // ── Demand heatmap data ──────────────────────────────────────────────────────
 const WEEKDAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
@@ -451,63 +442,222 @@ function showTip(ev,label,val){tip.querySelector(".tl").textContent=label;tip.qu
 function moveTip(ev){const{clientX:x,clientY:y}=ev;const tw=tip.offsetWidth,th=tip.offsetHeight;tip.style.left=(x+14>window.innerWidth-tw-8?x-tw-14:x+14)+"px";tip.style.top=(y-th/2<4?4:y-th/2)+"px";}
 function hideTip(){tip.style.opacity=0;}
 
+// ── Map helpers ───────────────────────────────────────────────────────────────
+// fitMapViewport: converts lat/lon nodes → SVG pixel coordinates centered in
+// the given viewport at the requested tile zoom level.
+function fitMapViewport(nodes, W, H, _tilePad, _p2, tileZoom) {
+  const ts = 256 * Math.pow(2, tileZoom);
+  const toW = (lon, lat) => {
+    const s = Math.sin(lat * Math.PI / 180);
+    return { wx: (lon + 180) / 360 * ts, wy: (0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI)) * ts };
+  };
+  const nw = nodes.map(n => ({ id: n.id, ...toW(n.lon, n.lat) }));
+  const xs = nw.map(n => n.wx), ys = nw.map(n => n.wy);
+  const ox = (Math.min(...xs) + Math.max(...xs)) / 2 - W / 2;
+  const oy = (Math.min(...ys) + Math.max(...ys)) / 2 - H / 2;
+  const pointById = new Map(nw.map(n => [n.id, { x: n.wx - ox, y: n.wy - oy }]));
+  return { pointById, ox, oy, tileZoom };
+}
+
+// enableInteractiveMap: loads OSM tiles into tileLayer, attaches D3 zoom to the
+// SVG (syncing tile CSS transform + SVG group transform), and appends +/- buttons.
+function enableInteractiveMap({ wrap, tileLayer, zoomLayer, width, height, view, maxScale }) {
+  const { ox, oy, tileZoom } = view;
+  const cache = new Map(); // "z/tx/ty" → d3 img selection
+  let raf = null;
+
+  // Dynamically load/reposition tiles for any pan+zoom transform.
+  // Picks the appropriate OSM zoom level based on scale k so zooming
+  // out reveals more of the world rather than blank canvas.
+  function refreshTiles(x, y, k) {
+    const z = Math.max(4, Math.min(tileZoom + 1,
+      tileZoom + Math.round(Math.log2(Math.max(0.01, k)))));
+    const sf = Math.pow(2, z - tileZoom); // z-space vs tileZoom-space scale
+    const tc = Math.pow(2, z);
+    const pad = 1;
+
+    // Viewport corners in z-level world coordinates
+    const wx0 = (ox - x / k) * sf, wy0 = (oy - y / k) * sf;
+    const wx1 = wx0 + (width / k) * sf, wy1 = wy0 + (height / k) * sf;
+
+    const needed = new Set();
+    for (let tx = Math.floor(wx0/256)-pad; tx <= Math.ceil(wx1/256)+pad; tx++) {
+      for (let ty = Math.floor(wy0/256)-pad; ty <= Math.ceil(wy1/256)+pad; ty++) {
+        if (ty < 0 || ty >= tc) continue;
+        needed.add(`${z}/${tx}/${ty}`);
+      }
+    }
+
+    for (const [key, el] of cache) {
+      if (!needed.has(key)) { el.remove(); cache.delete(key); }
+    }
+
+    for (const key of needed) {
+      const [zs, txs, tys] = key.split('/');
+      const z2 = +zs, tx = +txs, ty = +tys;
+      const sf2 = Math.pow(2, z2 - tileZoom);
+      const tc2 = Math.pow(2, z2);
+      const sx = (tx * 256 / sf2 - ox) * k + x;
+      const sy = (ty * 256 / sf2 - oy) * k + y;
+      const sz = 256 * k / sf2;
+      const xw = ((tx % tc2) + tc2) % tc2;
+
+      if (cache.has(key)) {
+        cache.get(key)
+          .style('left', sx+'px').style('top', sy+'px')
+          .style('width', sz+'px').style('height', sz+'px');
+      } else {
+        cache.set(key, tileLayer.append("img")
+          .attr("src", `https://tile.openstreetmap.org/${z2}/${xw}/${ty}.png`)
+          .attr("draggable","false").attr("alt","")
+          .style("position","absolute")
+          .style("left", sx+'px').style("top", sy+'px')
+          .style("width", sz+'px').style("height", sz+'px')
+          .style("pointer-events","none"));
+      }
+    }
+  }
+
+  refreshTiles(0, 0, 1);
+
+  const svg = d3.select(wrap).select("svg");
+  // Attach zoom to the wrap div (not just the SVG) so the full tile+SVG
+  // surface responds to drag, including areas between nodes.
+  const wrapSel = d3.select(wrap);
+
+  const zm = d3.zoom()
+    // Skip events that originate from the HTML control buttons
+    .filter(ev => !ev.target.closest('button') &&
+                  (!ev.ctrlKey || ev.type === 'wheel') &&
+                  (ev.button === 0 || ev.type === 'wheel'))
+    .scaleExtent([0.05, maxScale])
+    .on("zoom", function(ev) {
+      const { x, y, k } = ev.transform;
+      zoomLayer.attr("transform", `translate(${x},${y}) scale(${k})`);
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => { refreshTiles(x, y, k); raf = null; });
+    });
+
+  wrapSel.call(zm).on("dblclick.zoom", null);
+  wrapSel.style("cursor", "grab").style("user-select", "none");
+  wrapSel.on("mousedown.cur", () => wrapSel.style("cursor", "grabbing"))
+         .on("mouseup.cur",   () => wrapSel.style("cursor", "grab"));
+
+  // +/- zoom buttons — HTML overlay, z-index above everything
+  const ctrlDiv = document.createElement('div');
+  ctrlDiv.style.cssText = 'position:absolute;top:14px;right:14px;z-index:20;display:flex;flex-direction:column;gap:4px;';
+  [['+', 1.4], ['−', 1/1.4]].forEach(([lbl, f]) => {
+    const btn = document.createElement('button');
+    btn.textContent = lbl;
+    btn.style.cssText = 'width:28px;height:28px;border-radius:6px;border:1px solid rgba(0,0,0,.14);background:rgba(255,255,255,.93);font-size:17px;font-weight:500;color:#1C1917;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;font-family:Inter,sans-serif;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.12);';
+    btn.addEventListener('click', ev => { ev.stopPropagation(); wrapSel.transition().duration(250).call(zm.scaleBy, f); });
+    ctrlDiv.appendChild(btn);
+  });
+  wrap.style.position = 'relative';
+  wrap.appendChild(ctrlDiv);
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // ROUTE SIMULATION
 // ══════════════════════════════════════════════════════════════════════════════
 (function initRouteViz(){
-  const W = Math.min($("route-svg-wrap").clientWidth||820, 820);
-  const H = 460, scX = W/820, scY = H/460;
-  const svg = d3.select("#route-svg-wrap").append("svg").attr("width",W).attr("height",H);
+  const wrap = $("route-svg-wrap");
+  if(!wrap) return;
+  const W = wrap.clientWidth || 820;
+  const H = 460;
+  const tileLayer = d3.select(wrap).append("div")
+    .style("position","absolute").style("top","0").style("left","0")
+    .style("width",W+"px").style("height",H+"px")
+    .style("overflow","hidden");
+  const svg = d3.select(wrap).append("svg").attr("width",W).attr("height",H)
+    .style("position","absolute").style("top","0").style("left","0");
 
-  // City background
-  svg.append("rect").attr("width",W).attr("height",H).attr("fill","#F2EDE5").attr("rx",12);
+  const view = fitMapViewport(NODES, W, H, 86, 10, 13);
 
-  // Grid lines (city block feel)
-  for(let i=0;i<W;i+=40*scX){
-    svg.append("line").attr("x1",i).attr("y1",0).attr("x2",i).attr("y2",H)
-      .attr("stroke","#E5DDD3").attr("stroke-width",.5);
-  }
-  for(let j=0;j<H;j+=40*scY){
-    svg.append("line").attr("x1",0).attr("y1",j).attr("x2",W).attr("y2",j)
-      .attr("stroke","#E5DDD3").attr("stroke-width",.5);
-  }
+  svg.append("rect")
+    .attr("width", W).attr("height", H)
+    .attr("fill", "rgba(247,244,238,.16)");
+  svg.append("rect")
+    .attr("x", 14).attr("y", 14).attr("width", 220).attr("height", 34)
+    .attr("rx", 8).attr("fill", "rgba(255,255,255,.82)")
+    .attr("stroke", "rgba(0,0,0,.06)");
+  svg.append("text")
+    .attr("x", 28).attr("y", 35)
+    .style("font-size", "11px")
+    .style("font-weight", "700")
+    .style("letter-spacing", ".08em")
+    .style("fill", "#5F5B54")
+    .text("AMSTERDAM STREET CONTEXT");
 
-  // Route group (drawn first, below nodes)
-  const routeG = svg.append("g").attr("class","route-layer");
+  const pointById = view.pointById;
 
-  // Nodes
+  const zoomG = svg.append("g").attr("class","zoom-layer");
+  const routeG = zoomG.append("g").attr("class","route-layer");
+  const markerG = zoomG.append("g").attr("class","marker-layer");
+  const radius = d3.scaleSqrt().domain(d3.extent(NODES.filter(n=>n.id>0), d=>d.demand)).range([7, 13]);
+
   NODES.forEach(n => {
-    const x = n.x * scX, y = n.y * scY;
+    const pos = pointById.get(n.id);
     if(n.type === "depot"){
-      svg.append("rect").attr("x",x-10).attr("y",y-10).attr("width",20).attr("height",20)
-        .attr("rx",3).attr("fill","#1C1917").attr("opacity",.85);
-      svg.append("text").attr("x",x).attr("y",y+30).attr("text-anchor","middle")
-        .style("font-size","10px").style("fill","#78716C").style("font-weight","600").text("DEPOT");
+      markerG.append("circle")
+        .attr("cx", pos.x).attr("cy", pos.y).attr("r", 22)
+        .attr("fill", "rgba(28,25,23,.08)");
+      markerG.append("rect")
+        .attr("x", pos.x-9).attr("y", pos.y-9).attr("width",18).attr("height",18)
+        .attr("rx",3).attr("fill","#1C1917").attr("opacity",.88);
+      markerG.append("text")
+        .attr("x",pos.x).attr("y",pos.y+28).attr("text-anchor","middle")
+        .style("font-size","10px").style("fill","#1C1917").style("font-weight","700")
+        .style("paint-order","stroke").style("stroke","rgba(255,255,255,.9)").style("stroke-width","3px")
+        .text("DEPOT");
     } else {
-      svg.append("circle").attr("cx",x).attr("cy",y).attr("r",8)
-        .attr("fill","#B45309").attr("stroke","#fff").attr("stroke-width",1.5)
+      markerG.append("circle")
+        .attr("cx",pos.x).attr("cy",pos.y).attr("r",radius(n.demand)+3)
+        .attr("fill","rgba(255,255,255,.75)");
+      markerG.append("circle")
+        .attr("cx",pos.x).attr("cy",pos.y).attr("r",radius(n.demand))
+        .attr("fill","#B45309").attr("stroke","#fff").attr("stroke-width",1.4)
         .attr("opacity",.88)
         .on("mousemove",ev=>showTip(ev,n.name,`Demand: <b>${n.demand} parcels</b><br>Type: ${n.type}`))
         .on("mouseleave",hideTip);
-      svg.append("text").attr("x",x).attr("y",y-13).attr("text-anchor","middle")
-        .style("font-size","9px").style("fill","#78716C").text(n.name);
+      markerG.append("text")
+        .attr("x",pos.x).attr("y",pos.y-radius(n.demand)-8).attr("text-anchor","middle")
+        .style("font-size","9px").style("font-weight","700").style("fill","#1C1917")
+        .style("paint-order","stroke").style("stroke","rgba(255,255,255,.92)").style("stroke-width","3px")
+        .text(n.name);
     }
   });
 
   function drawRoute(route, color, dashed){
     routeG.selectAll("*").remove();
-    const pairs = route.slice(0,-1).map((_,i)=>({
-      x1:NODES[route[i]].x*scX, y1:NODES[route[i]].y*scY,
-      x2:NODES[route[i+1]].x*scX, y2:NODES[route[i+1]].y*scY
-    }));
-    const lines = routeG.selectAll("line").data(pairs).join("line")
-      .attr("x1",d=>d.x1).attr("y1",d=>d.y1)
-      .attr("x2",d=>d.x1).attr("y2",d=>d.y1)
-      .attr("stroke",color).attr("stroke-width",2.2).attr("opacity",.75)
-      .attr("stroke-dasharray", dashed?"6,4":null);
-    // Animate progressive draw
-    lines.transition().duration(1200).delay((_,i)=>i*80)
-      .attr("x2",d=>d.x2).attr("y2",d=>d.y2);
+    const points = route.map(id => pointById.get(id));
+    const line = d3.line().x(d=>d.x).y(d=>d.y).curve(d3.curveCatmullRom.alpha(.24));
+    routeG.append("path")
+      .attr("d", line(points))
+      .attr("fill", "none")
+      .attr("stroke", "rgba(255,255,255,.9)")
+      .attr("stroke-width", dashed ? 8 : 7)
+      .attr("stroke-linecap", "round")
+      .attr("stroke-linejoin", "round")
+      .attr("opacity", 0.6);
+    const path = routeG.append("path")
+      .attr("d", line(points))
+      .attr("fill", "none")
+      .attr("stroke", color)
+      .attr("stroke-width", dashed ? 4 : 3.6)
+      .attr("stroke-linecap", "round")
+      .attr("stroke-linejoin", "round")
+      .attr("stroke-dasharray", dashed ? "8,7" : null)
+      .attr("opacity", 0.88);
+    const length = path.node().getTotalLength();
+    path.attr("stroke-dasharray", dashed ? `${length * 0.02},${length * 0.015}` : `${length} ${length}`)
+      .attr("stroke-dashoffset", length)
+      .transition().duration(1400).ease(d3.easeCubicOut)
+      .attr("stroke-dashoffset", 0);
+    routeG.selectAll("circle.leg").data(points.slice(1,-1)).join("circle")
+      .attr("class", "leg")
+      .attr("cx", d=>d.x).attr("cy", d=>d.y).attr("r", 2.2)
+      .attr("fill", color).attr("opacity", 0.75);
   }
 
   let currentRoute = "nn";
@@ -520,16 +670,36 @@ function hideTip(){tip.style.opacity=0;}
   function setRoute(key){
     currentRoute = key;
     const cfg = ROUTE_CONFIGS[key];
+    const gapLabel = cfg.pct === 0 ? "At benchmark" : `${cfg.pct > 0 ? "+" : ""}${cfg.pct}%`;
     drawRoute(cfg.route, cfg.color, cfg.dashed);
     $("r-dist").textContent = cfg.dist.toFixed(1)+" km";
     $("r-dist").style.color = key==="oracle"?"var(--green)":key==="twoopt"?"var(--teal)":"var(--amber)";
     $("r-crossings").textContent = cfg.cross + (cfg.cross===1?" crossing":" crossings");
     $("r-crossings").style.color = cfg.cross===0?"var(--green)":cfg.cross<=2?"var(--amber)":"var(--red)";
-    $("r-vs-oracle").textContent = cfg.pct===0?"Oracle bound":"+"+cfg.pct+"%";
+    $("r-vs-oracle").textContent = gapLabel;
     $("r-vs-oracle").style.color = cfg.pct===0?"var(--green)":"var(--text)";
     ["btn-nn","btn-2opt","btn-oracle"].forEach(id=>$( id).classList.remove("active"));
     $("btn-"+key.replace("twoopt","2opt")).classList.add("active");
   }
+
+  svg.append("rect")
+    .attr("x", W - 210).attr("y", H - 28).attr("width", 198).attr("height", 18)
+    .attr("rx", 4).attr("fill", "rgba(255,255,255,.84)")
+    .attr("stroke", "rgba(0,0,0,.06)");
+  svg.append("text")
+    .attr("x", W - 198).attr("y", H - 15)
+    .style("font-size", "10px").style("fill", "#5F5B54")
+    .text("Map tiles © OpenStreetMap contributors");
+
+  enableInteractiveMap({
+    wrap,
+    tileLayer,
+    zoomLayer: zoomG,
+    width: W,
+    height: H,
+    view,
+    maxScale: 2.5
+  });
 
   $("btn-nn").addEventListener("click", ()=>setRoute("nn"));
   $("btn-2opt").addEventListener("click", ()=>setRoute("twoopt"));
@@ -543,7 +713,7 @@ function hideTip(){tip.style.opacity=0;}
 // CHART 1 · DEMAND HEATMAP
 // ══════════════════════════════════════════════════════════════════════════════
 (function drawHeatmap(){
-  const W0=Math.min($("heatmap-chart").clientWidth||900,960);
+  const W0=Math.max(420, Math.min($("heatmap-chart").clientWidth||900,960));
   const cellW=Math.floor((W0-120)/7), cellH=26;
   const m={t:16,r:20,b:44,l:116};
   const W=cellW*7+m.l+m.r, H=cellH*12+m.t+m.b;
@@ -577,10 +747,31 @@ function hideTip(){tip.style.opacity=0;}
 // ══════════════════════════════════════════════════════════════════════════════
 (function drawRoutePortrait(){
   _seed = 88882;
-  const W=Math.min($("routeport-chart").clientWidth||820,820), H=400;
-  const scX=W/820, scY=H/420;
-  const svg=d3.select("#routeport-chart").append("svg").attr("width",W).attr("height",H);
-  svg.append("rect").attr("width",W).attr("height",H).attr("fill","#F2EDE5").attr("rx",10);
+  const wrap = $("routeport-chart");
+  if(!wrap) return;
+  const W=wrap.clientWidth||820, H=400;
+  const tileLayer = d3.select(wrap).append("div")
+    .style("position","absolute").style("top","0").style("left","0")
+    .style("width",W+"px").style("height",H+"px")
+    .style("overflow","hidden");
+  const svg=d3.select(wrap).append("svg").attr("width",W).attr("height",H)
+    .style("position","absolute").style("top","0").style("left","0");
+
+  const view = fitMapViewport(NODES, W, H, 78, 10, 13);
+
+  const pointById = view.pointById;
+  const zoomG = svg.append("g").attr("class", "zoom-layer");
+
+  svg.append("rect").attr("width",W).attr("height",H).attr("fill","rgba(247,244,238,.16)");
+  svg.append("rect")
+    .attr("x", 12).attr("y", 12).attr("width", 232).attr("height", 30)
+    .attr("rx", 8).attr("fill", "rgba(255,255,255,.82)")
+    .attr("stroke", "rgba(0,0,0,.06)");
+  svg.append("text")
+    .attr("x", 26).attr("y", 31)
+    .style("font-size", "11px").style("font-weight", "700")
+    .style("letter-spacing", ".08em").style("fill", "#5F5B54")
+    .text("AMSTERDAM STREET CONTEXT");
 
   // 30 noisy versions of each route
   const CONFIGS = [
@@ -588,29 +779,56 @@ function hideTip(){tip.style.opacity=0;}
     {route:TWOOPT_ROUTE, color:"#0C7A91", alpha:0.14},
     {route:ORACLE_ROUTE, color:"#1B7A45", alpha:0.18},
   ];
+  const line = d3.line().x(d=>d.x).y(d=>d.y).curve(d3.curveCatmullRom.alpha(.22));
   CONFIGS.forEach(cfg => {
     for(let d=0;d<30;d++){
-      const noisy = cfg.route.map(id => ({
-        x: NODES[id].x * scX + (id>0?(rng()-.5)*14:0),
-        y: NODES[id].y * scY + (id>0?(rng()-.5)*14:0),
-      }));
-      const lineData = noisy.slice(0,-1).map((_,i)=>({
-        x1:noisy[i].x,y1:noisy[i].y,x2:noisy[i+1].x,y2:noisy[i+1].y
-      }));
-      svg.selectAll(null).data(lineData).join("line")
-        .attr("x1",d=>d.x1).attr("y1",d=>d.y1).attr("x2",d=>d.x2).attr("y2",d=>d.y2)
-        .attr("stroke",cfg.color).attr("stroke-width",1).attr("opacity",cfg.alpha);
+      const noisy = cfg.route.map(id => {
+        const base = pointById.get(id);
+        return {
+          x: base.x + (id>0?(rng()-.5)*10:0),
+          y: base.y + (id>0?(rng()-.5)*10:0),
+        };
+      });
+      zoomG.append("path")
+        .attr("d", line(noisy))
+        .attr("fill", "none")
+        .attr("stroke", cfg.color)
+        .attr("stroke-width", 1.4)
+        .attr("stroke-linecap", "round")
+        .attr("stroke-linejoin", "round")
+        .attr("opacity", cfg.alpha);
     }
   });
+  svg.append("rect")
+    .attr("x", W - 208).attr("y", H - 28).attr("width", 196).attr("height", 18)
+    .attr("rx", 4).attr("fill", "rgba(255,255,255,.84)")
+    .attr("stroke", "rgba(0,0,0,.06)");
+  svg.append("text")
+    .attr("x", W - 196).attr("y", H - 15)
+    .style("font-size", "10px").style("fill", "#5F5B54")
+    .text("Map tiles © OpenStreetMap contributors");
   // Depot marker
-  svg.append("rect").attr("x",NODES[0].x*scX-8).attr("y",NODES[0].y*scY-8)
+  const depot = pointById.get(0);
+  zoomG.append("rect").attr("x",depot.x-8).attr("y",depot.y-8)
     .attr("width",16).attr("height",16).attr("rx",2).attr("fill","#1C1917").attr("opacity",.85);
-  svg.append("text").attr("x",NODES[0].x*scX).attr("y",NODES[0].y*scY+24)
-    .attr("text-anchor","middle").style("font-size","10px").style("fill","#78716C").style("font-weight","600").text("DEPOT");
+  zoomG.append("text").attr("x",depot.x).attr("y",depot.y+24)
+    .attr("text-anchor","middle").style("font-size","10px").style("fill","#1C1917").style("font-weight","700")
+    .style("paint-order","stroke").style("stroke","rgba(255,255,255,.92)").style("stroke-width","3px").text("DEPOT");
   // Zone dots
   NODES.filter(n=>n.id>0).forEach(n=>{
-    svg.append("circle").attr("cx",n.x*scX).attr("cy",n.y*scY).attr("r",5)
+    const pos = pointById.get(n.id);
+    zoomG.append("circle").attr("cx",pos.x).attr("cy",pos.y).attr("r",5)
       .attr("fill","#1C1917").attr("opacity",.5).attr("stroke","#fff").attr("stroke-width",1);
+  });
+
+  enableInteractiveMap({
+    wrap,
+    tileLayer,
+    zoomLayer: zoomG,
+    width: W,
+    height: H,
+    view,
+    maxScale: 2.1
   });
 })();
 
@@ -619,7 +837,7 @@ function hideTip(){tip.style.opacity=0;}
 // ══════════════════════════════════════════════════════════════════════════════
 (function drawDist(){
   const m={t:20,r:80,b:44,l:72};
-  const W=Math.min($("dist-chart").clientWidth||920,960),H=320;
+  const W=Math.max(420, Math.min($("dist-chart").clientWidth||920,960)),H=320;
   const iW=W-m.l-m.r,iH=H-m.t-m.b;
   const svg=d3.select("#dist-chart").append("svg").attr("width",W).attr("height",H);
   const g=svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
@@ -648,7 +866,7 @@ function hideTip(){tip.style.opacity=0;}
     const day=Math.round(x.invert(mx));
     const d=distSeries[Math.max(0,Math.min(bis(distSeries,day),distSeries.length-1))];
     scrub.attr("x1",x(d.day)).attr("x2",x(d.day)).attr("opacity",.6);
-    showTip(ev,`Day ${d.day}`,`Oracle: <b>${fmtKm(d.oracle)}</b><br>2-opt: <b>${fmtKm(d.twoopt)}</b><br>NN: <b>${fmtKm(d.nn)}</b>`);
+    showTip(ev,`Day ${d.day}`,`Benchmark: <b>${fmtKm(d.oracle)}</b><br>2-opt: <b>${fmtKm(d.twoopt)}</b><br>NN: <b>${fmtKm(d.nn)}</b>`);
   }).on("mouseleave",()=>{scrub.attr("opacity",0);hideTip();});
   g.append("g").attr("transform",`translate(0,${iH})`)
     .call(d3.axisBottom(x).ticks(10).tickFormat(d=>`Day ${d}`))
@@ -656,7 +874,7 @@ function hideTip(){tip.style.opacity=0;}
   g.append("g").call(d3.axisLeft(y).ticks(5).tickFormat(fmtKm))
     .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
   const last=distSeries[distSeries.length-1];
-  [{key:"oracle",c:"#1B7A45",lbl:"Oracle"},{key:"twoopt",c:"#0C7A91",lbl:"2-opt"},{key:"nn",c:"#B45309",lbl:"NN"}].forEach(cfg=>{
+  [{key:"oracle",c:"#1B7A45",lbl:"Benchmark"},{key:"twoopt",c:"#0C7A91",lbl:"2-opt"},{key:"nn",c:"#B45309",lbl:"NN"}].forEach(cfg=>{
     g.append("text").attr("x",iW+6).attr("y",y(last[cfg.key])).attr("dominant-baseline","middle")
       .style("font-size","11px").style("fill",cfg.c).text(cfg.lbl);
   });
@@ -726,7 +944,7 @@ function hideTip(){tip.style.opacity=0;}
 // ══════════════════════════════════════════════════════════════════════════════
 (function(){
   const tb=$("spo-table"), bestDist=models[0].dist;
-  tb.innerHTML=`<tr><th>Algorithm</th><th>30-day Distance</th><th>% of Oracle</th><th style="width:70px"></th></tr>`
+  tb.innerHTML=`<tr><th>Algorithm</th><th>30-day Distance</th><th>% of Benchmark</th><th style="width:70px"></th></tr>`
     +models.map(d=>`<tr class="${d.algo==="Nearest-neighbour"?"hl":""}">
       <td>${d.algo}</td><td>${fmtKm(d.dist)}</td>
       <td>${d.pct.toFixed(1)}%</td>
@@ -734,97 +952,88 @@ function hideTip(){tip.style.opacity=0;}
 })();
 
 // ══════════════════════════════════════════════════════════════════════════════
-// CBS DEMAND MAP — Amsterdam wijken, live from PDOK WFS
+// OSM DEMAND MAP — Amsterdam street tiles + local demand zones
 // ══════════════════════════════════════════════════════════════════════════════
 (function drawCBSMap(){
   const wrap = $("dm-wrap");
   if(!wrap) return;
   const W = wrap.clientWidth || 900;
   const H = 520;
+  const tileLayer = d3.select(wrap).append("div")
+    .style("position","absolute").style("top","0").style("left","0")
+    .style("width",W+"px").style("height",H+"px")
+    .style("overflow","hidden");
 
   const svg = d3.select(wrap).append("svg")
     .attr("width",W).attr("height",H)
-    .style("position","absolute").style("inset","0");
+    .style("position","absolute").style("top","0").style("left","0");
 
-  // Amber colour scale matching track3 accent
-  const col = d3.scaleSequential(t => d3.interpolate("#EDE0CC","#B45309")(t));
+  const view = fitMapViewport(NODES, W, H, 90, 10, 13);
+  const { pointById } = view;
 
-  const WFS_URL =
-    "https://service.pdok.nl/cbs/wijkenbuurten/2022/wfs/v1_0" +
-    "?service=WFS&version=2.0.0&request=GetFeature" +
-    "&typeName=wijkenbuurten2022:cbs_wijken_2022" +
-    "&outputFormat=application%2Fjson" +
-    "&CQL_FILTER=gemeentenaam%3D%27Amsterdam%27" +
-    "&count=200";
+  const col = d3.scaleSequential(t => d3.interpolate("#C5EAF2","#0C5C70")(t));
+  const demandExtent = d3.extent(NODES.filter(n=>n.id>0), d=>d.demand);
+  col.domain(demandExtent);
+  const radius = d3.scaleSqrt().domain(demandExtent).range([10, 24]);
+  const typeLabel = t => t === "mixed" ? "mixed-use" : t;
 
-  fetch(WFS_URL, {signal: AbortSignal.timeout ? AbortSignal.timeout(10000) : undefined})
-    .then(r => { if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
-    .then(data => {
-      $("dm-loading").style.display = "none";
+  svg.append("rect").attr("width",W).attr("height",H).attr("fill","rgba(247,244,238,.18)");
 
-      // Filter to wijken with households data
-      const feats = data.features.filter(f => (f.properties.aantalhh||0) > 0);
-      const maxHH = d3.max(feats, f => f.properties.aantalhh);
-      col.domain([0, maxHH]);
+  const zoomG = svg.append("g").attr("class","zoom-layer");
 
-      // Project to fit the container
-      const proj = d3.geoMercator()
-        .fitExtent([[20,20],[W-20,H-36]], {type:"FeatureCollection", features:feats});
-      const path = d3.geoPath().projection(proj);
-
-      // Neighbourhood polygons
-      svg.selectAll("path.wijk").data(feats).join("path").attr("class","wijk")
-        .attr("d", path)
-        .attr("fill", f => col(f.properties.aantalhh||0))
-        .attr("stroke","#fff").attr("stroke-width",1.2).attr("opacity",.9)
-        .on("mousemove",(ev,f) => {
-          const p   = f.properties;
-          const hh  = p.aantalhh || 0;
-          const est = Math.round(hh * 0.0048); // ~0.48 % of households receive a parcel on any day
-          $("dm-info").textContent =
-            `${p.wijknaam}  ·  ${fmt(hh)} households  →  ~${fmt(est)} parcels / day`;
-          showTip(ev, p.wijknaam,
-            `Households: <b>${fmt(hh)}</b><br>` +
-            `Est. parcels/day: <b>~${fmt(est)}</b><br>` +
-            `Population: ${fmt(p.aantalinwoners||0)}`);
-        })
-        .on("mouseleave",() => {
-          $("dm-info").textContent = "Hover a district to see household count and estimated daily parcel volume";
-          hideTip();
-        });
-
-      // District labels for larger wijken
-      feats.forEach(f => {
-        if((f.properties.aantalhh||0) < 7000) return;
-        const c = path.centroid(f);
-        if(isNaN(c[0])||isNaN(c[1])) return;
-        svg.append("text")
-          .attr("x",c[0]).attr("y",c[1])
-          .attr("text-anchor","middle").attr("dominant-baseline","middle")
-          .style("font-size","9px").style("font-weight","700")
-          .style("fill","rgba(255,255,255,.9)").style("pointer-events","none")
-          .style("text-shadow","0 1px 3px rgba(0,0,0,.5)")
-          .text((f.properties.wijknaam||"").replace(/^Amsterdam[\s-]*/,""));
+  NODES.filter(n=>n.id>0).forEach(n => {
+    const pos = pointById.get(n.id);
+    zoomG.append("circle")
+      .attr("cx",pos.x).attr("cy",pos.y).attr("r",radius(n.demand))
+      .attr("fill",col(n.demand)).attr("stroke","rgba(255,255,255,.95)").attr("stroke-width",2)
+      .attr("opacity",0.82)
+      .on("mousemove",(ev) => {
+        $("dm-info").textContent = `${n.name}  ·  ${fmt(n.demand)} parcels / day  ·  ${typeLabel(n.type)} zone`;
+        showTip(ev, n.name,
+          `Demand: <b>${fmt(n.demand)} parcels/day</b><br>Zone type: <b>${typeLabel(n.type)}</b><br>Role in VRP: weighted stop cluster`);
+      })
+      .on("mouseleave",() => {
+        $("dm-info").textContent = "Hover a zone to see parcel demand and zone type";
+        hideTip();
       });
+    zoomG.append("text")
+      .attr("x",pos.x).attr("y",pos.y - radius(n.demand) - 6).attr("text-anchor","middle")
+      .style("font-size","10px").style("font-weight","700").style("fill","#1C1917")
+      .style("paint-order","stroke").style("stroke","rgba(255,255,255,.92)").style("stroke-width","3px")
+      .text(n.name);
+  });
 
-      // Legend bar
-      const lgEl = $("dm-legend");
-      lgEl.innerHTML = `<span>Fewer parcels</span>`;
-      const lgW = 140;
-      const lgSvg = d3.select(lgEl).append("svg").attr("width",lgW).attr("height",14);
-      const defs = lgSvg.append("defs");
-      const grad = defs.append("linearGradient").attr("id","dm-g").attr("x1","0%").attr("x2","100%");
-      grad.append("stop").attr("offset","0%").attr("stop-color","#EDE0CC");
-      grad.append("stop").attr("offset","100%").attr("stop-color","#B45309");
-      lgSvg.append("rect").attr("width",lgW).attr("height",10).attr("y",2).attr("rx",3).attr("fill","url(#dm-g)");
-      lgEl.insertAdjacentHTML("beforeend",`<span>More parcels</span>`);
-    })
-    .catch(err => {
-      $("dm-loading").innerHTML =
-        `CBS / PDOK live data temporarily unavailable.<br>` +
-        `<small style="opacity:.7">Try refreshing — PDOK occasionally rate-limits on first load.</small>`;
-      console.warn("PDOK WFS error:", err.message);
-    });
+  const depot = pointById.get(0);
+  zoomG.append("rect")
+    .attr("x",depot.x-8).attr("y",depot.y-8).attr("width",16).attr("height",16)
+    .attr("rx",2).attr("fill","#1C1917").attr("opacity",0.88);
+  zoomG.append("text")
+    .attr("x",depot.x).attr("y",depot.y+24).attr("text-anchor","middle")
+    .style("font-size","10px").style("font-weight","700").style("fill","#1C1917")
+    .style("paint-order","stroke").style("stroke","rgba(255,255,255,.92)").style("stroke-width","3px")
+    .text("DEPOT");
+
+  svg.append("rect")
+    .attr("x",W-208).attr("y",H-30).attr("width",198).attr("height",20)
+    .attr("rx",4).attr("fill","rgba(255,255,255,.82)").attr("stroke","rgba(0,0,0,.08)");
+  svg.append("text")
+    .attr("x",W-198).attr("y",H-16)
+    .style("font-size","10px").style("fill","#5F5B54")
+    .text("Map tiles © OpenStreetMap contributors");
+
+  $("dm-loading").style.display = "none";
+  const lgEl = $("dm-legend");
+  lgEl.innerHTML = `<span>Lower demand</span>`;
+  const lgW = 150;
+  const lgSvg = d3.select(lgEl).append("svg").attr("width",lgW).attr("height",14);
+  const defs = lgSvg.append("defs");
+  const grad = defs.append("linearGradient").attr("id","dm-g").attr("x1","0%").attr("x2","100%");
+  grad.append("stop").attr("offset","0%").attr("stop-color","#C5EAF2");
+  grad.append("stop").attr("offset","100%").attr("stop-color","#0C5C70");
+  lgSvg.append("rect").attr("width",lgW).attr("height",10).attr("y",2).attr("rx",3).attr("fill","url(#dm-g)");
+  lgEl.insertAdjacentHTML("beforeend",`<span>Higher demand</span>`);
+
+  enableInteractiveMap({ wrap, tileLayer, zoomLayer: zoomG, width: W, height: H, view, maxScale: 2.5 });
 })();
 
 // ══════════════════════════════════════════════════════════════════════════════
