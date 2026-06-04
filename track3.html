@@ -77,6 +77,11 @@ h2{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-heig
 .fade.d1{transition-delay:.12s}.fade.d2{transition-delay:.24s}
 
 svg text{font-family:'Inter',-apple-system,sans-serif}
+
+.data-src{margin-top:28px;padding-top:16px;border-top:1px solid var(--border);font-size:11px;color:var(--subtle);line-height:1.9;max-width:min(900px,90%)}
+.data-src strong{display:block;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.data-src a{color:inherit;text-decoration:underline;text-decoration-color:var(--border)}
+.data-src a:hover{color:var(--primary)}
 </style>
 </head>
 <body>
@@ -113,7 +118,22 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
     forecast demand where prediction error most inflates route distance, not where
     MSE is largest. This is the methodological gap that Track 1 (LP) and Track 2
     (asymmetric LP) do not reach.</div>
+  
+  <div class="data-src fade d2">
+    <strong>Data &amp; Methods</strong>
+    Demand: synthetic parcel volumes calibrated on
+    <a href="https://opendata.cbs.nl/statline" target="_blank" rel="noopener">CBS Kerncijfers wijken en buurten</a>
+    (postcode-level demographics, household density) ·
+    Road network:
+    <a href="https://www.openstreetmap.org" target="_blank" rel="noopener">OpenStreetMap Netherlands</a> ·
+    Vehicles:
+    <a href="https://www.rdw.nl/open-data" target="_blank" rel="noopener">RDW</a>
+    registered fleet data ·
+    12 Amsterdam postcode zones (schematic layout) ·
+    Routing: capacitated VRP · nearest-neighbour + 2-opt ·
+    Demand forecast: XGBoost on CBS parcel proxy features
   </div>
+</div>
 </section>
 
 <!-- ══ ROUTE SIMULATION ═══════════════════════════════════════════════════ -->

@@ -92,6 +92,11 @@ h2{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-heig
 .fade.d1{transition-delay:.12s}.fade.d2{transition-delay:.24s}
 
 svg text{font-family:'Inter',-apple-system,sans-serif}
+
+.data-src{margin-top:28px;padding-top:16px;border-top:1px solid var(--border);font-size:11px;color:var(--subtle);line-height:1.9;max-width:min(900px,90%)}
+.data-src strong{display:block;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.data-src a{color:inherit;text-decoration:underline;text-decoration-color:var(--border)}
+.data-src a:hover{color:var(--primary)}
 </style>
 </head>
 <body>
@@ -125,7 +130,18 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
     Minimising forecast MSE is not the same as maximising dispatch profit.
     The sections below trace exactly where and why this gap opens — and motivate
     decision-focused learning (SPO+) as the remedy.</div>
+  
+  <div class="data-src fade d2">
+    <strong>Data &amp; Methods</strong>
+    Prices: synthetic 60-day dataset (Nov–Dec 2023) calibrated on
+    <a href="https://transparency.entsoe.eu" target="_blank" rel="noopener">ENTSO-E Transparency Platform</a>
+    Netherlands day-ahead market (bidding zone NL) ·
+    Battery: 1 MW / 2 MWh utility-scale BESS, 90 % round-trip efficiency ·
+    Dispatch optimisation: linear programme (PuLP / GLPK) ·
+    Forecast: XGBoost trained on lag features ·
+    SPO+ gradient: <a href="https://doi.org/10.1287/mnsc.2020.3922" target="_blank" rel="noopener">Elmachtoub &amp; Grigas (2022)</a>, <em>Management Science</em>
   </div>
+</div>
 </section>
 
 <!-- ══════════════════════════════════════════════════════════════ SIMULATION -->
