@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Core Case · Maastricht PhD Demo · NL Battery Dispatch</title>
+<title>Track 1 · Predict-Then-Optimize · NL Battery Dispatch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -28,7 +28,7 @@ section+section{border-top:1px solid var(--border)}
 .eyebrow{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:10px}
 h1{font-family:'Playfair Display',serif;font-size:clamp(32px,4vw,56px);line-height:1.15;margin-bottom:18px}
 h2{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-height:1.2;margin-bottom:14px}
-.lead{font-size:16px;color:var(--muted);max-width:min(820px,72%);margin-bottom:36px;font-weight:300}
+.lead{font-size:16px;color:var(--muted);max-width:min(1000px,88%);margin-bottom:36px;font-weight:300}
 
 /* Hero */
 #hero{min-height:100vh;padding-top:120px}
@@ -40,7 +40,8 @@ h2{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-heig
 .stat .lbl{font-size:11px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.1em}
 
 /* Insight */
-.insight{display:inline-flex;gap:14px;align-items:flex-start;background:var(--surface);border-left:3px solid var(--orange);padding:14px 20px;border-radius:0 8px 8px 0;margin-top:24px;max-width:min(820px,72%);flex-shrink:0;margin-top:1px}
+.insight{display:inline-flex;gap:14px;align-items:flex-start;background:var(--surface);border-left:3px solid var(--orange);padding:14px 20px;border-radius:0 8px 8px 0;margin-top:24px;max-width:min(1000px,88%)}
+.insight-icon{font-size:18px;flex-shrink:0;margin-top:1px}
 .insight-text{font-size:13px;color:var(--muted);line-height:1.6}
 .insight-text strong{display:block;color:var(--text);margin-bottom:3px;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
 
@@ -67,7 +68,7 @@ h2{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-heig
 
 /* Chart common */
 .chart-wrap{width:100%;overflow-x:auto}
-.chart-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:56px;align-items:start}
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}
 
 /* Tooltip */
 #tip{position:fixed;background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12.5px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.09);max-width:210px;line-height:1.5}
@@ -93,13 +94,26 @@ h2{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-heig
 
 svg text{font-family:'Inter',-apple-system,sans-serif}
 
-.data-src{margin-top:28px;padding-top:16px;border-top:1px solid var(--border);font-size:11px;color:var(--subtle);line-height:1.9;max-width:min(900px,90%)}
-.data-src strong{display:block;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
-.data-src a{color:inherit;text-decoration:underline;text-decoration-color:var(--border)}
-.data-src a:hover{color:var(--primary)}
+/* Live data badge */
+#data-badge{
+  position:fixed;bottom:18px;left:22px;z-index:400;
+  display:inline-flex;align-items:center;gap:7px;
+  background:rgba(251,249,245,.92);border:1px solid var(--border);
+  border-radius:20px;padding:6px 14px 6px 10px;
+  font-size:11px;color:var(--muted);backdrop-filter:blur(6px);
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+#data-badge .pulse{
+  width:7px;height:7px;border-radius:50%;background:#1B7A45;flex-shrink:0;
+  animation:pulse 2s infinite;
+}
+#data-badge .synth{background:var(--subtle);animation:none;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
 </style>
 </head>
 <body>
+
+<div id="data-badge"></div>
 
 <div id="sidenav">
   <div class="dot on"  data-i="0" title="Overview"></div>
@@ -113,51 +127,39 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 
 <!-- ══════════════════════════════════════════════════════════════ HERO -->
 <section id="hero">
-  <div class="eyebrow fade">Core Case · Maastricht Operations Research Fit</div>
-  <h1 class="fade d1">Decision-Focused Energy Storage:<br>Forecasting for <em>Battery Dispatch</em></h1>
+  <div class="eyebrow fade">Track 1 · Predict-Then-Optimize</div>
+  <h1 class="fade d1">Between <em>Oracle</em> and Reality:<br>A 60-Day Energy Storage Experiment</h1>
   <div class="hero-line fade d1"></div>
-  <p class="lead fade d2">This is the primary demo for the Maastricht call on data-driven decision-making in operations.
-  A 1 MW / 2 MWh battery charges when Dutch day-ahead prices are low and sells when they peak,
-  so forecast error can be evaluated directly in downstream dispatch profit.</p>
+  <p class="lead fade d2">A 1 MW / 2 MWh battery charges from the Dutch day-ahead electricity market when prices are low
+  and sells when they peak. The only problem — prices must be forecast 24 hours ahead.
+  How much does forecast error cost?</p>
   <div class="hero-stats">
-    <div class="stat fade"><div class="num green" id="h-oracle">—</div><div class="lbl">Clairvoyant benchmark revenue (€) — perfect foresight</div></div>
+    <div class="stat fade"><div class="num green" id="h-oracle">—</div><div class="lbl">Oracle revenue (€) — perfect foresight</div></div>
     <div class="stat fade d1"><div class="num blue" id="h-naive">—</div><div class="lbl">Naive P-T-O revenue (€) — XGBoost forecast</div></div>
     <div class="stat fade d2"><div class="num" id="h-gap">—</div><div class="lbl">Decision quality gap (€) — lost to forecast error</div></div>
   </div>
   <div class="insight fade d2">
     <span class="insight-icon">↓</span>
-    <div class="insight-text"><strong>The Core Research Question</strong>
+    <div class="insight-text"><strong>The Research Question</strong>
     Minimising forecast MSE is not the same as maximising dispatch profit.
-    The sections below show where that gap opens in a prototype battery problem and why
-    decision-focused learning (SPO+) is a plausible research direction.</div>
-  
-  <div class="data-src fade d2">
-    <strong>Data &amp; Methods</strong>
-    Prototype dataset: synthetic 60-day panel (Nov–Dec 2023) calibrated on
-    <a href="https://transparency.entsoe.eu" target="_blank" rel="noopener">ENTSO-E Transparency Platform</a>
-    Netherlands day-ahead market (bidding zone NL) ·
-    Battery: 1 MW / 2 MWh utility-scale BESS, 90 % round-trip efficiency ·
-    Dispatch optimisation: linear programme (PuLP / GLPK) ·
-    Forecast: XGBoost trained on lag features ·
-    This page is a methods demo rather than a claim about partner deployment results ·
-    SPO+ gradient: <a href="https://doi.org/10.1287/mnsc.2020.3922" target="_blank" rel="noopener">Elmachtoub &amp; Grigas (2022)</a>, <em>Management Science</em>
+    The sections below trace exactly where and why this gap opens — and motivate
+    decision-focused learning (SPO+) as the remedy.</div>
   </div>
-</div>
 </section>
 
 <!-- ══════════════════════════════════════════════════════════════ SIMULATION -->
 <section id="sim">
-  <div class="eyebrow fade">Live Simulation</div>
-  <h2 class="fade">Watch the Battery Work</h2>
-  <p class="lead fade">One decision every hour: <strong>charge</strong> (buy cheap electricity and store it)
-  or <strong>sell</strong> (release stored energy at peak prices). The clairvoyant benchmark sees the full day in advance —
-  watch how that benchmark defines the upper bound for dispatch quality.</p>
+  <div class="eyebrow fade">Hour-by-Hour Dispatch</div>
+  <h2 class="fade">The Oracle's Perfect Day</h2>
+  <p class="lead fade">24 hours of NL day-ahead prices — known in advance. The oracle charges during
+  the cheapest windows (blue arrows) and sells at the peaks (orange arrows). The <span style="color:var(--blue);font-weight:500">blue curve</span>
+  tracks the battery's charge level as the day unfolds. Every idle hour is a calculated decision, not a missed opportunity.</p>
 
   <div class="fade">
     <!-- Status banner — tells the story each hour -->
     <div id="sim-banner">
       <span id="sim-action" style="color:var(--muted)">○ Ready</span>
-      <span id="sim-narrative">Press Play to simulate a day of benchmark dispatch decisions</span>
+      <span id="sim-narrative">Press Play to simulate a day of oracle dispatch decisions</span>
     </div>
     <!-- Controls above the canvas -->
     <div id="sim-controls">
@@ -165,7 +167,7 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
       <input type="range" id="sim-slider" min="0" max="23" value="0" step="1">
       <span class="sim-time" id="sim-hour-disp">00:00</span>
     </div>
-    <div class="chart-wrap"><div id="sim-viz"></div></div>
+    <div class="chart-wrap"><div id="sim-svg-wrap"></div></div>
     <div class="sim-stat-row">
       <div class="sim-stat">
         <div class="sv" id="sim-price">—</div>
@@ -205,7 +207,7 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <section id="dispatch">
   <div class="eyebrow fade">Chart 2 of 5</div>
   <h2 class="fade">Charge Low, Sell High</h2>
-  <p class="lead fade">72 hours of benchmark dispatch. The battery charges during cheap or negative-price periods
+  <p class="lead fade">72 hours of oracle dispatch. The battery charges during cheap or negative-price periods
   (blue, below zero) and discharges at peaks (orange, above zero).
   The grey dashed line is the state of charge — what is physically possible at each moment.</p>
   <div class="chart-wrap fade"><div id="dispatch-chart"></div></div>
@@ -220,7 +222,7 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <section id="revenue">
   <div class="eyebrow fade">Chart 3 of 5</div>
   <h2 class="fade">The Growing Gap</h2>
-  <p class="lead fade">Cumulative revenue over 60 test days. The clairvoyant benchmark (dashed) is the upper bound of what
+  <p class="lead fade">Cumulative revenue over 60 test days. The oracle (dashed) is the upper bound of what
   is physically achievable with perfect foresight. Every missed negative-price hour and misjudged
   peak compounds the loss.</p>
   <div class="chart-wrap fade"><div id="revenue-chart"></div></div>
@@ -249,7 +251,7 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
     <div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
         <strong style="color:var(--text)">Lower MAE → Higher revenue</strong><br>
-        Each point is one test day. In this prototype, lower forecast error generally lines up with better dispatch revenue.</p>
+        Each point is one test day. OLS confirms: forecast accuracy and decision quality move together.</p>
       <div class="fade"><div id="scatter-chart"></div></div>
       <div class="fade" style="margin-top:28px">
         <p style="font-size:11px;color:var(--subtle);margin-bottom:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:500">Model comparison · 60-day dispatch revenue</p>
@@ -268,8 +270,21 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script>
-const DATA = {"heatmap":[{"date":"2023-11-02","hour":0,"price":63.1},{"date":"2023-11-02","hour":1,"price":93.0},{"date":"2023-11-02","hour":2,"price":-35.2},{"date":"2023-11-02","hour":3,"price":44.7},{"date":"2023-11-02","hour":4,"price":82.1},{"date":"2023-11-02","hour":5,"price":-51.9},{"date":"2023-11-02","hour":6,"price":110.8},{"date":"2023-11-02","hour":7,"price":122.1},{"date":"2023-11-02","hour":8,"price":128.8},{"date":"2023-11-02","hour":9,"price":83.5},{"date":"2023-11-02","hour":10,"price":112.3},{"date":"2023-11-02","hour":11,"price":47.4},{"date":"2023-11-02","hour":12,"price":114.9},{"date":"2023-11-02","hour":13,"price":82.2},{"date":"2023-11-02","hour":14,"price":86.3},{"date":"2023-11-02","hour":15,"price":45.2},{"date":"2023-11-02","hour":16,"price":85.8},{"date":"2023-11-02","hour":17,"price":131.3},{"date":"2023-11-02","hour":18,"price":96.5},{"date":"2023-11-02","hour":19,"price":118.7},{"date":"2023-11-02","hour":20,"price":98.0},{"date":"2023-11-02","hour":21,"price":113.4},{"date":"2023-11-02","hour":22,"price":83.4},{"date":"2023-11-02","hour":23,"price":50.8},{"date":"2023-11-03","hour":0,"price":64.6},{"date":"2023-11-03","hour":1,"price":95.0},{"date":"2023-11-03","hour":2,"price":68.5},{"date":"2023-11-03","hour":3,"price":55.0},{"date":"2023-11-03","hour":4,"price":111.5},{"date":"2023-11-03","hour":5,"price":101.8},{"date":"2023-11-03","hour":6,"price":111.6},{"date":"2023-11-03","hour":7,"price":109.2},{"date":"2023-11-03","hour":8,"price":115.4},{"date":"2023-11-03","hour":9,"price":108.9},{"date":"2023-11-03","hour":10,"price":39.8},{"date":"2023-11-03","hour":11,"price":95.1},{"date":"2023-11-03","hour":12,"price":80.7},{"date":"2023-11-03","hour":13,"price":69.6},{"date":"2023-11-03","hour":14,"price":79.9},{"date":"2023-11-03","hour":15,"price":53.6},{"date":"2023-11-03","hour":16,"price":52.5},{"date":"2023-11-03","hour":17,"price":126.8},{"date":"2023-11-03","hour":18,"price":113.8},{"date":"2023-11-03","hour":19,"price":47.7},{"date":"2023-11-03","hour":20,"price":82.4},{"date":"2023-11-03","hour":21,"price":107.2},{"date":"2023-11-03","hour":22,"price":70.9},{"date":"2023-11-03","hour":23,"price":96.5},{"date":"2023-11-04","hour":0,"price":74.9},{"date":"2023-11-04","hour":1,"price":18.4},{"date":"2023-11-04","hour":2,"price":42.9},{"date":"2023-11-04","hour":3,"price":36.2},{"date":"2023-11-04","hour":4,"price":19.8},{"date":"2023-11-04","hour":5,"price":32.8},{"date":"2023-11-04","hour":6,"price":64.3},{"date":"2023-11-04","hour":7,"price":76.6},{"date":"2023-11-04","hour":8,"price":94.1},{"date":"2023-11-04","hour":9,"price":103.6},{"date":"2023-11-04","hour":10,"price":87.6},{"date":"2023-11-04","hour":11,"price":91.4},{"date":"2023-11-04","hour":12,"price":66.8},{"date":"2023-11-04","hour":13,"price":82.4},{"date":"2023-11-04","hour":14,"price":-55.3},{"date":"2023-11-04","hour":15,"price":66.6},{"date":"2023-11-04","hour":16,"price":122.4},{"date":"2023-11-04","hour":17,"price":36.6},{"date":"2023-11-04","hour":18,"price":51.0},{"date":"2023-11-04","hour":19,"price":97.7},{"date":"2023-11-04","hour":20,"price":77.7},{"date":"2023-11-04","hour":21,"price":44.7},{"date":"2023-11-04","hour":22,"price":42.3},{"date":"2023-11-04","hour":23,"price":37.3},{"date":"2023-11-05","hour":0,"price":67.2},{"date":"2023-11-05","hour":1,"price":-7.2},{"date":"2023-11-05","hour":2,"price":-33.8},{"date":"2023-11-05","hour":3,"price":6.8},{"date":"2023-11-05","hour":4,"price":16.0},{"date":"2023-11-05","hour":5,"price":28.9},{"date":"2023-11-05","hour":6,"price":106.1},{"date":"2023-11-05","hour":7,"price":95.6},{"date":"2023-11-05","hour":8,"price":85.3},{"date":"2023-11-05","hour":9,"price":81.4},{"date":"2023-11-05","hour":10,"price":70.8},{"date":"2023-11-05","hour":11,"price":45.9},{"date":"2023-11-05","hour":12,"price":79.7},{"date":"2023-11-05","hour":13,"price":60.7},{"date":"2023-11-05","hour":14,"price":-15.9},{"date":"2023-11-05","hour":15,"price":84.6},{"date":"2023-11-05","hour":16,"price":67.0},{"date":"2023-11-05","hour":17,"price":88.5},{"date":"2023-11-05","hour":18,"price":85.1},{"date":"2023-11-05","hour":19,"price":104.6},{"date":"2023-11-05","hour":20,"price":84.0},{"date":"2023-11-05","hour":21,"price":52.6},{"date":"2023-11-05","hour":22,"price":68.3},{"date":"2023-11-05","hour":23,"price":61.1},{"date":"2023-11-06","hour":0,"price":78.2},{"date":"2023-11-06","hour":1,"price":86.2},{"date":"2023-11-06","hour":2,"price":47.6},{"date":"2023-11-06","hour":3,"price":75.9},{"date":"2023-11-06","hour":4,"price":27.6},{"date":"2023-11-06","hour":5,"price":77.3},{"date":"2023-11-06","hour":6,"price":91.2},{"date":"2023-11-06","hour":7,"price":137.7},{"date":"2023-11-06","hour":8,"price":99.5},{"date":"2023-11-06","hour":9,"price":109.1},{"date":"2023-11-06","hour":10,"price":52.7},{"date":"2023-11-06","hour":11,"price":82.3},{"date":"2023-11-06","hour":12,"price":69.2},{"date":"2023-11-06","hour":13,"price":138.7},{"date":"2023-11-06","hour":14,"price":73.2},{"date":"2023-11-06","hour":15,"price":93.0},{"date":"2023-11-06","hour":16,"price":98.5},{"date":"2023-11-06","hour":17,"price":68.0},{"date":"2023-11-06","hour":18,"price":95.7},{"date":"2023-11-06","hour":19,"price":113.3},{"date":"2023-11-06","hour":20,"price":100.5},{"date":"2023-11-06","hour":21,"price":40.8},{"date":"2023-11-06","hour":22,"price":68.2},{"date":"2023-11-06","hour":23,"price":95.2},{"date":"2023-11-07","hour":0,"price":79.9},{"date":"2023-11-07","hour":1,"price":90.2},{"date":"2023-11-07","hour":2,"price":39.5},{"date":"2023-11-07","hour":3,"price":89.4},{"date":"2023-11-07","hour":4,"price":-50.6},{"date":"2023-11-07","hour":5,"price":115.0},{"date":"2023-11-07","hour":6,"price":97.3},{"date":"2023-11-07","hour":7,"price":60.8},{"date":"2023-11-07","hour":8,"price":-34.6},{"date":"2023-11-07","hour":9,"price":86.0},{"date":"2023-11-07","hour":10,"price":83.2},{"date":"2023-11-07","hour":11,"price":58.0},{"date":"2023-11-07","hour":12,"price":123.5},{"date":"2023-11-07","hour":13,"price":72.8},{"date":"2023-11-07","hour":14,"price":122.5},{"date":"2023-11-07","hour":15,"price":82.0},{"date":"2023-11-07","hour":16,"price":75.3},{"date":"2023-11-07","hour":17,"price":132.0},{"date":"2023-11-07","hour":18,"price":105.7},{"date":"2023-11-07","hour":19,"price":103.0},{"date":"2023-11-07","hour":20,"price":70.4},{"date":"2023-11-07","hour":21,"price":81.4},{"date":"2023-11-07","hour":22,"price":90.1},{"date":"2023-11-07","hour":23,"price":44.1},{"date":"2023-11-08","hour":0,"price":55.1},{"date":"2023-11-08","hour":1,"price":54.1},{"date":"2023-11-08","hour":2,"price":62.7},{"date":"2023-11-08","hour":3,"price":93.8},{"date":"2023-11-08","hour":4,"price":58.9},{"date":"2023-11-08","hour":5,"price":64.7},{"date":"2023-11-08","hour":6,"price":157.6},{"date":"2023-11-08","hour":7,"price":96.3},{"date":"2023-11-08","hour":8,"price":98.8},{"date":"2023-11-08","hour":9,"price":87.9},{"date":"2023-11-08","hour":10,"price":85.3},{"date":"2023-11-08","hour":11,"price":91.7},{"date":"2023-11-08","hour":12,"price":108.1},{"date":"2023-11-08","hour":13,"price":93.1},{"date":"2023-11-08","hour":14,"price":111.5},{"date":"2023-11-08","hour":15,"price":114.4},{"date":"2023-11-08","hour":16,"price":100.3},{"date":"2023-11-08","hour":17,"price":111.2},{"date":"2023-11-08","hour":18,"price":131.7},{"date":"2023-11-08","hour":19,"price":80.0},{"date":"2023-11-08","hour":20,"price":153.6},{"date":"2023-11-08","hour":21,"price":80.2},{"date":"2023-11-08","hour":22,"price":72.9},{"date":"2023-11-08","hour":23,"price":-55.0},{"date":"2023-11-09","hour":0,"price":39.5},{"date":"2023-11-09","hour":1,"price":83.3},{"date":"2023-11-09","hour":2,"price":109.7},{"date":"2023-11-09","hour":3,"price":47.3},{"date":"2023-11-09","hour":4,"price":71.7},{"date":"2023-11-09","hour":5,"price":83.3},{"date":"2023-11-09","hour":6,"price":117.8},{"date":"2023-11-09","hour":7,"price":153.2},{"date":"2023-11-09","hour":8,"price":135.0},{"date":"2023-11-09","hour":9,"price":89.1},{"date":"2023-11-09","hour":10,"price":101.6},{"date":"2023-11-09","hour":11,"price":102.4},{"date":"2023-11-09","hour":12,"price":86.0},{"date":"2023-11-09","hour":13,"price":58.7},{"date":"2023-11-09","hour":14,"price":68.8},{"date":"2023-11-09","hour":15,"price":-37.4},{"date":"2023-11-09","hour":16,"price":121.8},{"date":"2023-11-09","hour":17,"price":97.0},{"date":"2023-11-09","hour":18,"price":111.6},{"date":"2023-11-09","hour":19,"price":129.3},{"date":"2023-11-09","hour":20,"price":59.7},{"date":"2023-11-09","hour":21,"price":80.2},{"date":"2023-11-09","hour":22,"price":123.6},{"date":"2023-11-09","hour":23,"price":77.9},{"date":"2023-11-10","hour":0,"price":38.5},{"date":"2023-11-10","hour":1,"price":62.3},{"date":"2023-11-10","hour":2,"price":80.1},{"date":"2023-11-10","hour":3,"price":1.6},{"date":"2023-11-10","hour":4,"price":65.8},{"date":"2023-11-10","hour":5,"price":68.1},{"date":"2023-11-10","hour":6,"price":57.5},{"date":"2023-11-10","hour":7,"price":104.0},{"date":"2023-11-10","hour":8,"price":96.4},{"date":"2023-11-10","hour":9,"price":91.6},{"date":"2023-11-10","hour":10,"price":80.2},{"date":"2023-11-10","hour":11,"price":63.9},{"date":"2023-11-10","hour":12,"price":52.2},{"date":"2023-11-10","hour":13,"price":65.4},{"date":"2023-11-10","hour":14,"price":103.1},{"date":"2023-11-10","hour":15,"price":93.0},{"date":"2023-11-10","hour":16,"price":90.6},{"date":"2023-11-10","hour":17,"price":76.5},{"date":"2023-11-10","hour":18,"price":95.5},{"date":"2023-11-10","hour":19,"price":117.0},{"date":"2023-11-10","hour":20,"price":106.2},{"date":"2023-11-10","hour":21,"price":77.3},{"date":"2023-11-10","hour":22,"price":19.6},{"date":"2023-11-10","hour":23,"price":54.3},{"date":"2023-11-11","hour":0,"price":41.2},{"date":"2023-11-11","hour":1,"price":28.3},{"date":"2023-11-11","hour":2,"price":37.0},{"date":"2023-11-11","hour":3,"price":64.0},{"date":"2023-11-11","hour":4,"price":49.6},{"date":"2023-11-11","hour":5,"price":86.6},{"date":"2023-11-11","hour":6,"price":48.9},{"date":"2023-11-11","hour":7,"price":84.0},{"date":"2023-11-11","hour":8,"price":45.2},{"date":"2023-11-11","hour":9,"price":71.3},{"date":"2023-11-11","hour":10,"price":53.3},{"date":"2023-11-11","hour":11,"price":103.1},{"date":"2023-11-11","hour":12,"price":81.7},{"date":"2023-11-11","hour":13,"price":91.5},{"date":"2023-11-11","hour":14,"price":63.3},{"date":"2023-11-11","hour":15,"price":53.9},{"date":"2023-11-11","hour":16,"price":57.5},{"date":"2023-11-11","hour":17,"price":93.7},{"date":"2023-11-11","hour":18,"price":132.0},{"date":"2023-11-11","hour":19,"price":98.3},{"date":"2023-11-11","hour":20,"price":75.3},{"date":"2023-11-11","hour":21,"price":72.2},{"date":"2023-11-11","hour":22,"price":64.8},{"date":"2023-11-11","hour":23,"price":102.2},{"date":"2023-11-12","hour":0,"price":74.7},{"date":"2023-11-12","hour":1,"price":49.6},{"date":"2023-11-12","hour":2,"price":44.2},{"date":"2023-11-12","hour":3,"price":48.4},{"date":"2023-11-12","hour":4,"price":57.0},{"date":"2023-11-12","hour":5,"price":51.4},{"date":"2023-11-12","hour":6,"price":59.2},{"date":"2023-11-12","hour":7,"price":-14.6},{"date":"2023-11-12","hour":8,"price":84.0},{"date":"2023-11-12","hour":9,"price":-10.9},{"date":"2023-11-12","hour":10,"price":108.2},{"date":"2023-11-12","hour":11,"price":82.0},{"date":"2023-11-12","hour":12,"price":76.3},{"date":"2023-11-12","hour":13,"price":135.2},{"date":"2023-11-12","hour":14,"price":73.0},{"date":"2023-11-12","hour":15,"price":-31.4},{"date":"2023-11-12","hour":16,"price":70.1},{"date":"2023-11-12","hour":17,"price":117.7},{"date":"2023-11-12","hour":18,"price":59.4},{"date":"2023-11-12","hour":19,"price":68.4},{"date":"2023-11-12","hour":20,"price":103.5},{"date":"2023-11-12","hour":21,"price":66.0},{"date":"2023-11-12","hour":22,"price":58.8},{"date":"2023-11-12","hour":23,"price":76.9},{"date":"2023-11-13","hour":0,"price":51.2},{"date":"2023-11-13","hour":1,"price":31.1},{"date":"2023-11-13","hour":2,"price":30.6},{"date":"2023-11-13","hour":3,"price":74.0},{"date":"2023-11-13","hour":4,"price":71.2},{"date":"2023-11-13","hour":5,"price":64.7},{"date":"2023-11-13","hour":6,"price":71.7},{"date":"2023-11-13","hour":7,"price":99.9},{"date":"2023-11-13","hour":8,"price":127.5},{"date":"2023-11-13","hour":9,"price":77.4},{"date":"2023-11-13","hour":10,"price":76.9},{"date":"2023-11-13","hour":11,"price":63.8},{"date":"2023-11-13","hour":12,"price":79.8},{"date":"2023-11-13","hour":13,"price":91.7},{"date":"2023-11-13","hour":14,"price":134.4},{"date":"2023-11-13","hour":15,"price":96.2},{"date":"2023-11-13","hour":16,"price":94.6},{"date":"2023-11-13","hour":17,"price":121.9},{"date":"2023-11-13","hour":18,"price":122.6},{"date":"2023-11-13","hour":19,"price":91.7},{"date":"2023-11-13","hour":20,"price":149.3},{"date":"2023-11-13","hour":21,"price":90.9},{"date":"2023-11-13","hour":22,"price":85.8},{"date":"2023-11-13","hour":23,"price":84.8},{"date":"2023-11-14","hour":0,"price":74.6},{"date":"2023-11-14","hour":1,"price":96.9},{"date":"2023-11-14","hour":2,"price":48.2},{"date":"2023-11-14","hour":3,"price":78.4},{"date":"2023-11-14","hour":4,"price":69.1},{"date":"2023-11-14","hour":5,"price":101.5},{"date":"2023-11-14","hour":6,"price":92.5},{"date":"2023-11-14","hour":7,"price":98.1},{"date":"2023-11-14","hour":8,"price":119.1},{"date":"2023-11-14","hour":9,"price":103.6},{"date":"2023-11-14","hour":10,"price":73.4},{"date":"2023-11-14","hour":11,"price":119.6},{"date":"2023-11-14","hour":12,"price":104.0},{"date":"2023-11-14","hour":13,"price":82.6},{"date":"2023-11-14","hour":14,"price":77.5},{"date":"2023-11-14","hour":15,"price":99.5},{"date":"2023-11-14","hour":16,"price":110.3},{"date":"2023-11-14","hour":17,"price":67.9},{"date":"2023-11-14","hour":18,"price":115.5},{"date":"2023-11-14","hour":19,"price":118.8},{"date":"2023-11-14","hour":20,"price":46.9},{"date":"2023-11-14","hour":21,"price":95.8},{"date":"2023-11-14","hour":22,"price":95.9},{"date":"2023-11-14","hour":23,"price":85.5},{"date":"2023-11-15","hour":0,"price":84.6},{"date":"2023-11-15","hour":1,"price":56.1},{"date":"2023-11-15","hour":2,"price":38.3},{"date":"2023-11-15","hour":3,"price":21.6},{"date":"2023-11-15","hour":4,"price":89.5},{"date":"2023-11-15","hour":5,"price":95.4},{"date":"2023-11-15","hour":6,"price":122.9},{"date":"2023-11-15","hour":7,"price":89.9},{"date":"2023-11-15","hour":8,"price":120.6},{"date":"2023-11-15","hour":9,"price":62.7},{"date":"2023-11-15","hour":10,"price":72.3},{"date":"2023-11-15","hour":11,"price":92.8},{"date":"2023-11-15","hour":12,"price":102.4},{"date":"2023-11-15","hour":13,"price":121.2},{"date":"2023-11-15","hour":14,"price":82.6},{"date":"2023-11-15","hour":15,"price":72.4},{"date":"2023-11-15","hour":16,"price":75.6},{"date":"2023-11-15","hour":17,"price":87.8},{"date":"2023-11-15","hour":18,"price":156.1},{"date":"2023-11-15","hour":19,"price":121.0},{"date":"2023-11-15","hour":20,"price":123.1},{"date":"2023-11-15","hour":21,"price":86.2},{"date":"2023-11-15","hour":22,"price":80.6},{"date":"2023-11-15","hour":23,"price":88.1}],"dispatch":[{"dt":"2023-11-02T00:00","price":63.1,"charge":0.222,"discharge":0.0,"soc":1.0},{"dt":"2023-11-02T01:00","price":93.0,"charge":0.0,"discharge":1.0,"soc":1.2},{"dt":"2023-11-02T02:00","price":-35.2,"charge":1.0,"discharge":0.0,"soc":0.2},{"dt":"2023-11-02T03:00","price":44.7,"charge":1.0,"discharge":0.0,"soc":1.1},{"dt":"2023-11-02T04:00","price":82.1,"charge":0.0,"discharge":0.9,"soc":2.0},{"dt":"2023-11-02T05:00","price":-51.9,"charge":1.0,"discharge":0.0,"soc":1.1},{"dt":"2023-11-02T06:00","price":110.8,"charge":0.0,"discharge":-0.0,"soc":2.0},{"dt":"2023-11-02T07:00","price":122.1,"charge":0.0,"discharge":1.0,"soc":2.0},{"dt":"2023-11-02T08:00","price":128.8,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2023-11-02T09:00","price":83.5,"charge":1.0,"discharge":0.0,"soc":-0.0},{"dt":"2023-11-02T10:00","price":112.3,"charge":0.0,"discharge":0.8,"soc":0.9},{"dt":"2023-11-02T11:00","price":47.4,"charge":1.0,"discharge":0.0,"soc":0.1},{"dt":"2023-11-02T12:00","price":114.9,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2023-11-02T13:00","price":82.2,"charge":1.0,"discharge":0.0,"soc":0.0},{"dt":"2023-11-02T14:00","price":86.3,"charge":0.0,"discharge":0.0,"soc":0.9},{"dt":"2023-11-02T15:00","price":45.2,"charge":1.0,"discharge":0.0,"soc":0.9},{"dt":"2023-11-02T16:00","price":85.8,"charge":0.222,"discharge":0.0,"soc":1.8},{"dt":"2023-11-02T17:00","price":131.3,"charge":0.0,"discharge":1.0,"soc":2.0},{"dt":"2023-11-02T18:00","price":96.5,"charge":1.0,"discharge":0.0,"soc":1.0},{"dt":"2023-11-02T19:00","price":118.7,"charge":0.0,"discharge":1.0,"soc":1.9},{"dt":"2023-11-02T20:00","price":98.0,"charge":0.111,"discharge":0.0,"soc":0.9},{"dt":"2023-11-02T21:00","price":113.4,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2023-11-02T22:00","price":83.4,"charge":0.0,"discharge":-0.0,"soc":0.0},{"dt":"2023-11-02T23:00","price":50.8,"charge":0.0,"discharge":1.0,"soc":0.0},{"dt":"2023-11-03T00:00","price":64.6,"charge":1.0,"discharge":0.0,"soc":-0.0},{"dt":"2023-11-03T01:00","price":95.0,"charge":0.0,"discharge":0.7,"soc":0.9},{"dt":"2023-11-03T02:00","price":68.5,"charge":1.0,"discharge":0.0,"soc":0.2},{"dt":"2023-11-03T03:00","price":55.0,"charge":1.0,"discharge":0.0,"soc":1.1},{"dt":"2023-11-03T04:00","price":111.5,"charge":0.0,"discharge":-0.0,"soc":2.0},{"dt":"2023-11-03T05:00","price":101.8,"charge":0.0,"discharge":0.0,"soc":2.0},{"dt":"2023-11-03T06:00","price":111.6,"charge":0.0,"discharge":1.0,"soc":2.0},{"dt":"2023-11-03T07:00","price":109.2,"charge":0.0,"discharge":0.0,"soc":1.0},{"dt":"2023-11-03T08:00","price":115.4,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2023-11-03T09:00","price":108.9,"charge":0.0,"discharge":-0.0,"soc":0.0},{"dt":"2023-11-03T10:00","price":39.8,"charge":1.0,"discharge":0.0,"soc":0.0},{"dt":"2023-11-03T11:00","price":95.1,"charge":0.0,"discharge":0.9,"soc":0.9},{"dt":"2023-11-03T12:00","price":80.7,"charge":0.0,"discharge":-0.0,"soc":0.0},{"dt":"2023-11-03T13:00","price":69.6,"charge":1.0,"discharge":0.0,"soc":0.0},{"dt":"2023-11-03T14:00","price":79.9,"charge":0.0,"discharge":0.7,"soc":0.9},{"dt":"2023-11-03T15:00","price":53.6,"charge":1.0,"discharge":0.0,"soc":0.2},{"dt":"2023-11-03T16:00","price":52.5,"charge":1.0,"discharge":0.0,"soc":1.1},{"dt":"2023-11-03T17:00","price":126.8,"charge":0.0,"discharge":1.0,"soc":2.0},{"dt":"2023-11-03T18:00","price":113.8,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2023-11-03T19:00","price":47.7,"charge":1.0,"discharge":0.0,"soc":-0.0},{"dt":"2023-11-03T20:00","price":82.4,"charge":0.111,"discharge":0.0,"soc":0.9},{"dt":"2023-11-03T21:00","price":107.2,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2023-11-03T22:00","price":70.9,"charge":-0.0,"discharge":0.0,"soc":0.0},{"dt":"2023-11-03T23:00","price":96.5,"charge":0.0,"discharge":1.0,"soc":0.0},{"dt":"2023-11-04T00:00","price":74.9,"charge":-0.0,"discharge":0.0,"soc":-0.0},{"dt":"2023-11-04T01:00","price":18.4,"charge":1.0,"discharge":0.0,"soc":0.0},{"dt":"2023-11-04T02:00","price":42.9,"charge":0.0,"discharge":0.9,"soc":0.9},{"dt":"2023-11-04T03:00","price":36.2,"charge":0.222,"discharge":0.0,"soc":0.0},{"dt":"2023-11-04T04:00","price":19.8,"charge":1.0,"discharge":0.0,"soc":0.2},{"dt":"2023-11-04T05:00","price":32.8,"charge":1.0,"discharge":0.0,"soc":1.1},{"dt":"2023-11-04T06:00","price":64.3,"charge":0.0,"discharge":-0.0,"soc":2.0},{"dt":"2023-11-04T07:00","price":76.6,"charge":-0.0,"discharge":0.0,"soc":2.0},{"dt":"2023-11-04T08:00","price":94.1,"charge":0.0,"discharge":1.0,"soc":2.0},{"dt":"2023-11-04T09:00","price":103.6,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2023-11-04T10:00","price":87.6,"charge":0.0,"discharge":0.0,"soc":-0.0},{"dt":"2023-11-04T11:00","price":91.4,"charge":0.0,"discharge":-0.0,"soc":-0.0},{"dt":"2023-11-04T12:00","price":66.8,"charge":1.0,"discharge":0.0,"soc":0.0},{"dt":"2023-11-04T13:00","price":82.4,"charge":0.0,"discharge":0.9,"soc":0.9},{"dt":"2023-11-04T14:00","price":-55.3,"charge":1.0,"discharge":0.0,"soc":0.0},{"dt":"2023-11-04T15:00","price":66.6,"charge":0.333,"discharge":0.0,"soc":0.9},{"dt":"2023-11-04T16:00","price":122.4,"charge":0.0,"discharge":1.0,"soc":1.2},{"dt":"2023-11-04T17:00","price":36.6,"charge":1.0,"discharge":0.0,"soc":0.2},{"dt":"2023-11-04T18:00","price":51.0,"charge":1.0,"discharge":0.0,"soc":1.1},{"dt":"2023-11-04T19:00","price":97.7,"charge":0.0,"discharge":1.0,"soc":2.0},{"dt":"2023-11-04T20:00","price":77.7,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2023-11-04T21:00","price":44.7,"charge":0.0,"discharge":-0.0,"soc":0.0},{"dt":"2023-11-04T22:00","price":42.3,"charge":0.0,"discharge":-0.0,"soc":0.0},{"dt":"2023-11-04T23:00","price":37.3,"charge":0.0,"discharge":1.0,"soc":0.0}],"revenue":[{"day":1,"date":"2023-11-02","oracle":680.0,"naive":154.0},{"day":2,"date":"2023-11-03","oracle":1099.0,"naive":336.0},{"day":3,"date":"2023-11-04","oracle":1544.0,"naive":392.0},{"day":4,"date":"2023-11-05","oracle":2023.0,"naive":721.0},{"day":5,"date":"2023-11-06","oracle":2444.0,"naive":928.0},{"day":6,"date":"2023-11-07","oracle":2998.0,"naive":999.0},{"day":7,"date":"2023-11-08","oracle":3334.0,"naive":993.0},{"day":8,"date":"2023-11-09","oracle":3977.0,"naive":1228.0},{"day":9,"date":"2023-11-10","oracle":4303.0,"naive":1420.0},{"day":10,"date":"2023-11-11","oracle":4711.0,"naive":1582.0},{"day":11,"date":"2023-11-12","oracle":5260.0,"naive":1510.0},{"day":12,"date":"2023-11-13","oracle":5662.0,"naive":1661.0},{"day":13,"date":"2023-11-14","oracle":6009.0,"naive":1780.0},{"day":14,"date":"2023-11-15","oracle":6449.0,"naive":2009.0},{"day":15,"date":"2023-11-16","oracle":6884.0,"naive":2310.0},{"day":16,"date":"2023-11-17","oracle":7178.0,"naive":2445.0},{"day":17,"date":"2023-11-18","oracle":7498.0,"naive":2542.0},{"day":18,"date":"2023-11-19","oracle":7988.0,"naive":2489.0},{"day":19,"date":"2023-11-20","oracle":8447.0,"naive":2632.0},{"day":20,"date":"2023-11-21","oracle":8959.0,"naive":2828.0},{"day":21,"date":"2023-11-22","oracle":9443.0,"naive":2934.0},{"day":22,"date":"2023-11-23","oracle":9959.0,"naive":3067.0},{"day":23,"date":"2023-11-24","oracle":10371.0,"naive":3306.0},{"day":24,"date":"2023-11-25","oracle":10659.0,"naive":3306.0},{"day":25,"date":"2023-11-26","oracle":11104.0,"naive":3461.0},{"day":26,"date":"2023-11-27","oracle":11587.0,"naive":3650.0},{"day":27,"date":"2023-11-28","oracle":12002.0,"naive":3851.0},{"day":28,"date":"2023-11-29","oracle":12534.0,"naive":4034.0},{"day":29,"date":"2023-11-30","oracle":13207.0,"naive":4245.0},{"day":30,"date":"2023-12-01","oracle":13588.0,"naive":4385.0},{"day":31,"date":"2023-12-02","oracle":14071.0,"naive":4523.0},{"day":32,"date":"2023-12-03","oracle":14702.0,"naive":4843.0},{"day":33,"date":"2023-12-04","oracle":15122.0,"naive":5050.0},{"day":34,"date":"2023-12-05","oracle":15494.0,"naive":5251.0},{"day":35,"date":"2023-12-06","oracle":15959.0,"naive":5356.0},{"day":36,"date":"2023-12-07","oracle":16294.0,"naive":5629.0},{"day":37,"date":"2023-12-08","oracle":16617.0,"naive":5767.0},{"day":38,"date":"2023-12-09","oracle":17110.0,"naive":5954.0},{"day":39,"date":"2023-12-10","oracle":17320.0,"naive":5988.0},{"day":40,"date":"2023-12-11","oracle":17675.0,"naive":5971.0},{"day":41,"date":"2023-12-12","oracle":18060.0,"naive":5961.0},{"day":42,"date":"2023-12-13","oracle":18468.0,"naive":6093.0},{"day":43,"date":"2023-12-14","oracle":18860.0,"naive":6269.0},{"day":44,"date":"2023-12-15","oracle":19106.0,"naive":6345.0},{"day":45,"date":"2023-12-16","oracle":19559.0,"naive":6454.0},{"day":46,"date":"2023-12-17","oracle":19928.0,"naive":6629.0},{"day":47,"date":"2023-12-18","oracle":20515.0,"naive":6712.0},{"day":48,"date":"2023-12-19","oracle":20800.0,"naive":6761.0},{"day":49,"date":"2023-12-20","oracle":21385.0,"naive":6680.0},{"day":50,"date":"2023-12-21","oracle":21825.0,"naive":6834.0},{"day":51,"date":"2023-12-22","oracle":22326.0,"naive":6755.0},{"day":52,"date":"2023-12-23","oracle":22612.0,"naive":6848.0},{"day":53,"date":"2023-12-24","oracle":22958.0,"naive":7003.0},{"day":54,"date":"2023-12-25","oracle":23255.0,"naive":7058.0},{"day":55,"date":"2023-12-26","oracle":23610.0,"naive":7045.0},{"day":56,"date":"2023-12-27","oracle":24113.0,"naive":7079.0},{"day":57,"date":"2023-12-28","oracle":24319.0,"naive":7002.0},{"day":58,"date":"2023-12-29","oracle":24783.0,"naive":7229.0},{"day":59,"date":"2023-12-30","oracle":25308.0,"naive":7550.0},{"day":60,"date":"2023-12-31","oracle":25683.0,"naive":7656.0}],"clock":[{"hour":0,"sensitivity":0.867,"impact":22.4},{"hour":1,"sensitivity":0.967,"impact":29.0},{"hour":2,"sensitivity":1.0,"impact":28.1},{"hour":3,"sensitivity":0.983,"impact":29.3},{"hour":4,"sensitivity":0.917,"impact":21.3},{"hour":5,"sensitivity":0.117,"impact":3.2},{"hour":6,"sensitivity":0.65,"impact":14.5},{"hour":7,"sensitivity":0.767,"impact":26.0},{"hour":8,"sensitivity":0.917,"impact":32.8},{"hour":9,"sensitivity":0.917,"impact":30.2},{"hour":10,"sensitivity":0.983,"impact":33.1},{"hour":11,"sensitivity":0.967,"impact":31.3},{"hour":12,"sensitivity":0.967,"impact":25.1},{"hour":13,"sensitivity":0.933,"impact":28.9},{"hour":14,"sensitivity":0.917,"impact":26.3},{"hour":15,"sensitivity":0.833,"impact":25.9},{"hour":16,"sensitivity":0.883,"impact":28.7},{"hour":17,"sensitivity":0.883,"impact":30.8},{"hour":18,"sensitivity":0.833,"impact":22.7},{"hour":19,"sensitivity":0.867,"impact":32.6},{"hour":20,"sensitivity":0.767,"impact":27.8},{"hour":21,"sensitivity":0.417,"impact":14.4},{"hour":22,"sensitivity":0.25,"impact":9.6},{"hour":23,"sensitivity":0.0,"impact":0.0}],"scatter":[{"date":"2023-11-02","mae":28.6,"revenue":154.0},{"date":"2023-11-03","mae":20.6,"revenue":182.0},{"date":"2023-11-04","mae":25.1,"revenue":56.0},{"date":"2023-11-05","mae":21.5,"revenue":329.0},{"date":"2023-11-06","mae":18.6,"revenue":207.0},{"date":"2023-11-07","mae":30.3,"revenue":71.0},{"date":"2023-11-08","mae":23.8,"revenue":-5.0},{"date":"2023-11-09","mae":25.7,"revenue":234.0},{"date":"2023-11-10","mae":19.6,"revenue":192.0},{"date":"2023-11-11","mae":20.2,"revenue":162.0},{"date":"2023-11-12","mae":30.7,"revenue":-72.0},{"date":"2023-11-13","mae":20.9,"revenue":152.0},{"date":"2023-11-14","mae":17.2,"revenue":118.0},{"date":"2023-11-15","mae":21.7,"revenue":230.0},{"date":"2023-11-16","mae":19.3,"revenue":301.0},{"date":"2023-11-17","mae":12.9,"revenue":135.0},{"date":"2023-11-18","mae":20.9,"revenue":97.0},{"date":"2023-11-19","mae":24.5,"revenue":-53.0},{"date":"2023-11-20","mae":24.0,"revenue":143.0},{"date":"2023-11-21","mae":28.0,"revenue":196.0},{"date":"2023-11-22","mae":26.6,"revenue":106.0},{"date":"2023-11-23","mae":26.8,"revenue":132.0},{"date":"2023-11-24","mae":24.1,"revenue":240.0},{"date":"2023-11-25","mae":19.6,"revenue":-1.0},{"date":"2023-11-26","mae":22.0,"revenue":156.0},{"date":"2023-11-27","mae":24.1,"revenue":188.0},{"date":"2023-11-28","mae":21.0,"revenue":202.0},{"date":"2023-11-29","mae":30.0,"revenue":183.0},{"date":"2023-11-30","mae":33.2,"revenue":211.0},{"date":"2023-12-01","mae":20.1,"revenue":140.0},{"date":"2023-12-02","mae":24.1,"revenue":138.0},{"date":"2023-12-03","mae":29.8,"revenue":320.0},{"date":"2023-12-04","mae":24.2,"revenue":207.0},{"date":"2023-12-05","mae":17.5,"revenue":201.0},{"date":"2023-12-06","mae":22.0,"revenue":105.0},{"date":"2023-12-07","mae":13.5,"revenue":273.0},{"date":"2023-12-08","mae":17.0,"revenue":138.0},{"date":"2023-12-09","mae":27.7,"revenue":186.0},{"date":"2023-12-10","mae":17.6,"revenue":34.0},{"date":"2023-12-11","mae":27.3,"revenue":-17.0},{"date":"2023-12-12","mae":23.7,"revenue":-10.0},{"date":"2023-12-13","mae":21.9,"revenue":132.0},{"date":"2023-12-14","mae":18.3,"revenue":176.0},{"date":"2023-12-15","mae":14.8,"revenue":76.0},{"date":"2023-12-16","mae":24.8,"revenue":109.0},{"date":"2023-12-17","mae":22.8,"revenue":175.0},{"date":"2023-12-18","mae":32.2,"revenue":83.0},{"date":"2023-12-19","mae":17.9,"revenue":49.0},{"date":"2023-12-20","mae":37.8,"revenue":-82.0},{"date":"2023-12-21","mae":23.5,"revenue":155.0},{"date":"2023-12-22","mae":27.2,"revenue":-79.0},{"date":"2023-12-23","mae":14.3,"revenue":93.0},{"date":"2023-12-24","mae":17.4,"revenue":154.0},{"date":"2023-12-25","mae":21.5,"revenue":56.0},{"date":"2023-12-26","mae":24.6,"revenue":-14.0},{"date":"2023-12-27","mae":28.6,"revenue":35.0},{"date":"2023-12-28","mae":22.6,"revenue":-78.0},{"date":"2023-12-29","mae":18.9,"revenue":228.0},{"date":"2023-12-30","mae":23.5,"revenue":321.0},{"date":"2023-12-31","mae":17.8,"revenue":106.0}],"spo":[{"model":"Oracle","mae":0.0,"revenue":25683.0,"pct":100.0},{"model":"Standard XGBoost","mae":22.9,"revenue":7656.0,"pct":29.8},{"model":"Regret-weighted","mae":24.4,"revenue":7101.0,"pct":27.6},{"model":"SPO+ gradient","mae":23.0,"revenue":6915.0,"pct":26.9}],"ols":{"slope":-4.48,"intercept":230.0,"r":-0.222,"p":0.089},"stats":{"oracle":25683,"naive":7656,"gap":18027,"gap_pct":70.2,"sens_pct":77.5,"mae":22.9}};
-const {heatmap,dispatch,revenue,clock,scatter,spo,ols,stats} = DATA;
+const DATA = {"meta":{"source":"ENTSO-E Transparency Platform","live":true,"start":"01 Jan 2021","end":"30 Nov 2024","rows":34320},"heatmap":[{"date":"2024-10-02","hour":0,"price":30.0},{"date":"2024-10-02","hour":1,"price":19.9},{"date":"2024-10-02","hour":2,"price":41.8},{"date":"2024-10-02","hour":3,"price":56.8},{"date":"2024-10-02","hour":4,"price":10.9},{"date":"2024-10-02","hour":5,"price":46.8},{"date":"2024-10-02","hour":6,"price":57.6},{"date":"2024-10-02","hour":7,"price":70.7},{"date":"2024-10-02","hour":8,"price":65.6},{"date":"2024-10-02","hour":9,"price":58.8},{"date":"2024-10-02","hour":10,"price":62.1},{"date":"2024-10-02","hour":11,"price":48.8},{"date":"2024-10-02","hour":12,"price":57.3},{"date":"2024-10-02","hour":13,"price":54.0},{"date":"2024-10-02","hour":14,"price":57.2},{"date":"2024-10-02","hour":15,"price":45.4},{"date":"2024-10-02","hour":16,"price":57.8},{"date":"2024-10-02","hour":17,"price":49.5},{"date":"2024-10-02","hour":18,"price":55.9},{"date":"2024-10-02","hour":19,"price":44.1},{"date":"2024-10-02","hour":20,"price":36.9},{"date":"2024-10-02","hour":21,"price":15.5},{"date":"2024-10-02","hour":22,"price":38.0},{"date":"2024-10-02","hour":23,"price":40.3},{"date":"2024-10-03","hour":0,"price":16.6},{"date":"2024-10-03","hour":1,"price":36.6},{"date":"2024-10-03","hour":2,"price":55.3},{"date":"2024-10-03","hour":3,"price":39.4},{"date":"2024-10-03","hour":4,"price":55.2},{"date":"2024-10-03","hour":5,"price":56.4},{"date":"2024-10-03","hour":6,"price":55.4},{"date":"2024-10-03","hour":7,"price":46.9},{"date":"2024-10-03","hour":8,"price":54.0},{"date":"2024-10-03","hour":9,"price":50.8},{"date":"2024-10-03","hour":10,"price":51.4},{"date":"2024-10-03","hour":11,"price":55.7},{"date":"2024-10-03","hour":12,"price":38.4},{"date":"2024-10-03","hour":13,"price":59.5},{"date":"2024-10-03","hour":14,"price":56.9},{"date":"2024-10-03","hour":15,"price":69.5},{"date":"2024-10-03","hour":16,"price":38.3},{"date":"2024-10-03","hour":17,"price":60.2},{"date":"2024-10-03","hour":18,"price":52.7},{"date":"2024-10-03","hour":19,"price":49.4},{"date":"2024-10-03","hour":20,"price":52.0},{"date":"2024-10-03","hour":21,"price":15.4},{"date":"2024-10-03","hour":22,"price":62.5},{"date":"2024-10-03","hour":23,"price":36.1},{"date":"2024-10-04","hour":0,"price":46.5},{"date":"2024-10-04","hour":1,"price":40.9},{"date":"2024-10-04","hour":2,"price":13.8},{"date":"2024-10-04","hour":3,"price":26.9},{"date":"2024-10-04","hour":4,"price":43.1},{"date":"2024-10-04","hour":5,"price":46.6},{"date":"2024-10-04","hour":6,"price":53.6},{"date":"2024-10-04","hour":7,"price":37.5},{"date":"2024-10-04","hour":8,"price":45.1},{"date":"2024-10-04","hour":9,"price":9.9},{"date":"2024-10-04","hour":10,"price":48.8},{"date":"2024-10-04","hour":11,"price":66.2},{"date":"2024-10-04","hour":12,"price":29.6},{"date":"2024-10-04","hour":13,"price":41.2},{"date":"2024-10-04","hour":14,"price":44.5},{"date":"2024-10-04","hour":15,"price":56.3},{"date":"2024-10-04","hour":16,"price":51.5},{"date":"2024-10-04","hour":17,"price":43.2},{"date":"2024-10-04","hour":18,"price":50.8},{"date":"2024-10-04","hour":19,"price":51.2},{"date":"2024-10-04","hour":20,"price":45.4},{"date":"2024-10-04","hour":21,"price":28.4},{"date":"2024-10-04","hour":22,"price":30.1},{"date":"2024-10-04","hour":23,"price":-12.0},{"date":"2024-10-05","hour":0,"price":51.0},{"date":"2024-10-05","hour":1,"price":-19.1},{"date":"2024-10-05","hour":2,"price":33.5},{"date":"2024-10-05","hour":3,"price":41.0},{"date":"2024-10-05","hour":4,"price":28.4},{"date":"2024-10-05","hour":5,"price":42.5},{"date":"2024-10-05","hour":6,"price":43.6},{"date":"2024-10-05","hour":7,"price":29.7},{"date":"2024-10-05","hour":8,"price":35.9},{"date":"2024-10-05","hour":9,"price":31.0},{"date":"2024-10-05","hour":10,"price":35.1},{"date":"2024-10-05","hour":11,"price":55.6},{"date":"2024-10-05","hour":12,"price":50.9},{"date":"2024-10-05","hour":13,"price":62.9},{"date":"2024-10-05","hour":14,"price":57.2},{"date":"2024-10-05","hour":15,"price":45.5},{"date":"2024-10-05","hour":16,"price":41.9},{"date":"2024-10-05","hour":17,"price":35.5},{"date":"2024-10-05","hour":18,"price":60.9},{"date":"2024-10-05","hour":19,"price":30.7},{"date":"2024-10-05","hour":20,"price":42.0},{"date":"2024-10-05","hour":21,"price":32.0},{"date":"2024-10-05","hour":22,"price":24.2},{"date":"2024-10-05","hour":23,"price":3.5},{"date":"2024-10-06","hour":0,"price":35.7},{"date":"2024-10-06","hour":1,"price":-7.3},{"date":"2024-10-06","hour":2,"price":22.1},{"date":"2024-10-06","hour":3,"price":31.1},{"date":"2024-10-06","hour":4,"price":37.9},{"date":"2024-10-06","hour":5,"price":63.8},{"date":"2024-10-06","hour":6,"price":49.0},{"date":"2024-10-06","hour":7,"price":28.1},{"date":"2024-10-06","hour":8,"price":58.3},{"date":"2024-10-06","hour":9,"price":41.0},{"date":"2024-10-06","hour":10,"price":37.2},{"date":"2024-10-06","hour":11,"price":47.8},{"date":"2024-10-06","hour":12,"price":42.3},{"date":"2024-10-06","hour":13,"price":25.6},{"date":"2024-10-06","hour":14,"price":54.5},{"date":"2024-10-06","hour":15,"price":41.8},{"date":"2024-10-06","hour":16,"price":51.8},{"date":"2024-10-06","hour":17,"price":30.8},{"date":"2024-10-06","hour":18,"price":48.0},{"date":"2024-10-06","hour":19,"price":16.8},{"date":"2024-10-06","hour":20,"price":57.4},{"date":"2024-10-06","hour":21,"price":30.6},{"date":"2024-10-06","hour":22,"price":40.7},{"date":"2024-10-06","hour":23,"price":30.1},{"date":"2024-10-07","hour":0,"price":50.8},{"date":"2024-10-07","hour":1,"price":61.0},{"date":"2024-10-07","hour":2,"price":44.8},{"date":"2024-10-07","hour":3,"price":33.2},{"date":"2024-10-07","hour":4,"price":39.5},{"date":"2024-10-07","hour":5,"price":43.5},{"date":"2024-10-07","hour":6,"price":49.6},{"date":"2024-10-07","hour":7,"price":76.1},{"date":"2024-10-07","hour":8,"price":66.5},{"date":"2024-10-07","hour":9,"price":43.5},{"date":"2024-10-07","hour":10,"price":47.7},{"date":"2024-10-07","hour":11,"price":36.3},{"date":"2024-10-07","hour":12,"price":54.1},{"date":"2024-10-07","hour":13,"price":41.4},{"date":"2024-10-07","hour":14,"price":37.6},{"date":"2024-10-07","hour":15,"price":55.3},{"date":"2024-10-07","hour":16,"price":45.3},{"date":"2024-10-07","hour":17,"price":66.7},{"date":"2024-10-07","hour":18,"price":41.9},{"date":"2024-10-07","hour":19,"price":41.8},{"date":"2024-10-07","hour":20,"price":46.7},{"date":"2024-10-07","hour":21,"price":42.0},{"date":"2024-10-07","hour":22,"price":31.9},{"date":"2024-10-07","hour":23,"price":21.1},{"date":"2024-10-08","hour":0,"price":13.9},{"date":"2024-10-08","hour":1,"price":36.4},{"date":"2024-10-08","hour":2,"price":29.1},{"date":"2024-10-08","hour":3,"price":39.9},{"date":"2024-10-08","hour":4,"price":39.6},{"date":"2024-10-08","hour":5,"price":57.3},{"date":"2024-10-08","hour":6,"price":60.4},{"date":"2024-10-08","hour":7,"price":70.1},{"date":"2024-10-08","hour":8,"price":52.1},{"date":"2024-10-08","hour":9,"price":56.9},{"date":"2024-10-08","hour":10,"price":74.3},{"date":"2024-10-08","hour":11,"price":54.5},{"date":"2024-10-08","hour":12,"price":37.4},{"date":"2024-10-08","hour":13,"price":81.0},{"date":"2024-10-08","hour":14,"price":53.6},{"date":"2024-10-08","hour":15,"price":52.1},{"date":"2024-10-08","hour":16,"price":57.2},{"date":"2024-10-08","hour":17,"price":67.4},{"date":"2024-10-08","hour":18,"price":73.3},{"date":"2024-10-08","hour":19,"price":46.3},{"date":"2024-10-08","hour":20,"price":46.1},{"date":"2024-10-08","hour":21,"price":61.0},{"date":"2024-10-08","hour":22,"price":26.1},{"date":"2024-10-08","hour":23,"price":42.1},{"date":"2024-10-09","hour":0,"price":17.2},{"date":"2024-10-09","hour":1,"price":35.4},{"date":"2024-10-09","hour":2,"price":41.2},{"date":"2024-10-09","hour":3,"price":52.3},{"date":"2024-10-09","hour":4,"price":49.6},{"date":"2024-10-09","hour":5,"price":53.2},{"date":"2024-10-09","hour":6,"price":31.0},{"date":"2024-10-09","hour":7,"price":74.3},{"date":"2024-10-09","hour":8,"price":58.3},{"date":"2024-10-09","hour":9,"price":51.1},{"date":"2024-10-09","hour":10,"price":50.7},{"date":"2024-10-09","hour":11,"price":40.2},{"date":"2024-10-09","hour":12,"price":38.5},{"date":"2024-10-09","hour":13,"price":55.4},{"date":"2024-10-09","hour":14,"price":52.7},{"date":"2024-10-09","hour":15,"price":29.6},{"date":"2024-10-09","hour":16,"price":94.6},{"date":"2024-10-09","hour":17,"price":74.6},{"date":"2024-10-09","hour":18,"price":49.9},{"date":"2024-10-09","hour":19,"price":35.4},{"date":"2024-10-09","hour":20,"price":40.1},{"date":"2024-10-09","hour":21,"price":38.2},{"date":"2024-10-09","hour":22,"price":40.0},{"date":"2024-10-09","hour":23,"price":40.9},{"date":"2024-10-10","hour":0,"price":54.0},{"date":"2024-10-10","hour":1,"price":43.7},{"date":"2024-10-10","hour":2,"price":44.1},{"date":"2024-10-10","hour":3,"price":32.3},{"date":"2024-10-10","hour":4,"price":59.0},{"date":"2024-10-10","hour":5,"price":35.4},{"date":"2024-10-10","hour":6,"price":41.8},{"date":"2024-10-10","hour":7,"price":76.4},{"date":"2024-10-10","hour":8,"price":42.4},{"date":"2024-10-10","hour":9,"price":45.7},{"date":"2024-10-10","hour":10,"price":46.2},{"date":"2024-10-10","hour":11,"price":45.5},{"date":"2024-10-10","hour":12,"price":44.0},{"date":"2024-10-10","hour":13,"price":69.3},{"date":"2024-10-10","hour":14,"price":5.4},{"date":"2024-10-10","hour":15,"price":57.4},{"date":"2024-10-10","hour":16,"price":51.2},{"date":"2024-10-10","hour":17,"price":66.3},{"date":"2024-10-10","hour":18,"price":34.7},{"date":"2024-10-10","hour":19,"price":30.8},{"date":"2024-10-10","hour":20,"price":34.3},{"date":"2024-10-10","hour":21,"price":35.5},{"date":"2024-10-10","hour":22,"price":27.6},{"date":"2024-10-10","hour":23,"price":32.2},{"date":"2024-10-11","hour":0,"price":45.3},{"date":"2024-10-11","hour":1,"price":38.0},{"date":"2024-10-11","hour":2,"price":56.0},{"date":"2024-10-11","hour":3,"price":70.2},{"date":"2024-10-11","hour":4,"price":73.9},{"date":"2024-10-11","hour":5,"price":62.3},{"date":"2024-10-11","hour":6,"price":61.6},{"date":"2024-10-11","hour":7,"price":24.7},{"date":"2024-10-11","hour":8,"price":42.9},{"date":"2024-10-11","hour":9,"price":46.3},{"date":"2024-10-11","hour":10,"price":49.7},{"date":"2024-10-11","hour":11,"price":57.7},{"date":"2024-10-11","hour":12,"price":39.2},{"date":"2024-10-11","hour":13,"price":70.1},{"date":"2024-10-11","hour":14,"price":36.4},{"date":"2024-10-11","hour":15,"price":59.4},{"date":"2024-10-11","hour":16,"price":76.1},{"date":"2024-10-11","hour":17,"price":58.8},{"date":"2024-10-11","hour":18,"price":47.8},{"date":"2024-10-11","hour":19,"price":33.0},{"date":"2024-10-11","hour":20,"price":42.0},{"date":"2024-10-11","hour":21,"price":54.7},{"date":"2024-10-11","hour":22,"price":5.0},{"date":"2024-10-11","hour":23,"price":28.6},{"date":"2024-10-12","hour":0,"price":19.1},{"date":"2024-10-12","hour":1,"price":33.5},{"date":"2024-10-12","hour":2,"price":24.6},{"date":"2024-10-12","hour":3,"price":39.7},{"date":"2024-10-12","hour":4,"price":66.8},{"date":"2024-10-12","hour":5,"price":23.2},{"date":"2024-10-12","hour":6,"price":53.0},{"date":"2024-10-12","hour":7,"price":39.9},{"date":"2024-10-12","hour":8,"price":55.4},{"date":"2024-10-12","hour":9,"price":40.6},{"date":"2024-10-12","hour":10,"price":49.1},{"date":"2024-10-12","hour":11,"price":64.0},{"date":"2024-10-12","hour":12,"price":33.1},{"date":"2024-10-12","hour":13,"price":44.3},{"date":"2024-10-12","hour":14,"price":58.1},{"date":"2024-10-12","hour":15,"price":41.2},{"date":"2024-10-12","hour":16,"price":34.7},{"date":"2024-10-12","hour":17,"price":23.7},{"date":"2024-10-12","hour":18,"price":52.6},{"date":"2024-10-12","hour":19,"price":54.7},{"date":"2024-10-12","hour":20,"price":15.4},{"date":"2024-10-12","hour":21,"price":41.5},{"date":"2024-10-12","hour":22,"price":20.5},{"date":"2024-10-12","hour":23,"price":42.9},{"date":"2024-10-13","hour":0,"price":22.8},{"date":"2024-10-13","hour":1,"price":42.0},{"date":"2024-10-13","hour":2,"price":35.3},{"date":"2024-10-13","hour":3,"price":39.0},{"date":"2024-10-13","hour":4,"price":53.0},{"date":"2024-10-13","hour":5,"price":19.9},{"date":"2024-10-13","hour":6,"price":40.8},{"date":"2024-10-13","hour":7,"price":51.6},{"date":"2024-10-13","hour":8,"price":39.2},{"date":"2024-10-13","hour":9,"price":58.1},{"date":"2024-10-13","hour":10,"price":22.5},{"date":"2024-10-13","hour":11,"price":43.7},{"date":"2024-10-13","hour":12,"price":42.7},{"date":"2024-10-13","hour":13,"price":24.6},{"date":"2024-10-13","hour":14,"price":48.6},{"date":"2024-10-13","hour":15,"price":72.0},{"date":"2024-10-13","hour":16,"price":43.0},{"date":"2024-10-13","hour":17,"price":45.2},{"date":"2024-10-13","hour":18,"price":18.9},{"date":"2024-10-13","hour":19,"price":37.4},{"date":"2024-10-13","hour":20,"price":64.3},{"date":"2024-10-13","hour":21,"price":50.8},{"date":"2024-10-13","hour":22,"price":40.9},{"date":"2024-10-13","hour":23,"price":36.0},{"date":"2024-10-14","hour":0,"price":47.9},{"date":"2024-10-14","hour":1,"price":55.4},{"date":"2024-10-14","hour":2,"price":52.6},{"date":"2024-10-14","hour":3,"price":45.1},{"date":"2024-10-14","hour":4,"price":45.3},{"date":"2024-10-14","hour":5,"price":58.6},{"date":"2024-10-14","hour":6,"price":77.3},{"date":"2024-10-14","hour":7,"price":69.2},{"date":"2024-10-14","hour":8,"price":55.0},{"date":"2024-10-14","hour":9,"price":37.2},{"date":"2024-10-14","hour":10,"price":72.7},{"date":"2024-10-14","hour":11,"price":33.2},{"date":"2024-10-14","hour":12,"price":47.3},{"date":"2024-10-14","hour":13,"price":75.7},{"date":"2024-10-14","hour":14,"price":42.6},{"date":"2024-10-14","hour":15,"price":39.3},{"date":"2024-10-14","hour":16,"price":37.3},{"date":"2024-10-14","hour":17,"price":55.1},{"date":"2024-10-14","hour":18,"price":47.7},{"date":"2024-10-14","hour":19,"price":50.4},{"date":"2024-10-14","hour":20,"price":46.1},{"date":"2024-10-14","hour":21,"price":44.0},{"date":"2024-10-14","hour":22,"price":27.6},{"date":"2024-10-14","hour":23,"price":27.0},{"date":"2024-10-15","hour":0,"price":19.3},{"date":"2024-10-15","hour":1,"price":27.8},{"date":"2024-10-15","hour":2,"price":61.2},{"date":"2024-10-15","hour":3,"price":56.5},{"date":"2024-10-15","hour":4,"price":87.6},{"date":"2024-10-15","hour":5,"price":47.8},{"date":"2024-10-15","hour":6,"price":56.8},{"date":"2024-10-15","hour":7,"price":53.0},{"date":"2024-10-15","hour":8,"price":34.7},{"date":"2024-10-15","hour":9,"price":33.3},{"date":"2024-10-15","hour":10,"price":45.3},{"date":"2024-10-15","hour":11,"price":49.1},{"date":"2024-10-15","hour":12,"price":34.2},{"date":"2024-10-15","hour":13,"price":38.5},{"date":"2024-10-15","hour":14,"price":56.8},{"date":"2024-10-15","hour":15,"price":56.4},{"date":"2024-10-15","hour":16,"price":28.4},{"date":"2024-10-15","hour":17,"price":65.6},{"date":"2024-10-15","hour":18,"price":78.5},{"date":"2024-10-15","hour":19,"price":65.3},{"date":"2024-10-15","hour":20,"price":45.8},{"date":"2024-10-15","hour":21,"price":38.8},{"date":"2024-10-15","hour":22,"price":39.7},{"date":"2024-10-15","hour":23,"price":50.2}],"dispatch":[{"dt":"2024-10-02T00:00","price":30.0,"charge":0.111,"discharge":0.0,"soc":1.0},{"dt":"2024-10-02T01:00","price":19.9,"charge":1.0,"discharge":0.0,"soc":1.1},{"dt":"2024-10-02T02:00","price":41.8,"charge":-0.0,"discharge":0.0,"soc":2.0},{"dt":"2024-10-02T03:00","price":56.8,"charge":0.0,"discharge":1.0,"soc":2.0},{"dt":"2024-10-02T04:00","price":10.9,"charge":1.0,"discharge":0.0,"soc":1.0},{"dt":"2024-10-02T05:00","price":46.8,"charge":0.111,"discharge":0.0,"soc":1.9},{"dt":"2024-10-02T06:00","price":57.6,"charge":0.0,"discharge":0.0,"soc":2.0},{"dt":"2024-10-02T07:00","price":70.7,"charge":0.0,"discharge":1.0,"soc":2.0},{"dt":"2024-10-02T08:00","price":65.6,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2024-10-02T09:00","price":58.8,"charge":0.0,"discharge":0.0,"soc":-0.0},{"dt":"2024-10-02T10:00","price":62.1,"charge":0.0,"discharge":-0.0,"soc":-0.0},{"dt":"2024-10-02T11:00","price":48.8,"charge":1.0,"discharge":0.0,"soc":0.0},{"dt":"2024-10-02T12:00","price":57.3,"charge":0.0,"discharge":0.8,"soc":0.9},{"dt":"2024-10-02T13:00","price":54.0,"charge":0.0,"discharge":0.0,"soc":0.1},{"dt":"2024-10-02T14:00","price":57.2,"charge":0.0,"discharge":0.0,"soc":0.1},{"dt":"2024-10-02T15:00","price":45.4,"charge":1.0,"discharge":0.0,"soc":0.1},{"dt":"2024-10-02T16:00","price":57.8,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2024-10-02T17:00","price":49.5,"charge":1.0,"discharge":0.0,"soc":0.0},{"dt":"2024-10-02T18:00","price":55.9,"charge":0.0,"discharge":0.9,"soc":0.9},{"dt":"2024-10-02T19:00","price":44.1,"charge":-0.0,"discharge":0.0,"soc":0.0},{"dt":"2024-10-02T20:00","price":36.9,"charge":0.0,"discharge":0.0,"soc":0.0},{"dt":"2024-10-02T21:00","price":15.5,"charge":1.0,"discharge":0.0,"soc":-0.0},{"dt":"2024-10-02T22:00","price":38.0,"charge":0.0,"discharge":0.9,"soc":0.9},{"dt":"2024-10-02T23:00","price":40.3,"charge":0.0,"discharge":1.0,"soc":0.0},{"dt":"2024-10-03T00:00","price":16.6,"charge":1.0,"discharge":0.0,"soc":-0.0},{"dt":"2024-10-03T01:00","price":36.6,"charge":1.0,"discharge":0.0,"soc":0.9},{"dt":"2024-10-03T02:00","price":55.3,"charge":0.0,"discharge":0.7,"soc":1.8},{"dt":"2024-10-03T03:00","price":39.4,"charge":1.0,"discharge":0.0,"soc":1.1},{"dt":"2024-10-03T04:00","price":55.2,"charge":0.0,"discharge":0.0,"soc":2.0},{"dt":"2024-10-03T05:00","price":56.4,"charge":0.0,"discharge":1.0,"soc":2.0},{"dt":"2024-10-03T06:00","price":55.4,"charge":0.0,"discharge":0.0,"soc":1.0},{"dt":"2024-10-03T07:00","price":46.9,"charge":1.0,"discharge":0.0,"soc":1.0},{"dt":"2024-10-03T08:00","price":54.0,"charge":0.0,"discharge":0.0,"soc":1.9},{"dt":"2024-10-03T09:00","price":50.8,"charge":0.0,"discharge":0.0,"soc":1.9},{"dt":"2024-10-03T10:00","price":51.4,"charge":0.0,"discharge":0.0,"soc":1.9},{"dt":"2024-10-03T11:00","price":55.7,"charge":0.0,"discharge":0.8,"soc":1.9},{"dt":"2024-10-03T12:00","price":38.4,"charge":1.0,"discharge":0.0,"soc":1.1},{"dt":"2024-10-03T13:00","price":59.5,"charge":0.0,"discharge":0.9,"soc":2.0},{"dt":"2024-10-03T14:00","price":56.9,"charge":0.0,"discharge":0.0,"soc":1.1},{"dt":"2024-10-03T15:00","price":69.5,"charge":0.0,"discharge":1.0,"soc":1.1},{"dt":"2024-10-03T16:00","price":38.3,"charge":1.0,"discharge":0.0,"soc":0.1},{"dt":"2024-10-03T17:00","price":60.2,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2024-10-03T18:00","price":52.7,"charge":-0.0,"discharge":0.0,"soc":0.0},{"dt":"2024-10-03T19:00","price":49.4,"charge":0.111,"discharge":0.0,"soc":0.0},{"dt":"2024-10-03T20:00","price":52.0,"charge":0.0,"discharge":0.0,"soc":0.1},{"dt":"2024-10-03T21:00","price":15.4,"charge":1.0,"discharge":0.0,"soc":0.1},{"dt":"2024-10-03T22:00","price":62.5,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2024-10-03T23:00","price":36.1,"charge":0.0,"discharge":1.0,"soc":0.0},{"dt":"2024-10-04T00:00","price":46.5,"charge":-0.0,"discharge":0.0,"soc":-0.0},{"dt":"2024-10-04T01:00","price":40.9,"charge":0.222,"discharge":0.0,"soc":0.0},{"dt":"2024-10-04T02:00","price":13.8,"charge":1.0,"discharge":0.0,"soc":0.2},{"dt":"2024-10-04T03:00","price":26.9,"charge":1.0,"discharge":0.0,"soc":1.1},{"dt":"2024-10-04T04:00","price":43.1,"charge":0.0,"discharge":0.0,"soc":2.0},{"dt":"2024-10-04T05:00","price":46.6,"charge":0.0,"discharge":0.8,"soc":2.0},{"dt":"2024-10-04T06:00","price":53.6,"charge":0.0,"discharge":1.0,"soc":1.2},{"dt":"2024-10-04T07:00","price":37.5,"charge":1.0,"discharge":0.0,"soc":0.2},{"dt":"2024-10-04T08:00","price":45.1,"charge":0.0,"discharge":0.0,"soc":1.1},{"dt":"2024-10-04T09:00","price":9.9,"charge":1.0,"discharge":0.0,"soc":1.1},{"dt":"2024-10-04T10:00","price":48.8,"charge":0.0,"discharge":0.8,"soc":2.0},{"dt":"2024-10-04T11:00","price":66.2,"charge":0.0,"discharge":1.0,"soc":1.2},{"dt":"2024-10-04T12:00","price":29.6,"charge":1.0,"discharge":0.0,"soc":0.2},{"dt":"2024-10-04T13:00","price":41.2,"charge":1.0,"discharge":0.0,"soc":1.1},{"dt":"2024-10-04T14:00","price":44.5,"charge":0.0,"discharge":0.0,"soc":2.0},{"dt":"2024-10-04T15:00","price":56.3,"charge":0.0,"discharge":1.0,"soc":2.0},{"dt":"2024-10-04T16:00","price":51.5,"charge":0.0,"discharge":1.0,"soc":1.0},{"dt":"2024-10-04T17:00","price":43.2,"charge":1.0,"discharge":0.0,"soc":-0.0},{"dt":"2024-10-04T18:00","price":50.8,"charge":0.0,"discharge":0.0,"soc":0.9},{"dt":"2024-10-04T19:00","price":51.2,"charge":0.0,"discharge":0.9,"soc":0.9},{"dt":"2024-10-04T20:00","price":45.4,"charge":0.0,"discharge":-0.0,"soc":0.0},{"dt":"2024-10-04T21:00","price":28.4,"charge":0.0,"discharge":0.0,"soc":0.0},{"dt":"2024-10-04T22:00","price":30.1,"charge":0.0,"discharge":-0.0,"soc":-0.0},{"dt":"2024-10-04T23:00","price":-12.0,"charge":1.0,"discharge":0.0,"soc":0.0}],"revenue":[{"day":1,"date":"2024-10-02","oracle":223.0,"naive":101.0},{"day":2,"date":"2024-10-03","oracle":407.0,"naive":175.0},{"day":3,"date":"2024-10-04","oracle":558.0,"naive":176.0},{"day":4,"date":"2024-10-05","oracle":759.0,"naive":188.0},{"day":5,"date":"2024-10-06","oracle":996.0,"naive":314.0},{"day":6,"date":"2024-10-07","oracle":1128.0,"naive":342.0},{"day":7,"date":"2024-10-08","oracle":1336.0,"naive":479.0},{"day":8,"date":"2024-10-09","oracle":1565.0,"naive":569.0},{"day":9,"date":"2024-10-10","oracle":1744.0,"naive":601.0},{"day":10,"date":"2024-10-11","oracle":1936.0,"naive":657.0},{"day":11,"date":"2024-10-12","oracle":2180.0,"naive":726.0},{"day":12,"date":"2024-10-13","oracle":2402.0,"naive":739.0},{"day":13,"date":"2024-10-14","oracle":2562.0,"naive":755.0},{"day":14,"date":"2024-10-15","oracle":2807.0,"naive":871.0},{"day":15,"date":"2024-10-16","oracle":2941.0,"naive":909.0},{"day":16,"date":"2024-10-17","oracle":3072.0,"naive":948.0},{"day":17,"date":"2024-10-18","oracle":3341.0,"naive":1039.0},{"day":18,"date":"2024-10-19","oracle":3951.0,"naive":1034.0},{"day":19,"date":"2024-10-20","oracle":4247.0,"naive":1092.0},{"day":20,"date":"2024-10-21","oracle":4398.0,"naive":1171.0},{"day":21,"date":"2024-10-22","oracle":4598.0,"naive":1291.0},{"day":22,"date":"2024-10-23","oracle":4725.0,"naive":1303.0},{"day":23,"date":"2024-10-24","oracle":4873.0,"naive":1370.0},{"day":24,"date":"2024-10-25","oracle":5071.0,"naive":1457.0},{"day":25,"date":"2024-10-26","oracle":5301.0,"naive":1618.0},{"day":26,"date":"2024-10-27","oracle":5543.0,"naive":1716.0},{"day":27,"date":"2024-10-28","oracle":5800.0,"naive":1914.0},{"day":28,"date":"2024-10-29","oracle":6366.0,"naive":1826.0},{"day":29,"date":"2024-10-30","oracle":6570.0,"naive":1854.0},{"day":30,"date":"2024-10-31","oracle":6732.0,"naive":1913.0},{"day":31,"date":"2024-11-01","oracle":6894.0,"naive":1970.0},{"day":32,"date":"2024-11-02","oracle":7098.0,"naive":2007.0},{"day":33,"date":"2024-11-03","oracle":7324.0,"naive":2082.0},{"day":34,"date":"2024-11-04","oracle":7526.0,"naive":2167.0},{"day":35,"date":"2024-11-05","oracle":7673.0,"naive":2215.0},{"day":36,"date":"2024-11-06","oracle":7890.0,"naive":2343.0},{"day":37,"date":"2024-11-07","oracle":8195.0,"naive":2464.0},{"day":38,"date":"2024-11-08","oracle":8371.0,"naive":2559.0},{"day":39,"date":"2024-11-09","oracle":8522.0,"naive":2646.0},{"day":40,"date":"2024-11-10","oracle":8701.0,"naive":2698.0},{"day":41,"date":"2024-11-11","oracle":8871.0,"naive":2769.0},{"day":42,"date":"2024-11-12","oracle":9062.0,"naive":2851.0},{"day":43,"date":"2024-11-13","oracle":9249.0,"naive":2950.0},{"day":44,"date":"2024-11-14","oracle":9413.0,"naive":3013.0},{"day":45,"date":"2024-11-15","oracle":9617.0,"naive":3001.0},{"day":46,"date":"2024-11-16","oracle":9869.0,"naive":3008.0},{"day":47,"date":"2024-11-17","oracle":10070.0,"naive":3111.0},{"day":48,"date":"2024-11-18","oracle":10237.0,"naive":3232.0},{"day":49,"date":"2024-11-19","oracle":10453.0,"naive":3295.0},{"day":50,"date":"2024-11-20","oracle":10597.0,"naive":3376.0},{"day":51,"date":"2024-11-21","oracle":10782.0,"naive":3456.0},{"day":52,"date":"2024-11-22","oracle":10987.0,"naive":3527.0},{"day":53,"date":"2024-11-23","oracle":11214.0,"naive":3617.0},{"day":54,"date":"2024-11-24","oracle":11466.0,"naive":3755.0},{"day":55,"date":"2024-11-25","oracle":11608.0,"naive":3792.0},{"day":56,"date":"2024-11-26","oracle":11784.0,"naive":3852.0},{"day":57,"date":"2024-11-27","oracle":11978.0,"naive":3941.0},{"day":58,"date":"2024-11-28","oracle":12147.0,"naive":3949.0},{"day":59,"date":"2024-11-29","oracle":12322.0,"naive":3992.0},{"day":60,"date":"2024-11-30","oracle":12567.0,"naive":4057.0}],"clock":[{"hour":0,"sensitivity":0.967,"impact":11.9},{"hour":1,"sensitivity":0.917,"impact":14.7},{"hour":2,"sensitivity":0.983,"impact":17.4},{"hour":3,"sensitivity":0.967,"impact":19.4},{"hour":4,"sensitivity":0.983,"impact":21.0},{"hour":5,"sensitivity":0.983,"impact":23.0},{"hour":6,"sensitivity":0.983,"impact":20.3},{"hour":7,"sensitivity":0.983,"impact":22.1},{"hour":8,"sensitivity":0.95,"impact":18.9},{"hour":9,"sensitivity":0.983,"impact":22.0},{"hour":10,"sensitivity":0.983,"impact":19.4},{"hour":11,"sensitivity":0.983,"impact":20.9},{"hour":12,"sensitivity":0.983,"impact":19.0},{"hour":13,"sensitivity":0.983,"impact":19.4},{"hour":14,"sensitivity":0.983,"impact":20.1},{"hour":15,"sensitivity":0.983,"impact":20.3},{"hour":16,"sensitivity":0.983,"impact":19.7},{"hour":17,"sensitivity":0.983,"impact":20.8},{"hour":18,"sensitivity":0.983,"impact":19.9},{"hour":19,"sensitivity":1.0,"impact":18.2},{"hour":20,"sensitivity":0.983,"impact":18.8},{"hour":21,"sensitivity":1.0,"impact":18.3},{"hour":22,"sensitivity":0.717,"impact":10.5},{"hour":23,"sensitivity":0.0,"impact":0.0}],"scatter":[{"date":"2024-10-02","mae":11.0,"revenue":101.0},{"date":"2024-10-03","mae":9.4,"revenue":73.0},{"date":"2024-10-04","mae":9.5,"revenue":2.0},{"date":"2024-10-05","mae":10.5,"revenue":12.0},{"date":"2024-10-06","mae":10.0,"revenue":126.0},{"date":"2024-10-07","mae":8.8,"revenue":28.0},{"date":"2024-10-08","mae":11.4,"revenue":137.0},{"date":"2024-10-09","mae":10.2,"revenue":90.0},{"date":"2024-10-10","mae":10.1,"revenue":32.0},{"date":"2024-10-11","mae":12.3,"revenue":56.0},{"date":"2024-10-12","mae":11.0,"revenue":69.0},{"date":"2024-10-13","mae":10.5,"revenue":13.0},{"date":"2024-10-14","mae":12.0,"revenue":16.0},{"date":"2024-10-15","mae":12.2,"revenue":115.0},{"date":"2024-10-16","mae":8.6,"revenue":39.0},{"date":"2024-10-17","mae":7.3,"revenue":39.0},{"date":"2024-10-18","mae":13.3,"revenue":91.0},{"date":"2024-10-19","mae":45.1,"revenue":-5.0},{"date":"2024-10-20","mae":21.9,"revenue":58.0},{"date":"2024-10-21","mae":6.7,"revenue":78.0},{"date":"2024-10-22","mae":10.4,"revenue":120.0},{"date":"2024-10-23","mae":12.4,"revenue":12.0},{"date":"2024-10-24","mae":9.5,"revenue":67.0},{"date":"2024-10-25","mae":12.1,"revenue":87.0},{"date":"2024-10-26","mae":9.7,"revenue":161.0},{"date":"2024-10-27","mae":9.6,"revenue":98.0},{"date":"2024-10-28","mae":14.1,"revenue":197.0},{"date":"2024-10-29","mae":53.9,"revenue":-88.0},{"date":"2024-10-30","mae":20.2,"revenue":28.0},{"date":"2024-10-31","mae":8.8,"revenue":59.0},{"date":"2024-11-01","mae":8.9,"revenue":57.0},{"date":"2024-11-02","mae":11.8,"revenue":37.0},{"date":"2024-11-03","mae":10.3,"revenue":75.0},{"date":"2024-11-04","mae":10.3,"revenue":84.0},{"date":"2024-11-05","mae":10.4,"revenue":48.0},{"date":"2024-11-06","mae":11.1,"revenue":128.0},{"date":"2024-11-07","mae":13.3,"revenue":121.0},{"date":"2024-11-08","mae":10.1,"revenue":96.0},{"date":"2024-11-09","mae":7.8,"revenue":86.0},{"date":"2024-11-10","mae":11.6,"revenue":53.0},{"date":"2024-11-11","mae":9.6,"revenue":71.0},{"date":"2024-11-12","mae":10.1,"revenue":82.0},{"date":"2024-11-13","mae":11.1,"revenue":99.0},{"date":"2024-11-14","mae":8.2,"revenue":63.0},{"date":"2024-11-15","mae":13.4,"revenue":-12.0},{"date":"2024-11-16","mae":12.7,"revenue":8.0},{"date":"2024-11-17","mae":10.1,"revenue":102.0},{"date":"2024-11-18","mae":9.0,"revenue":121.0},{"date":"2024-11-19","mae":11.1,"revenue":63.0},{"date":"2024-11-20","mae":7.1,"revenue":82.0},{"date":"2024-11-21","mae":8.4,"revenue":80.0},{"date":"2024-11-22","mae":11.1,"revenue":71.0},{"date":"2024-11-23","mae":11.7,"revenue":90.0},{"date":"2024-11-24","mae":12.5,"revenue":137.0},{"date":"2024-11-25","mae":9.1,"revenue":37.0},{"date":"2024-11-26","mae":10.0,"revenue":60.0},{"date":"2024-11-27","mae":9.2,"revenue":90.0},{"date":"2024-11-28","mae":10.0,"revenue":8.0},{"date":"2024-11-29","mae":11.6,"revenue":43.0},{"date":"2024-11-30","mae":11.8,"revenue":65.0}],"spo":[{"model":"Oracle","mae":0.0,"revenue":12567.0,"pct":100.0},{"model":"Standard XGBoost","mae":13.5,"revenue":2635.0,"pct":21.0},{"model":"Regret-weighted","mae":13.5,"revenue":2836.0,"pct":22.6},{"model":"SPO+ gradient","mae":13.5,"revenue":2489.0,"pct":19.8}],"ols":{"slope":-2.84,"intercept":102.0,"r":-0.452,"p":0.0},"stats":{"oracle":12567,"naive":4057,"gap":8510,"gap_pct":67.7,"sens_pct":92.7,"mae":12.1}};
+const {meta,heatmap,dispatch,revenue,clock,scatter,spo,ols,stats} = DATA;
+
+// ── Data source badge ────────────────────────────────────────────────────────
+(function(){
+  const b = document.getElementById("data-badge");
+  const dot = document.createElement("div");
+  dot.className = "pulse" + (meta.live ? "" : " synth");
+  b.appendChild(dot);
+  const label = document.createElement("span");
+  label.textContent = meta.live
+    ? `Live ENTSO-E · ${meta.start} – ${meta.end}`
+    : "Synthetic data · run entsoe_fetch_rich.py for live";
+  b.appendChild(label);
+})();
 const fmt = d3.format(",.0f");
 const fmtE = v => "€"+fmt(v);
 const $ = id => document.getElementById(id);
@@ -294,200 +309,254 @@ const priceColor = d3.scaleLinear()
   .range(["#6D28D9","#F7F4EE","#FCD34D","#D4540A","#7F1D1D"]).clamp(true);
 
 // ════════════════════════════════════════════════════════════════════
-// SIMULATION — battery + price strip story
+// SIMULATION — price bar chart + SOC curve story
 // ════════════════════════════════════════════════════════════════════
 (function initSim(){
   const simDay = dispatch.slice(0,24);
-  const W = Math.max(520, Math.min($("sim-viz").clientWidth||960, 1400));
-  const H = 260;
-  const svg = d3.select($("sim-viz")).append("svg")
-    .attr("width",W).attr("height",H).style("display","block");
+  const BATT_W = 110, GAP = 20;
+  const W = Math.min($("sim-svg-wrap").clientWidth||960, 960);
+  const H = 270;
+  const m = {t:38, r:8, b:50, l:46};
+  const chartW = W - BATT_W - GAP;
+  const iW = chartW - m.l - m.r, iH = H - m.t - m.b;
+  const bw = iW / 24, bp = 2;
 
-  // ── Layout ────────────────────────────────────────────────────────
-  const BG_W = Math.min(140, Math.floor(W*0.14));  // battery column
-  const GAP   = 36;
-  const SX    = BG_W + GAP;                         // strip x
-  const SW    = W - SX - 8;                         // strip width
-  const SH    = 170;
-  const SY    = (H - SH) / 2 - 8;
-  // Battery body centred in BG_W
-  const BW = 44, BH = 150;
-  const BX = Math.floor((BG_W - BW) / 2);
-  const BY = Math.floor((H - BH) / 2);
+  const svg = d3.select("#sim-svg-wrap").append("svg").attr("width",W).attr("height",H);
+  const g   = svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
 
-  // ── Battery icon ──────────────────────────────────────────────────
-  svg.append("rect")                                 // body outline
-    .attr("x",BX).attr("y",BY)
-    .attr("width",BW).attr("height",BH)
-    .attr("rx",6).attr("fill","none")
-    .attr("stroke","#C7C0B8").attr("stroke-width",2);
-  svg.append("rect")                                 // terminal nub
-    .attr("x",BX+BW/2-10).attr("y",BY-9)
-    .attr("width",20).attr("height",10)
-    .attr("rx",3).attr("fill","#C7C0B8");
+  // ── Price scales — zero line proportional to actual range ──────────
+  const prices = simDay.map(d => d.price);
+  const maxP = d3.max(prices), minP = d3.min(prices);
+  const hasNeg = minP < -1;
+  // Allocate vertical space proportionally: positive range above zero, negative below
+  const topRange = maxP * 1.10;
+  const botRange = hasNeg ? Math.abs(minP) * 1.15 : topRange * 0.08;
+  const zeroY = iH * topRange / (topRange + botRange);  // zero line from top
+  const pY = v => v >= 0
+    ? zeroY - (v / topRange) * zeroY
+    : zeroY + (Math.abs(v) / botRange) * (iH - zeroY);
+  const socYS = d3.scaleLinear().domain([0,2]).range([zeroY * 0.90, 5]);
 
-  const fillBar = svg.append("rect")                 // dynamic fill
-    .attr("x",BX+3).attr("y",BY+BH-3)
-    .attr("width",BW-6).attr("height",0).attr("rx",4)
-    .attr("fill","#1B5E96");
-
-  const pctTxt = svg.append("text")
-    .attr("x",BX+BW/2).attr("y",BY+BH/2-5).attr("text-anchor","middle")
-    .style("font-family","'Playfair Display',serif")
-    .style("font-size","17px").style("font-weight","700")
-    .style("fill","#1C1917").text("50%");
-  const mwhTxt = svg.append("text")
-    .attr("x",BX+BW/2).attr("y",BY+BH/2+13).attr("text-anchor","middle")
-    .style("font-size","10px").style("fill","#78716C").text("1.0 MWh");
-  svg.append("text")
-    .attr("x",BX+BW/2).attr("y",BY+BH+18).attr("text-anchor","middle")
-    .style("font-size","9px").style("font-weight","700")
-    .style("letter-spacing","0.14em").style("fill","#A8A29E").text("BATTERY");
-
-  // ── Price strip ───────────────────────────────────────────────────
-  const prices  = simDay.map(d=>d.price);
-  const yDomain = Math.max(Math.abs(d3.min(prices)), d3.max(prices)) * 1.1;
-  const yS      = d3.scaleLinear().domain([-yDomain, yDomain]).range([SY+SH, SY]);
-  const zY      = yS(0);
-  const rawBW   = SW / 24;
-  const bW      = Math.max(4, rawBW - 3);
-
-  // Zero line
-  svg.append("line")
-    .attr("x1",SX).attr("x2",SX+SW).attr("y1",zY).attr("y2",zY)
-    .attr("stroke","#C7C0B8").attr("stroke-width",1);
-  svg.append("text").attr("x",SX-6).attr("y",zY+4).attr("text-anchor","end")
-    .style("font-size","9px").style("fill","#A8A29E").text("0");
-
-  // Colour scale for bars
-  const barCol = d3.scaleLinear()
-    .domain([d3.min(prices), 0, d3.max(prices)*0.45, d3.max(prices)])
-    .range(["#6D28D9","#E0DAD2","#FCD34D","#D4540A"]).clamp(true);
-
-  const bars = svg.selectAll("rect.sb").data(simDay).join("rect").attr("class","sb")
-    .attr("x",(_, i)=>SX + i*rawBW + (rawBW-bW)/2)
-    .attr("y",d => d.price>=0 ? yS(d.price) : zY)
-    .attr("width",bW)
-    .attr("height",d => Math.abs(yS(d.price)-zY))
-    .attr("fill",d=>barCol(d.price)).attr("rx",2).attr("opacity",0.5);
-
-  // Current-hour highlight box
-  const hlBox = svg.insert("rect","rect.sb")
-    .attr("y",SY-8).attr("height",SH+16).attr("width",rawBW+2).attr("rx",4)
-    .attr("fill","#D4540A").attr("opacity",0);
-
-  // Price callout label
-  const callout = svg.append("text").attr("text-anchor","middle")
-    .style("font-size","11px").style("font-weight","600").style("fill","#1C1917");
-
-  // Hour axis
-  [0,6,12,18,23].forEach(h=>{
-    svg.append("text")
-      .attr("x", SX+h*rawBW+rawBW/2).attr("y", SY+SH+16)
-      .attr("text-anchor","middle").style("font-size","10px").style("fill","#A8A29E")
-      .text(h===0?"midnight":h===12?"noon":h+"h");
+  // ── Column tints for charge / sell hours ───────────────────────────
+  simDay.forEach((d,i) => {
+    const isChg = d.charge>0.05, isDis = d.discharge>0.05;
+    if (!isChg && !isDis) return;
+    g.append("rect").attr("x",i*bw).attr("y",0).attr("width",bw).attr("height",iH)
+      .attr("fill", d.price<0?"rgba(109,40,217,.08)":isChg?"rgba(27,94,150,.08)":"rgba(212,84,10,.08)");
   });
-  svg.append("text")
-    .attr("x",SX+SW/2).attr("y",SY-18).attr("text-anchor","middle")
-    .style("font-size","9px").style("fill","#A8A29E").style("letter-spacing","0.12em")
-    .text("ELECTRICITY PRICE EACH HOUR (€/MWh)  ·  purple = negative price");
 
-  // ── Step function ─────────────────────────────────────────────────
-  let cumRev=0, curH=0;
+  // ── Zero line ──────────────────────────────────────────────────────
+  g.append("line").attr("x1",-4).attr("x2",iW).attr("y1",zeroY).attr("y2",zeroY)
+    .attr("stroke","#DDD8CE").attr("stroke-width",1);
+  g.append("text").attr("x",-8).attr("y",zeroY+4).attr("text-anchor","end")
+    .style("font-size","9px").style("fill","#B0A89E").text("0€");
 
-  function stepHour(h){
-    const D    = simDay[h];
-    const soc  = Math.max(0, Math.min(2, D.soc));
-    const pct  = Math.round(soc/2*100);
-    const isNeg= D.price < 0;
-    const isChg= D.charge > 0.05;
-    const isDis= D.discharge > 0.05;
+  // ── Price bars ─────────────────────────────────────────────────────
+  const bars = g.selectAll("rect.pb").data(simDay).join("rect").attr("class","pb")
+    .attr("x",(d,i)=>i*bw+bp).attr("width",bw-bp*2)
+    .attr("y",d=>pY(Math.max(0,d.price)))
+    .attr("height",d=>Math.max(2,Math.abs(pY(d.price)-zeroY)))
+    .attr("fill",d=>priceColor(d.price)).attr("rx",2).attr("opacity",0.25);
 
-    // Battery fill + colour
-    const fc = isNeg?"#6D28D9":isDis?"#D4540A":"#1B5E96";
-    fillBar.transition().duration(350).ease(d3.easeQuadOut)
-      .attr("y",  BY+BH-3-(BH-6)*(soc/2))
-      .attr("height",(BH-6)*(soc/2))
-      .attr("fill",fc);
-    pctTxt.text(pct+"%").style("fill", pct>55?"#fff":"#1C1917");
-    mwhTxt.text(soc.toFixed(1)+" MWh").style("fill", pct>55?"rgba(255,255,255,.7)":"#78716C");
+  // ── Plan arrows above action bars (visible from start) ─────────────
+  simDay.forEach((d,i) => {
+    const isChg = d.charge>0.05, isDis = d.discharge>0.05;
+    if (!isChg && !isDis) return;
+    g.append("text").attr("x",i*bw+bw/2).attr("y",-5).attr("text-anchor","middle")
+      .style("font-size","9px").attr("opacity",.4)
+      .style("fill",d.price<0?"#9B6FD4":isChg?"#1B5E96":"#D4540A")
+      .text(isChg?"↓":"↑");
+  });
 
-    // Bars: dim all, brighten current
-    bars.attr("opacity",(_, i)=>i===h?1:0.38)
-        .attr("stroke",(_, i)=>i===h?"#1C1917":"none").attr("stroke-width",1.5);
-    hlBox.transition().duration(220)
-      .attr("x",SX+h*rawBW-1).attr("opacity",0.07);
-    const labelY = D.price>=0 ? yS(D.price)-7 : zY+Math.abs(yS(D.price)-zY)+15;
-    callout.attr("x",SX+h*rawBW+rawBW/2).attr("y",labelY)
-      .text((D.price>=0?"+":"")+D.price.toFixed(0));
+  // ── Hour axis ──────────────────────────────────────────────────────
+  [0,3,6,9,12,15,18,21].forEach(h => {
+    g.append("line").attr("x1",h*bw+bw/2).attr("x2",h*bw+bw/2)
+      .attr("y1",iH+1).attr("y2",iH+6).attr("stroke","#D6D0C8").attr("stroke-width",1);
+    g.append("text").attr("x",h*bw+bw/2).attr("y",iH+18).attr("text-anchor","middle")
+      .style("font-size","10px").style("fill","#A8A29E")
+      .text(h===0?"midnight":h===12?"noon":h+":00");
+  });
 
-    // Narrative
-    let action, narr, col;
-    if(isChg && isNeg){
-      action="⬇ Charging — Grid is paying us";
-      narr=`Wind farms are overproducing. Prices went negative: ${D.price.toFixed(0)} €/MWh. The grid pays us ${Math.abs(D.price).toFixed(0)} € per MWh to absorb the surplus — so we charge the battery for free and collect the payment.`;
-      col="#6D28D9";
-    } else if(isChg){
-      action="⬇ Charging — Buying cheap";
-      narr=`Price is ${D.price.toFixed(0)} €/MWh — well below today's peak. We buy electricity and store it. The plan: sell it back when prices spike later.`;
-      col="#1B5E96";
-    } else if(isDis){
-      const earned=(D.price*D.discharge).toFixed(0);
-      action="↑ Selling — Cashing in";
-      narr=`Demand has spiked to ${D.price.toFixed(0)} €/MWh. We release ${D.discharge.toFixed(1)} MW of stored energy and earn €${earned} this hour. This is the payoff for charging cheaply earlier.`;
-      col="#D4540A";
+  // ── SOC curve (drawn progressively) ───────────────────────────────
+  const socLineF  = d3.line().x(d=>d.x).y(d=>socYS(d.soc)).curve(d3.curveCatmullRom.alpha(0.5));
+  const socAreaFn = d3.area().x(d=>d.x).y0(d=>zeroY*0.92).y1(d=>socYS(d.soc)).curve(d3.curveCatmullRom.alpha(0.5));
+  const socPath = g.append("path").attr("fill","none").attr("stroke","#1B5E96").attr("stroke-width",2).attr("opacity",.55);
+  const socFill = g.append("path").attr("fill","rgba(27,94,150,.07)").attr("stroke","none");
+
+  // ── Current-hour cursor ────────────────────────────────────────────
+  const cursor = g.append("g").attr("opacity",0);
+  cursor.append("line").attr("class","cl").attr("y1",-m.t+8).attr("y2",iH)
+    .attr("stroke","#1C1917").attr("stroke-width",1.5).attr("opacity",.35);
+  cursor.append("rect").attr("class","cb").attr("width",38).attr("height",17).attr("rx",4)
+    .attr("fill","#1C1917").attr("opacity",.85);
+  cursor.append("text").attr("class","ct").attr("text-anchor","middle").attr("y",-m.t+18)
+    .style("font-size","10px").style("font-weight","700").style("fill","#fff");
+  const actIcon  = g.append("text").attr("text-anchor","middle").style("font-size","16px").attr("opacity",0);
+  const actPrice = g.append("text").attr("text-anchor","middle").style("font-size","11px").style("font-weight","600").attr("opacity",0);
+
+  // ── Battery panel (right side) ─────────────────────────────────────
+  const bpX = chartW + GAP;  // battery panel origin x
+  const BW=54, BH=iH+4;
+  const BX=(BATT_W-BW)/2, BY=m.t-2;
+  const bp2 = svg.append("g").attr("transform",`translate(${bpX},0)`);
+
+  // Terminal nub
+  bp2.append("rect").attr("x",BX+BW/2-11).attr("y",BY-8)
+    .attr("width",22).attr("height",9).attr("rx",3).attr("fill","#C7C0B8");
+  // Outer body
+  bp2.append("rect").attr("x",BX).attr("y",BY).attr("width",BW).attr("height",BH)
+    .attr("rx",6).attr("fill","none").attr("stroke","#C7C0B8").attr("stroke-width",2);
+  // Background fill track
+  bp2.append("rect").attr("x",BX+3).attr("y",BY+3).attr("width",BW-6).attr("height",BH-6)
+    .attr("rx",4).attr("fill","rgba(0,0,0,.03)");
+
+  // Animated fill
+  const battFill = bp2.append("rect")
+    .attr("x",BX+3).attr("y",BY+BH-3).attr("width",BW-6).attr("height",0)
+    .attr("rx",4).attr("fill","#8BAFC4");
+
+  // Percentage text
+  const battPct = bp2.append("text").attr("x",BX+BW/2).attr("y",BY+BH/2-3)
+    .attr("text-anchor","middle").style("font-family","'Playfair Display',serif")
+    .style("font-size","17px").style("font-weight","700").style("fill","#1C1917").text("50%");
+  const battMwh = bp2.append("text").attr("x",BX+BW/2).attr("y",BY+BH/2+14)
+    .attr("text-anchor","middle").style("font-size","9px").style("fill","#78716C").text("1.0 MWh");
+
+  // Action label above battery
+  const battAct = bp2.append("text").attr("x",BX+BW/2).attr("y",BY-14)
+    .attr("text-anchor","middle").style("font-size","9px").style("font-weight","600")
+    .attr("opacity",0);
+
+  // Animated flow arrows (charge = downward ↓ into battery, discharge = ↑ out)
+  const flowArrow = bp2.append("text").attr("x",BX+BW/2).attr("y",BY+BH/2+36)
+    .attr("text-anchor","middle").style("font-size","20px").attr("opacity",0);
+
+  bp2.append("text").attr("x",BX+BW/2).attr("y",BY+BH+18).attr("text-anchor","middle")
+    .style("font-size","8px").style("font-weight","700").style("letter-spacing",".12em")
+    .style("fill","#A8A29E").text("BATTERY");
+  bp2.append("text").attr("x",BX+BW/2).attr("y",BY+BH+30).attr("text-anchor","middle")
+    .style("font-size","8px").style("fill","#B0A89E").text("1MW · 2MWh · 90%");
+
+  // Legend (bottom left of chart)
+  svg.append("circle").attr("cx",m.l+6).attr("cy",H-8).attr("r",4)
+    .attr("fill","#1B5E96").attr("opacity",.55);
+  svg.append("text").attr("x",m.l+14).attr("y",H-4)
+    .style("font-size","9px").style("fill","#1B5E96").attr("opacity",.6).text("battery SOC");
+
+  // ── State ──────────────────────────────────────────────────────────
+  let curH=0, cumRev=0;
+  const socPts=[];
+
+  function stepHour(h) {
+    curH=h;
+    const D=simDay[h];
+    const isChg=D.charge>0.05, isDis=D.discharge>0.05, isNeg=D.price<0;
+    const soc=Math.max(0,Math.min(2,D.soc));
+    if (isDis&&D.price>0) cumRev+=D.price*D.discharge;
+
+    bars.attr("opacity",(d,i)=>i<h?0.78:i===h?1:0.2);
+
+    // Cursor
+    const cx=h*bw+bw/2;
+    cursor.attr("opacity",1);
+    cursor.select(".cl").attr("x1",cx).attr("x2",cx);
+    cursor.select(".cb").attr("x",cx-19).attr("y",-m.t+7);
+    cursor.select(".ct").attr("x",cx).text(String(h).padStart(2,"0")+":00");
+    const barTopY=pY(Math.max(0,D.price));
+    actIcon.attr("x",cx).attr("y",barTopY-4).attr("opacity",1)
+      .style("fill",isNeg?"#6D28D9":isChg?"#1B5E96":isDis?"#D4540A":"#A8A29E")
+      .text(isChg?"⬇":isDis?"⬆":"·");
+    actPrice.attr("x",cx).attr("y",barTopY-20).attr("opacity",.9)
+      .style("fill",priceColor(D.price))
+      .text((D.price>=0?"+":"")+D.price.toFixed(0)+"€");
+
+    // SOC curve
+    if (!socPts.find(p=>p.h===h)) socPts.push({h,x:cx,soc});
+    if (socPts.length>1) { socPath.attr("d",socLineF(socPts)); socFill.attr("d",socAreaFn(socPts)); }
+
+    // ── Battery animation ───────────────────────────────────────────
+    const fillH=Math.max(0,(BH-6)*(soc/2));
+    const fillColor=isNeg?"#6D28D9":isChg?"#1B5E96":isDis?"#D4540A":"#8BAFC4";
+    battFill.transition().duration(420).ease(d3.easeQuadOut)
+      .attr("y",BY+BH-3-fillH).attr("height",fillH).attr("fill",fillColor);
+    const pct=Math.round(soc/2*100);
+    battPct.text(pct+"%").style("fill",pct>58?"#fff":"#1C1917");
+    battMwh.text(soc.toFixed(1)+" MWh").style("fill",pct>58?"rgba(255,255,255,.65)":"#78716C");
+
+    // Action label + animated arrow
+    if (isChg||isDis) {
+      battAct.attr("opacity",1).style("fill",isNeg?"#6D28D9":isChg?"#1B5E96":"#D4540A")
+        .text(isNeg?"← grid pays":"CHARGING".slice(0,isChg?8:0)||(isDis?"SELLING":""));
+      flowArrow.attr("opacity",isChg?0:isDis?0:0);  // handled by battAct
     } else {
-      action="○ Holding";
-      narr=`Price is ${D.price.toFixed(0)} €/MWh — not cheap enough to buy, not high enough to sell. We wait.`;
-      col="#78716C";
+      battAct.attr("opacity",0);
     }
-    $("sim-action").textContent=action; $("sim-action").style.color=col;
-    $("sim-narrative").textContent=narr;
+
+    // Stats
     $("sim-price").textContent=(D.price>=0?"+":"")+D.price.toFixed(0)+" €/MWh";
-    $("sim-price").style.color=isNeg?"#6D28D9":D.price>100?"#D4540A":"var(--text)";
+    $("sim-price").style.color=isNeg?"#6D28D9":D.price>80?"#D4540A":"var(--text)";
     $("sim-soc").textContent=soc.toFixed(1)+" MWh ("+pct+"%)";
     $("sim-soc-bar").style.width=pct+"%";
     $("sim-revenue").textContent=fmtE(Math.round(cumRev));
     $("sim-hour-disp").textContent=String(h).padStart(2,"0")+":00";
-    $("sim-slider").value=h; curH=h;
+    $("sim-slider").value=h;
+
+    // Narrative
+    let action,narr,col;
+    if (isChg&&isNeg) {
+      action="⬇ Charging — grid pays us";
+      narr=`${D.price.toFixed(0)} €/MWh — renewables flooding the grid. We're paid ${Math.abs(D.price).toFixed(0)} €/MWh to absorb surplus. Battery charges and earns.`;
+      col="#6D28D9";
+    } else if (isChg) {
+      action="⬇ Charging — buying low";
+      narr=`${D.price.toFixed(0)} €/MWh — one of today's cheapest hours. Buying ${D.charge.toFixed(1)} MW now to sell at the day's peak.`;
+      col="#1B5E96";
+    } else if (isDis) {
+      action="⬆ Discharging — selling high";
+      narr=`${D.price.toFixed(0)} €/MWh — peak demand. Releasing ${D.discharge.toFixed(1)} MW earns €${(D.price*D.discharge).toFixed(0)} this hour alone.`;
+      col="#D4540A";
+    } else {
+      action="○ Holding — optimal wait";
+      narr=`${D.price.toFixed(0)} €/MWh — the LP says wait. Not cheap enough to charge, not high enough to sell. Every idle hour is intentional.`;
+      col="#78716C";
+    }
+    $("sim-action").textContent=action; $("sim-action").style.color=col;
+    $("sim-narrative").textContent=narr;
   }
 
-  function jumpTo(h){
-    cumRev=0;
-    for(let i=0;i<=h;i++){
-      const D=simDay[i];
-      if(D.discharge>0.05&&D.price>0) cumRev+=D.price*D.discharge;
-    }
+  function jumpTo(h) {
+    cumRev=0; socPts.length=0;
+    socPath.attr("d",null); socFill.attr("d",null);
+    cursor.attr("opacity",0); actIcon.attr("opacity",0); actPrice.attr("opacity",0);
+    bars.attr("opacity",0.2);
+    battFill.attr("y",BY+BH-3).attr("height",0).attr("fill","#8BAFC4");
+    battPct.text("0%").style("fill","#1C1917");
+    battMwh.text("0.0 MWh").style("fill","#78716C");
+    for (let i=0;i<=h;i++) { const D=simDay[i]; if(D.discharge>0.05&&D.price>0) cumRev+=D.price*D.discharge; }
     stepHour(h);
   }
 
   let playing=false, timer=null;
-  function advance(){
-    if(!playing)return;
-    const D=simDay[curH];
-    if(D.discharge>0.05&&D.price>0) cumRev+=D.price*D.discharge;
-    stepHour(curH);
-    if(curH>=23){playing=false;$("sim-play-btn").textContent="↺ Replay";$("sim-play-btn").dataset.mode="replay";return;}
-    curH++; timer=setTimeout(advance,1100);
+  function advance() {
+    if (!playing) return;
+    if (curH>=23) { playing=false; $("sim-play-btn").textContent="↺ Replay"; $("sim-play-btn").dataset.mode="replay"; return; }
+    curH++; stepHour(curH); timer=setTimeout(advance,1050);
   }
-
-  $("sim-play-btn").addEventListener("click",function(){
-    if(this.dataset.mode==="replay"){
-      this.dataset.mode="";playing=true;this.textContent="⏸ Pause";
-      cumRev=0;curH=0;stepHour(0);setTimeout(advance,400);
+  $("sim-play-btn").addEventListener("click", function() {
+    if (this.dataset.mode==="replay") {
+      this.dataset.mode=""; playing=true; this.textContent="⏸ Pause"; jumpTo(0); setTimeout(advance,400);
     } else {
-      playing=!playing;this.textContent=playing?"⏸ Pause":"▶ Play";
-      if(playing)advance(); else if(timer){clearTimeout(timer);timer=null;}
+      playing=!playing; this.textContent=playing?"⏸ Pause":"▶ Play";
+      if(playing) advance(); else if(timer){clearTimeout(timer);timer=null;}
     }
   });
-  $("sim-slider").addEventListener("input",function(){
-    playing=false;if(timer){clearTimeout(timer);timer=null;}
-    $("sim-play-btn").textContent="▶ Play";$("sim-play-btn").dataset.mode="";
+  $("sim-slider").addEventListener("input", function() {
+    playing=false; if(timer){clearTimeout(timer);timer=null;}
+    $("sim-play-btn").textContent="▶ Play"; $("sim-play-btn").dataset.mode="";
     jumpTo(parseInt(this.value));
   });
-
   stepHour(0);
-  setTimeout(()=>{playing=true;$("sim-play-btn").textContent="⏸ Pause";advance();},1000);
+  setTimeout(()=>{playing=true;$("sim-play-btn").textContent="⏸ Pause";advance();},900);
 })();
 
 // ════════════════════════════════════════════════════════════════════
@@ -495,7 +564,7 @@ const priceColor = d3.scaleLinear()
 // ════════════════════════════════════════════════════════════════════
 (function drawHeatmap(){
   const dates=[...new Set(heatmap.map(d=>d.date))].sort();
-  const W0=Math.max(420, Math.min($("heatmap-chart").clientWidth||900,960));
+  const W0=Math.min($("heatmap-chart").clientWidth||900,960);
   const cellW=Math.floor((W0-90)/24);
   const cellH=Math.max(22,Math.floor(Math.min(42,(460-50)/dates.length)));
   const m={t:30,r:20,b:44,l:86};
@@ -536,7 +605,7 @@ const priceColor = d3.scaleLinear()
 // ════════════════════════════════════════════════════════════════════
 (function drawDispatch(){
   const m={t:16,r:24,b:44,l:48};
-  const W=Math.max(420, Math.min($("dispatch-chart").clientWidth||920,960)), H=340;
+  const W=Math.min($("dispatch-chart").clientWidth||920,960), H=340;
   const iW=W-m.l-m.r, iH=H-m.t-m.b;
   const svg=d3.select("#dispatch-chart").append("svg").attr("width",W).attr("height",H);
   const g=svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
@@ -587,7 +656,7 @@ const priceColor = d3.scaleLinear()
 // ════════════════════════════════════════════════════════════════════
 (function drawRevenue(){
   const m={t:20,r:80,b:44,l:68};
-  const W=Math.max(420, Math.min($("revenue-chart").clientWidth||920,960)),H=320;
+  const W=Math.min($("revenue-chart").clientWidth||920,960),H=320;
   const iW=W-m.l-m.r,iH=H-m.t-m.b;
   const svg=d3.select("#revenue-chart").append("svg").attr("width",W).attr("height",H);
   const g=svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
@@ -614,7 +683,7 @@ const priceColor = d3.scaleLinear()
     const day=Math.round(x.invert(mx));
     const d=revenue[Math.max(0,Math.min(bis(revenue,day),revenue.length-1))];
     scrub.attr("x1",x(d.day)).attr("x2",x(d.day)).attr("opacity",.6);
-    showTip(ev,`Day ${d.day} · ${d.date}`,`Benchmark: <b>${fmtE(d.oracle)}</b><br>Naive: <b>${fmtE(d.naive)}</b><br>Gap: ${fmtE(d.oracle-d.naive)}`);
+    showTip(ev,`Day ${d.day} · ${d.date}`,`Oracle: <b>${fmtE(d.oracle)}</b><br>Naive: <b>${fmtE(d.naive)}</b><br>Gap: ${fmtE(d.oracle-d.naive)}`);
   }).on("mouseleave",()=>{scrub.attr("opacity",0);hideTip();});
   g.append("g").attr("transform",`translate(0,${iH})`)
     .call(d3.axisBottom(x).ticks(10).tickFormat(d=>`Day ${d}`))
@@ -623,7 +692,7 @@ const priceColor = d3.scaleLinear()
     .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
   const last=revenue[revenue.length-1];
   g.append("text").attr("x",iW+6).attr("y",y(last.oracle)).attr("dominant-baseline","middle")
-    .style("font-size","11px").style("fill","#1B7A45").text("Benchmark");
+    .style("font-size","11px").style("fill","#1B7A45").text("Oracle");
   g.append("text").attr("x",iW+6).attr("y",y(last.naive)).attr("dominant-baseline","middle")
     .style("font-size","11px").style("fill","#1B5E96").text("Naive");
   const midD=revenue[Math.floor(revenue.length*.72)];
@@ -634,73 +703,162 @@ const priceColor = d3.scaleLinear()
 })();
 
 // ════════════════════════════════════════════════════════════════════
-// CHART 4 · DECISION CLOCK
+// CHART 4 · DECISION CLOCK  (radius = revenue impact, colour = flip rate)
 // ════════════════════════════════════════════════════════════════════
 (function drawClock(){
-  const S=330, cx=S/2, cy=S/2;
-  const maxR=S/2-28, minR=S/2-100;
+  const S=360, cx=S/2, cy=S/2;
+  const maxR=S/2-32, minR=S/2-116;
   const overallS=(clock.reduce((a,d)=>a+d.sensitivity,0)/clock.length*100).toFixed(1);
+  const maxImpact = d3.max(clock,d=>d.impact);
+  const avgImpact = Math.round(clock.filter(d=>d.impact>0).reduce((a,d)=>a+d.impact,0)/clock.filter(d=>d.impact>0).length);
+
   const svg=d3.select("#clock-chart").append("svg").attr("width",S).attr("height",S);
   const g=svg.append("g").attr("transform",`translate(${cx},${cy})`);
+
+  // Subtle guide rings
   [.25,.5,.75,1].forEach(f=>
     g.append("circle").attr("r",minR+(maxR-minR)*f)
-     .attr("fill","none").attr("stroke","#E5E0D8").attr("stroke-width",.8));
+      .attr("fill","none").attr("stroke","rgba(0,0,0,.07)").attr("stroke-width",.8));
+
+  // Arc: radius ∝ revenue impact, colour = flip-rate sensitivity
   const arc=d3.arc()
-    .innerRadius(minR).outerRadius(d=>minR+(maxR-minR)*d.sensitivity)
+    .innerRadius(minR)
+    .outerRadius(d=>d.impact>0 ? minR+(maxR-minR)*(d.impact/maxImpact) : minR+4)
     .startAngle(d=>(d.hour/24)*2*Math.PI-Math.PI/2)
     .endAngle(d=>((d.hour+1)/24)*2*Math.PI-Math.PI/2)
-    .padAngle(.025).cornerRadius(3);
-  const clr=d3.scaleSequential(d3.interpolateYlOrRd).domain([0,1]);
+    .padAngle(.018).cornerRadius(3);
+
+  // Colour: grey=safe → amber=medium → deep red=most sensitive
+  const clr=d3.scaleLinear().domain([0,0.6,1])
+    .range(["#C9E8D4","#F59E0B","#991B1B"]);
+
   g.selectAll("path.seg").data(clock).join("path").attr("class","seg")
-    .attr("d",arc).attr("fill",d=>clr(d.sensitivity)).attr("opacity",.88)
+    .attr("d",arc).attr("fill",d=>clr(d.sensitivity)).attr("opacity",.9)
     .on("mousemove",(ev,d)=>showTip(ev,`${d.hour}:00–${d.hour+1}:00`,
-      `Flip rate: <b>${(d.sensitivity*100).toFixed(0)}%</b><br>Avg impact: ${fmtE(d.impact)}`))
+      `Flip rate: <b>${(d.sensitivity*100).toFixed(0)}%</b><br>Avg revenue impact: <b>${fmtE(d.impact)}</b>`))
     .on("mouseleave",hideTip);
+
+  // Hour labels every 3h
   d3.range(0,24,3).forEach(h=>{
     const angle=(h/24)*2*Math.PI-Math.PI/2;
-    const r=maxR+16;
+    const r=maxR+20;
     g.append("text").attr("x",r*Math.cos(angle)).attr("y",r*Math.sin(angle))
       .attr("text-anchor","middle").attr("dominant-baseline","middle")
-      .style("font-size","11px").style("fill","#A8A29E").text(h+"h");
+      .style("font-size","11px").style("fill","#A8A29E").text(h===0?"midnight":h+"h");
   });
-  g.append("text").attr("text-anchor","middle").attr("y",-9)
-   .style("font-size","26px").style("font-family","'Playfair Display',serif")
-   .style("fill","#D4540A").style("font-weight","700").text(overallS+"%");
+
+  // Annotate the single "safe" hour
+  const safeD=clock.find(d=>d.sensitivity<0.1);
+  if(safeD){
+    const ha=(safeD.hour/24+0.5/24)*2*Math.PI-Math.PI/2;
+    const rl=maxR+38;
+    g.append("text").attr("x",rl*Math.cos(ha)).attr("y",rl*Math.sin(ha))
+      .attr("text-anchor","middle").attr("dominant-baseline","middle")
+      .style("font-size","9px").style("font-weight","600").style("fill","#1B7A45").text("safe ✓");
+  }
+
+  // Centre stats
+  g.append("text").attr("text-anchor","middle").attr("y",-22)
+    .style("font-size","28px").style("font-family","'Playfair Display',serif")
+    .style("fill","#991B1B").style("font-weight","700").text(overallS+"%");
+  g.append("text").attr("text-anchor","middle").attr("y",-3)
+    .style("font-size","10px").style("fill","#78716C").text("of hours flip on");
   g.append("text").attr("text-anchor","middle").attr("y",12)
-   .style("font-size","10px").style("fill","#78716C").text("of hours sensitive");
+    .style("font-size","10px").style("fill","#78716C").text("a ±10 €/MWh shift");
+  g.append("line").attr("x1",-28).attr("x2",28).attr("y1",22).attr("y2",22)
+    .attr("stroke","#E5E0D8").attr("stroke-width",1);
+  g.append("text").attr("text-anchor","middle").attr("y",36)
+    .style("font-size","13px").style("font-family","'Playfair Display',serif")
+    .style("fill","#D4540A").style("font-weight","700").text(`€${avgImpact} avg`);
+  g.append("text").attr("text-anchor","middle").attr("y",50)
+    .style("font-size","9px").style("fill","#A8A29E").text("revenue at risk / hour");
+
+  // Colour legend
+  const lgG=svg.append("g").attr("transform",`translate(${cx-44},${S-13})`);
+  const ld=svg.append("defs").append("linearGradient").attr("id","ck-g").attr("x1","0%").attr("x2","100%");
+  [["0%","#C9E8D4"],["50%","#F59E0B"],["100%","#991B1B"]].forEach(([o,c])=>
+    ld.append("stop").attr("offset",o).attr("stop-color",c));
+  lgG.append("rect").attr("width",88).attr("height",6).attr("rx",3).attr("fill","url(#ck-g)");
+  lgG.append("text").attr("y",17).style("font-size","8px").style("fill","#A8A29E").text("safe");
+  lgG.append("text").attr("x",88).attr("y",17).attr("text-anchor","end")
+    .style("font-size","8px").style("fill","#A8A29E").text("highly sensitive");
 })();
 
 // ════════════════════════════════════════════════════════════════════
-// CHART 5 · SCATTER
+// CHART 5 · SCATTER  (MAE vs dispatch revenue, per test day)
 // ════════════════════════════════════════════════════════════════════
 (function drawScatter(){
-  const m={t:16,r:24,b:48,l:60};
-  const S=320, iW=S-m.l-m.r, iH=S-m.t-m.b;
-  const svg=d3.select("#scatter-chart").append("svg").attr("width",S).attr("height",S);
+  const W=Math.min($("scatter-chart").clientWidth||480,480);
+  const H=Math.round(W*0.78);
+  const m={t:20,r:32,b:52,l:66};
+  const iW=W-m.l-m.r, iH=H-m.t-m.b;
+  const svg=d3.select("#scatter-chart").append("svg").attr("width",W).attr("height",H);
   const g=svg.append("g").attr("transform",`translate(${m.l},${m.t})`);
+
   const xs=scatter.map(d=>d.mae), ys=scatter.map(d=>d.revenue);
-  const x=d3.scaleLinear().domain(d3.extent(xs)).nice().range([0,iW]);
-  const y=d3.scaleLinear().domain(d3.extent(ys)).nice().range([iH,0]);
+  const x=d3.scaleLinear().domain([0,d3.max(xs)*1.06]).nice().range([0,iW]);
+  const y=d3.scaleLinear().domain([d3.min(ys)*1.12,d3.max(ys)*1.12]).nice().range([iH,0]);
   const {slope,intercept,r,p}=ols;
-  const x1=d3.min(xs), x2=d3.max(xs);
+
+  // Zero-revenue reference line (profitable vs loss days)
+  if(d3.min(ys)<0){
+    g.append("line").attr("x1",0).attr("x2",iW).attr("y1",y(0)).attr("y2",y(0))
+      .attr("stroke","#D6D0C8").attr("stroke-width",1).attr("stroke-dasharray","3,3");
+    g.append("text").attr("x",iW+4).attr("y",y(0)+4)
+      .style("font-size","9px").style("fill","#B0A89E").text("€0");
+  }
+
+  // OLS trend line
+  const x1=0, x2=d3.max(xs)*1.04;
   g.append("line").attr("x1",x(x1)).attr("y1",y(slope*x1+intercept))
     .attr("x2",x(x2)).attr("y2",y(slope*x2+intercept))
-    .attr("stroke","#D4540A").attr("stroke-width",1.8).attr("opacity",.6).attr("stroke-dasharray","5,3");
-  g.append("text").attr("x",x(x1)+4).attr("y",y(slope*x1+intercept)-8)
-    .style("font-size","10px").style("fill","#D4540A").text(`r = ${r}, p = ${p}`);
-  const dc=d3.scaleSequential(d3.interpolateRdYlGn).domain([d3.max(xs),d3.min(xs)]);
+    .attr("stroke","#D4540A").attr("stroke-width",1.6).attr("opacity",.5)
+    .attr("stroke-dasharray","5,3");
+
+  // Annotation badge for OLS stats
+  const ax=x(x1)+6, ay=y(slope*x1+intercept)-(y(0)-y(d3.max(ys)*0.55));
+  g.append("rect").attr("x",ax-4).attr("y",ay-14).attr("width",116).attr("height",30)
+    .attr("rx",5).attr("fill","rgba(255,255,255,.9)").attr("stroke","#E5E0D8");
+  g.append("text").attr("x",ax+2).attr("y",ay-2)
+    .style("font-size","10px").style("fill","#D4540A").style("font-weight","600")
+    .text(`r = ${r}   p = ${p<0.01?"< 0.01":p}`);
+  g.append("text").attr("x",ax+2).attr("y",ay+12)
+    .style("font-size","9px").style("fill","#78716C").text("lower MAE → higher revenue");
+
+  // Dots — green = profitable day, red = loss day, size ∝ |revenue|
+  const rScale=d3.scaleSqrt().domain([0,d3.max(ys.map(Math.abs))]).range([3.5,8]);
   g.selectAll("circle").data(scatter).join("circle")
-    .attr("cx",d=>x(d.mae)).attr("cy",d=>y(d.revenue)).attr("r",5)
-    .attr("fill",d=>dc(d.mae)).attr("opacity",.82).attr("stroke","#fff").attr("stroke-width",.8)
+    .attr("cx",d=>x(d.mae)).attr("cy",d=>y(d.revenue))
+    .attr("r",d=>rScale(Math.abs(d.revenue)))
+    .attr("fill",d=>d.revenue>=0?"#1B7A45":"#991B1B")
+    .attr("opacity",.72).attr("stroke","#fff").attr("stroke-width",.8)
     .on("mousemove",(ev,d)=>showTip(ev,d.date,`MAE: <b>${d.mae} €/MWh</b><br>Revenue: <b>${fmtE(d.revenue)}</b>`))
     .on("mouseleave",hideTip);
+
+  // Axes — numbers only on ticks; unit in title
   g.append("g").attr("transform",`translate(0,${iH})`)
-    .call(d3.axisBottom(x).ticks(5).tickFormat(d=>d+" €/MWh"))
-    .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+    .call(d3.axisBottom(x).ticks(5).tickFormat(d=>d))
+    .call(g=>g.select(".domain").remove())
+    .call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
   g.append("g").call(d3.axisLeft(y).ticks(5).tickFormat(fmtE))
-    .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
-  g.append("text").attr("x",iW/2).attr("y",iH+38)
-    .attr("text-anchor","middle").style("font-size","11px").style("fill","#A8A29E").text("Forecast MAE (€/MWh)");
+    .call(g=>g.select(".domain").remove())
+    .call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+
+  // Axis titles
+  g.append("text").attr("x",iW/2).attr("y",iH+40)
+    .attr("text-anchor","middle").style("font-size","11px").style("fill","#A8A29E")
+    .text("Forecast MAE (€/MWh)");
+  svg.append("text").attr("transform",`translate(12,${m.t+iH/2}) rotate(-90)`)
+    .attr("text-anchor","middle").style("font-size","11px").style("fill","#A8A29E")
+    .text("Daily revenue (€)");
+
+  // Legend
+  const legG=svg.append("g").attr("transform",`translate(${m.l+4},${m.t+4})`);
+  [["#1B7A45","Profitable day"],["#991B1B","Loss day"]].forEach(([c,lbl],i)=>{
+    legG.append("circle").attr("cx",5).attr("cy",i*16).attr("r",4).attr("fill",c).attr("opacity",.75);
+    legG.append("text").attr("x",13).attr("y",i*16+4)
+      .style("font-size","9px").style("fill","#78716C").text(lbl);
+  });
 })();
 
 // ════════════════════════════════════════════════════════════════════
@@ -708,7 +866,7 @@ const priceColor = d3.scaleLinear()
 // ════════════════════════════════════════════════════════════════════
 (function(){
   const tb=$("spo-table"), oracleRev=spo.find(d=>d.model==="Oracle").revenue;
-  tb.innerHTML=`<tr><th>Model</th><th>MAE</th><th>Revenue</th><th>% of Benchmark</th><th style="width:70px"></th></tr>`
+  tb.innerHTML=`<tr><th>Model</th><th>MAE</th><th>Revenue</th><th>% of Oracle</th><th style="width:70px"></th></tr>`
     +spo.map(d=>`<tr class="${d.model==="Standard XGBoost"?"hl":""}">
       <td>${d.model}</td>
       <td>${d.mae===0?"—":d.mae+" €/MWh"}</td>

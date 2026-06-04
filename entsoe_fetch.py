@@ -17,6 +17,8 @@ from xml.etree import ElementTree as ET
 import numpy as np
 import pandas as pd
 import requests
+from dotenv import load_dotenv
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 log = logging.getLogger(__name__)

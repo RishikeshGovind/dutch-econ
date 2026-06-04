@@ -35,6 +35,13 @@ PREDS_CSV   = DATA_DIR / "price_predictions.csv"
 TARGET_COL = "price_da"
 TEST_DAYS  = 60
 
+
+def load_featured() -> pd.DataFrame:
+    """Load data (panel or CSV) and return fully featured DataFrame.
+    Called by spo_train.py so both scripts use the same feature set."""
+    raw_df, _ = _load_raw()
+    return build_features(raw_df)
+
 # ── Basic feature set (price-only mode, backward-compatible) ──────────────────
 BASIC_FEATURES = [
     "hour", "day_of_week", "month",

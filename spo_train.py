@@ -38,7 +38,7 @@ from xgboost import XGBRegressor
 
 # Import helpers — these modules have no side-effects at import time
 from battery_optimize import solve_day, SOC_INIT
-from price_forecast import build_features, FEATURE_COLS, TARGET_COL, TEST_DAYS
+from price_forecast import load_featured, FEATURE_COLS, TARGET_COL, TEST_DAYS
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 log = logging.getLogger(__name__)
@@ -141,12 +141,8 @@ def _xgb(**extra) -> XGBRegressor:
 
 
 def main():
-    if not PRICES_CSV.exists():
-        import entsoe_fetch
-        entsoe_fetch.main()
-
-    # ── Load & featurize ─────────────────────────────────────────────────────
-    df = build_features(pd.read_csv(PRICES_CSV))
+    # ── Load & featurize (uses nl_panel.parquet if available) ───────────────
+    df = load_featured()
     df["datetime_utc"] = pd.to_datetime(df["datetime_utc"], utc=True)
 
     cutoff = df["datetime_utc"].max() - pd.Timedelta(days=TEST_DAYS)

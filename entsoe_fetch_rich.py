@@ -35,6 +35,8 @@ from xml.etree import ElementTree as ET
 import numpy as np
 import pandas as pd
 import requests
+from dotenv import load_dotenv
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 log = logging.getLogger(__name__)
@@ -233,8 +235,7 @@ def fetch_live(api_key: str) -> pd.DataFrame:
         if not frame.empty:
             df = df.join(frame, how="outer")
 
-    df = (df.sort_index()
-            .loc[pd.Timestamp(START, tz="UTC"):pd.Timestamp(END, tz="UTC")])
+    df = df.sort_index().loc["2021-01-01":"2024-11-30"]
     return df
 
 

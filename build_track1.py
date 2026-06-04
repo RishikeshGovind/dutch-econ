@@ -80,6 +80,23 @@ def scatter_data(results):
     return out
 
 
+def data_source_meta() -> dict:
+    """Return metadata about where the data came from."""
+    panel = DATA_DIR / "nl_panel.parquet"
+    if panel.exists():
+        df = pd.read_parquet(panel, columns=["price_da"])
+        idx = pd.to_datetime(df.index, utc=True)
+        return {
+            "source": "ENTSO-E Transparency Platform",
+            "live": True,
+            "start": idx.min().strftime("%d %b %Y"),
+            "end":   idx.max().strftime("%d %b %Y"),
+            "rows":  len(df),
+        }
+    return {"source": "Synthetic (ENTSO-E calibrated)", "live": False,
+            "start": "Jan 2022", "end": "Dec 2023", "rows": 0}
+
+
 def build_payload():
     check_files()
     preds   = pd.read_csv(DATA_DIR / "price_predictions.csv")
@@ -97,6 +114,7 @@ def build_payload():
     naive_total  = rev[-1]["naive"]  if rev else 0
 
     return {
+        "meta":     data_source_meta(),
         "heatmap":  heatmap_data(preds),
         "dispatch": dispatch_data(results),
         "revenue":  rev,
@@ -147,12 +165,12 @@ body{{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,s
 .dot.on{{background:var(--orange);transform:scale(1.4)}}
 
 /* Sections */
-section{{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px 64px;max-width:1160px;margin:0 auto;position:relative}}
+section{{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px clamp(48px,6vw,120px);width:100%;position:relative}}
 section+section{{border-top:1px solid var(--border)}}
 .eyebrow{{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:10px}}
 h1{{font-family:'Playfair Display',serif;font-size:clamp(32px,4vw,56px);line-height:1.15;margin-bottom:18px}}
 h2{{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-height:1.2;margin-bottom:14px}}
-.lead{{font-size:16px;color:var(--muted);max-width:580px;margin-bottom:36px;font-weight:300}}
+.lead{{font-size:16px;color:var(--muted);max-width:min(1000px,88%);margin-bottom:36px;font-weight:300}}
 
 /* Hero */
 #hero{{min-height:100vh;padding-top:120px}}
@@ -164,7 +182,7 @@ h2{{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-hei
 .stat .lbl{{font-size:11px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.1em}}
 
 /* Insight */
-.insight{{display:inline-flex;gap:14px;align-items:flex-start;background:var(--surface);border-left:3px solid var(--orange);padding:14px 20px;border-radius:0 8px 8px 0;margin-top:24px;max-width:620px}}
+.insight{{display:inline-flex;gap:14px;align-items:flex-start;background:var(--surface);border-left:3px solid var(--orange);padding:14px 20px;border-radius:0 8px 8px 0;margin-top:24px;max-width:min(1000px,88%)}}
 .insight-icon{{font-size:18px;flex-shrink:0;margin-top:1px}}
 .insight-text{{font-size:13px;color:var(--muted);line-height:1.6}}
 .insight-text strong{{display:block;color:var(--text);margin-bottom:3px;font-size:11px;text-transform:uppercase;letter-spacing:.08em}}
@@ -217,9 +235,27 @@ h2{{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-hei
 .fade.d1{{transition-delay:.12s}}.fade.d2{{transition-delay:.24s}}
 
 svg text{{font-family:'Inter',-apple-system,sans-serif}}
+
+/* Live data badge */
+#data-badge{{
+  position:fixed;bottom:18px;left:22px;z-index:400;
+  display:inline-flex;align-items:center;gap:7px;
+  background:rgba(251,249,245,.92);border:1px solid var(--border);
+  border-radius:20px;padding:6px 14px 6px 10px;
+  font-size:11px;color:var(--muted);backdrop-filter:blur(6px);
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+}}
+#data-badge .pulse{{
+  width:7px;height:7px;border-radius:50%;background:#1B7A45;flex-shrink:0;
+  animation:pulse 2s infinite;
+}}
+#data-badge .synth{{background:var(--subtle);animation:none;}}
+@keyframes pulse{{0%,100%{{opacity:1;transform:scale(1)}}50%{{opacity:.5;transform:scale(1.3)}}}}
 </style>
 </head>
 <body>
+
+<div id="data-badge"></div>
 
 <div id="sidenav">
   <div class="dot on"  data-i="0" title="Overview"></div>
@@ -255,11 +291,11 @@ svg text{{font-family:'Inter',-apple-system,sans-serif}}
 
 <!-- ══════════════════════════════════════════════════════════════ SIMULATION -->
 <section id="sim">
-  <div class="eyebrow fade">Live Simulation</div>
-  <h2 class="fade">Watch the Battery Work</h2>
-  <p class="lead fade">Each dot is an energy packet (0.1 MWh). As the day unfolds, dots migrate
-  between the <strong>grid</strong> and the <strong>battery</strong> following the oracle dispatch decisions.
-  The banner tells you exactly what is happening and why.</p>
+  <div class="eyebrow fade">Hour-by-Hour Dispatch</div>
+  <h2 class="fade">The Oracle's Perfect Day</h2>
+  <p class="lead fade">24 hours of NL day-ahead prices — known in advance. The oracle charges during
+  the cheapest windows (blue arrows) and sells at the peaks (orange arrows). The <span style="color:var(--blue);font-weight:500">blue curve</span>
+  tracks the battery's charge level as the day unfolds. Every idle hour is a calculated decision, not a missed opportunity.</p>
 
   <div class="fade">
     <!-- Status banner — tells the story each hour -->
@@ -377,7 +413,20 @@ svg text{{font-family:'Inter',-apple-system,sans-serif}}
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script>
 const DATA = {data_json};
-const {{heatmap,dispatch,revenue,clock,scatter,spo,ols,stats}} = DATA;
+const {{meta,heatmap,dispatch,revenue,clock,scatter,spo,ols,stats}} = DATA;
+
+// ── Data source badge ────────────────────────────────────────────────────────
+(function(){{
+  const b = document.getElementById("data-badge");
+  const dot = document.createElement("div");
+  dot.className = "pulse" + (meta.live ? "" : " synth");
+  b.appendChild(dot);
+  const label = document.createElement("span");
+  label.textContent = meta.live
+    ? `Live ENTSO-E · ${{meta.start}} – ${{meta.end}}`
+    : "Synthetic data · run entsoe_fetch_rich.py for live";
+  b.appendChild(label);
+}})();
 const fmt = d3.format(",.0f");
 const fmtE = v => "€"+fmt(v);
 const $ = id => document.getElementById(id);
@@ -402,272 +451,254 @@ const priceColor = d3.scaleLinear()
   .range(["#6D28D9","#F7F4EE","#FCD34D","#D4540A","#7F1D1D"]).clamp(true);
 
 // ════════════════════════════════════════════════════════════════════
-// SIMULATION — two-zone energy particle system
+// SIMULATION — price bar chart + SOC curve story
 // ════════════════════════════════════════════════════════════════════
 (function initSim(){{
-  const simDay = dispatch.slice(0,24);  // oracle dispatch for day 1 of test period
-  const W = Math.min($("sim-svg-wrap").clientWidth||920, 920);
-  const H = 300;
-  const PAD = 14;
-  const iW = W - PAD*2;
+  const simDay = dispatch.slice(0,24);
+  const BATT_W = 110, GAP = 20;
+  const W = Math.min($("sim-svg-wrap").clientWidth||960, 960);
+  const H = 270;
+  const m = {{t:38, r:8, b:50, l:46}};
+  const chartW = W - BATT_W - GAP;
+  const iW = chartW - m.l - m.r, iH = H - m.t - m.b;
+  const bw = iW / 24, bp = 2;
 
-  // ── Two-zone layout ─────────────────────────────────────────────
-  // Left: GRID  |  Right: BATTERY
-  const GW = iW * 0.42;          // grid zone width
-  const BW = iW - GW;            // battery zone width
-  const GCX = GW / 2;            // grid centre x
-  const BCX = GW + BW / 2;       // battery centre x
-  const CY  = H / 2;
-
-  // ── Dot counts ──────────────────────────────────────────────────
-  const N_E  = 20;   // energy dots (0.1 MWh each, 20 = full 2 MWh battery)
-  const N_BG = 28;   // static grid background dots (always in grid zone)
-  const R    = 6.5;  // dot radius
-
-  const initBatt = Math.round(simDay[0].soc / 2 * N_E);
-
-  const dots = [];
-  // Energy dots — start split between grid and battery at initial SOC
-  for (let i=0;i<N_E;i++) {{
-    const inB = i < initBatt;
-    dots.push({{
-      id:i, kind:"energy", zone: inB?"battery":"grid", flying:false,
-      x: (inB?BCX:GCX) + (Math.random()-.5)*90,
-      y: CY + (Math.random()-.5)*120,
-      vx:0, vy:0
-    }});
-  }}
-  // Background grid dots — always stay in grid zone
-  for (let i=0;i<N_BG;i++) {{
-    dots.push({{
-      id:N_E+i, kind:"bg", zone:"grid", flying:false,
-      x: GCX + (Math.random()-.5)*110,
-      y: CY + (Math.random()-.5)*150,
-      vx:0, vy:0
-    }});
-  }}
-
-  // ── SVG ──────────────────────────────────────────────────────────
   const svg = d3.select("#sim-svg-wrap").append("svg").attr("width",W).attr("height",H);
-  const g = svg.append("g").attr("transform",`translate(${{PAD}},0)`);
+  const g   = svg.append("g").attr("transform",`translate(${{m.l}},${{m.t}})`);
 
-  // Zone backgrounds
-  g.append("rect").attr("x",0).attr("y",8)
-    .attr("width",GW-8).attr("height",H-16).attr("rx",14)
-    .attr("fill","#F2EDE5").attr("opacity",.9);
-  g.append("rect").attr("x",GW+8).attr("y",8)
-    .attr("width",BW-8).attr("height",H-16).attr("rx",14)
-    .attr("fill","#E6EDF6").attr("opacity",.9);
+  // ── Price scales — zero line proportional to actual range ──────────
+  const prices = simDay.map(d => d.price);
+  const maxP = d3.max(prices), minP = d3.min(prices);
+  const hasNeg = minP < -1;
+  // Allocate vertical space proportionally: positive range above zero, negative below
+  const topRange = maxP * 1.10;
+  const botRange = hasNeg ? Math.abs(minP) * 1.15 : topRange * 0.08;
+  const zeroY = iH * topRange / (topRange + botRange);  // zero line from top
+  const pY = v => v >= 0
+    ? zeroY - (v / topRange) * zeroY
+    : zeroY + (Math.abs(v) / botRange) * (iH - zeroY);
+  const socYS = d3.scaleLinear().domain([0,2]).range([zeroY * 0.90, 5]);
 
-  // Zone labels
-  g.append("text").attr("x",GCX).attr("y",26).attr("text-anchor","middle")
-    .style("font-size","10px").style("font-weight","700")
-    .style("fill","#B0A89E").style("letter-spacing","0.14em").text("GRID");
-  g.append("text").attr("x",GCX).attr("y",40).attr("text-anchor","middle")
-    .style("font-size","9px").style("fill","#C4B9AD").text("source of electricity");
+  // ── Column tints for charge / sell hours ───────────────────────────
+  simDay.forEach((d,i) => {{
+    const isChg = d.charge>0.05, isDis = d.discharge>0.05;
+    if (!isChg && !isDis) return;
+    g.append("rect").attr("x",i*bw).attr("y",0).attr("width",bw).attr("height",iH)
+      .attr("fill", d.price<0?"rgba(109,40,217,.08)":isChg?"rgba(27,94,150,.08)":"rgba(212,84,10,.08)");
+  }});
 
-  g.append("text").attr("x",BCX).attr("y",26).attr("text-anchor","middle")
-    .style("font-size","10px").style("font-weight","700")
-    .style("fill","#7A9BBC").style("letter-spacing","0.14em").text("BATTERY");
-  g.append("text").attr("x",BCX).attr("y",40).attr("text-anchor","middle")
-    .style("font-size","9px").style("fill","#9AB5D0").text("1 MW · 2 MWh · 90% round-trip");
+  // ── Zero line ──────────────────────────────────────────────────────
+  g.append("line").attr("x1",-4).attr("x2",iW).attr("y1",zeroY).attr("y2",zeroY)
+    .attr("stroke","#DDD8CE").attr("stroke-width",1);
+  g.append("text").attr("x",-8).attr("y",zeroY+4).attr("text-anchor","end")
+    .style("font-size","9px").style("fill","#B0A89E").text("0€");
 
-  // Capacity label
-  g.append("text").attr("x",iW-6).attr("y",H-12).attr("text-anchor","end")
-    .style("font-size","9px").style("fill","#9AB5D0").text("● = 0.1 MWh");
+  // ── Price bars ─────────────────────────────────────────────────────
+  const bars = g.selectAll("rect.pb").data(simDay).join("rect").attr("class","pb")
+    .attr("x",(d,i)=>i*bw+bp).attr("width",bw-bp*2)
+    .attr("y",d=>pY(Math.max(0,d.price)))
+    .attr("height",d=>Math.max(2,Math.abs(pY(d.price)-zeroY)))
+    .attr("fill",d=>priceColor(d.price)).attr("rx",2).attr("opacity",0.25);
 
-  // ── Flow arrow (between zones, flashes on transitions) ──────────
-  const arrow = g.append("text")
-    .attr("x", GW).attr("y", CY+8)
-    .attr("text-anchor","middle").style("font-size","26px")
-    .style("opacity",0).style("pointer-events","none");
+  // ── Plan arrows above action bars (visible from start) ─────────────
+  simDay.forEach((d,i) => {{
+    const isChg = d.charge>0.05, isDis = d.discharge>0.05;
+    if (!isChg && !isDis) return;
+    g.append("text").attr("x",i*bw+bw/2).attr("y",-5).attr("text-anchor","middle")
+      .style("font-size","9px").attr("opacity",.4)
+      .style("fill",d.price<0?"#9B6FD4":isChg?"#1B5E96":"#D4540A")
+      .text(isChg?"↓":"↑");
+  }});
 
-  // ── Dot colour logic ─────────────────────────────────────────────
-  function dotFill(d) {{
-    if (d.kind==="bg")       return "#C4B9AD";
-    if (d.flying)            return "#D4540A";   // orange while discharging
-    if (d.zone==="battery")  return "#1B5E96";   // deep blue when stored
-    return "#8EAEBF";                            // light blue when in grid
-  }}
-  function targetX(d) {{
-    if (d.flying) return iW + 110;        // fly off-screen right when discharging
-    return d.zone==="battery" ? BCX : GCX;
-  }}
+  // ── Hour axis ──────────────────────────────────────────────────────
+  [0,3,6,9,12,15,18,21].forEach(h => {{
+    g.append("line").attr("x1",h*bw+bw/2).attr("x2",h*bw+bw/2)
+      .attr("y1",iH+1).attr("y2",iH+6).attr("stroke","#D6D0C8").attr("stroke-width",1);
+    g.append("text").attr("x",h*bw+bw/2).attr("y",iH+18).attr("text-anchor","middle")
+      .style("font-size","10px").style("fill","#A8A29E")
+      .text(h===0?"midnight":h===12?"noon":h+":00");
+  }});
 
-  const circles = g.selectAll("circle.d").data(dots).join("circle")
-    .attr("class","d")
-    .attr("r", d => d.kind==="bg" ? R-1.5 : R)
-    .attr("fill", dotFill)
-    .attr("opacity", d => d.kind==="bg" ? 0.24 : 0.88);
+  // ── SOC curve (drawn progressively) ───────────────────────────────
+  const socLineF  = d3.line().x(d=>d.x).y(d=>socYS(d.soc)).curve(d3.curveCatmullRom.alpha(0.5));
+  const socAreaFn = d3.area().x(d=>d.x).y0(d=>zeroY*0.92).y1(d=>socYS(d.soc)).curve(d3.curveCatmullRom.alpha(0.5));
+  const socPath = g.append("path").attr("fill","none").attr("stroke","#1B5E96").attr("stroke-width",2).attr("opacity",.55);
+  const socFill = g.append("path").attr("fill","rgba(27,94,150,.07)").attr("stroke","none");
 
-  // ── Force simulation ─────────────────────────────────────────────
-  const sim = d3.forceSimulation(dots)
-    .force("x", d3.forceX(targetX).strength(d => d.flying ? 0.44 : 0.07))
-    .force("y", d3.forceY(CY).strength(0.065))
-    .force("collide", d3.forceCollide(R+1.8).strength(0.9))
-    .force("charge", d3.forceManyBody().strength(-1.5))
-    .alphaDecay(0.015)
-    .on("tick", () => {{
-      circles
-        .attr("cx", d=>d.x).attr("cy", d=>d.y)
-        .attr("fill", dotFill)
-        .attr("opacity", d => {{
-          if (d.kind==="bg")  return 0.22;
-          if (d.flying)       return Math.max(0, 1-(d.x-iW*0.68)/(iW*0.32));
-          return 0.88;
-        }});
-      // Recycle sold dots back to grid invisibly
-      dots.forEach(d => {{
-        if (d.flying && d.x > iW+70) {{
-          d.flying = false;
-          d.zone   = "grid";
-          d.x = GCX + (Math.random()-.5)*80;
-          d.y = CY  + (Math.random()-.5)*100;
-        }}
-      }});
-    }});
+  // ── Current-hour cursor ────────────────────────────────────────────
+  const cursor = g.append("g").attr("opacity",0);
+  cursor.append("line").attr("class","cl").attr("y1",-m.t+8).attr("y2",iH)
+    .attr("stroke","#1C1917").attr("stroke-width",1.5).attr("opacity",.35);
+  cursor.append("rect").attr("class","cb").attr("width",38).attr("height",17).attr("rx",4)
+    .attr("fill","#1C1917").attr("opacity",.85);
+  cursor.append("text").attr("class","ct").attr("text-anchor","middle").attr("y",-m.t+18)
+    .style("font-size","10px").style("font-weight","700").style("fill","#fff");
+  const actIcon  = g.append("text").attr("text-anchor","middle").style("font-size","16px").attr("opacity",0);
+  const actPrice = g.append("text").attr("text-anchor","middle").style("font-size","11px").style("font-weight","600").attr("opacity",0);
 
-  function reheat() {{
-    sim.force("x", d3.forceX(targetX).strength(d => d.flying ? 0.44 : 0.07));
-    sim.alpha(0.46).restart();
-  }}
+  // ── Battery panel (right side) ─────────────────────────────────────
+  const bpX = chartW + GAP;  // battery panel origin x
+  const BW=54, BH=iH+4;
+  const BX=(BATT_W-BW)/2, BY=m.t-2;
+  const bp2 = svg.append("g").attr("transform",`translate(${{bpX}},0)`);
 
-  // ── Hour state transition ─────────────────────────────────────────
+  // Terminal nub
+  bp2.append("rect").attr("x",BX+BW/2-11).attr("y",BY-8)
+    .attr("width",22).attr("height",9).attr("rx",3).attr("fill","#C7C0B8");
+  // Outer body
+  bp2.append("rect").attr("x",BX).attr("y",BY).attr("width",BW).attr("height",BH)
+    .attr("rx",6).attr("fill","none").attr("stroke","#C7C0B8").attr("stroke-width",2);
+  // Background fill track
+  bp2.append("rect").attr("x",BX+3).attr("y",BY+3).attr("width",BW-6).attr("height",BH-6)
+    .attr("rx",4).attr("fill","rgba(0,0,0,.03)");
+
+  // Animated fill
+  const battFill = bp2.append("rect")
+    .attr("x",BX+3).attr("y",BY+BH-3).attr("width",BW-6).attr("height",0)
+    .attr("rx",4).attr("fill","#8BAFC4");
+
+  // Percentage text
+  const battPct = bp2.append("text").attr("x",BX+BW/2).attr("y",BY+BH/2-3)
+    .attr("text-anchor","middle").style("font-family","'Playfair Display',serif")
+    .style("font-size","17px").style("font-weight","700").style("fill","#1C1917").text("50%");
+  const battMwh = bp2.append("text").attr("x",BX+BW/2).attr("y",BY+BH/2+14)
+    .attr("text-anchor","middle").style("font-size","9px").style("fill","#78716C").text("1.0 MWh");
+
+  // Action label above battery
+  const battAct = bp2.append("text").attr("x",BX+BW/2).attr("y",BY-14)
+    .attr("text-anchor","middle").style("font-size","9px").style("font-weight","600")
+    .attr("opacity",0);
+
+  // Animated flow arrows (charge = downward ↓ into battery, discharge = ↑ out)
+  const flowArrow = bp2.append("text").attr("x",BX+BW/2).attr("y",BY+BH/2+36)
+    .attr("text-anchor","middle").style("font-size","20px").attr("opacity",0);
+
+  bp2.append("text").attr("x",BX+BW/2).attr("y",BY+BH+18).attr("text-anchor","middle")
+    .style("font-size","8px").style("font-weight","700").style("letter-spacing",".12em")
+    .style("fill","#A8A29E").text("BATTERY");
+  bp2.append("text").attr("x",BX+BW/2).attr("y",BY+BH+30).attr("text-anchor","middle")
+    .style("font-size","8px").style("fill","#B0A89E").text("1MW · 2MWh · 90%");
+
+  // Legend (bottom left of chart)
+  svg.append("circle").attr("cx",m.l+6).attr("cy",H-8).attr("r",4)
+    .attr("fill","#1B5E96").attr("opacity",.55);
+  svg.append("text").attr("x",m.l+14).attr("y",H-4)
+    .style("font-size","9px").style("fill","#1B5E96").attr("opacity",.6).text("battery SOC");
+
+  // ── State ──────────────────────────────────────────────────────────
   let curH=0, cumRev=0;
+  const socPts=[];
 
   function stepHour(h) {{
-    const D = simDay[h];
-    const target = Math.round(D.soc / 2 * N_E);
-    const eDots  = dots.filter(d => d.kind==="energy" && !d.flying);
-    const inBatt = eDots.filter(d => d.zone==="battery").length;
-    const delta  = target - inBatt;
+    curH=h;
+    const D=simDay[h];
+    const isChg=D.charge>0.05, isDis=D.discharge>0.05, isNeg=D.price<0;
+    const soc=Math.max(0,Math.min(2,D.soc));
+    if (isDis&&D.price>0) cumRev+=D.price*D.discharge;
 
-    // Move dots between zones
-    if (delta > 0) {{
-      // CHARGING — grid dots migrate into battery
-      let mv = 0;
-      eDots.forEach(d => {{ if (d.zone==="grid" && mv<delta) {{ d.zone="battery"; mv++; }} }});
-      arrow.text("→").style("fill","#1B5E96")
-        .style("opacity",.75).transition().duration(900).style("opacity",0);
-    }} else if (delta < 0) {{
-      // DISCHARGING — battery dots fly off (sold to market)
-      let mv = 0;
-      eDots.forEach(d => {{
-        if (d.zone==="battery" && mv<Math.abs(delta)) {{
-          d.zone="grid"; d.flying=true;
-          if (D.price > 0) cumRev += D.price * (2 / N_E);
-          mv++;
-        }}
-      }});
-      arrow.text("→").style("fill","#D4540A")
-        .style("opacity",.75).transition().duration(900).style("opacity",0);
+    bars.attr("opacity",(d,i)=>i<h?0.78:i===h?1:0.2);
+
+    // Cursor
+    const cx=h*bw+bw/2;
+    cursor.attr("opacity",1);
+    cursor.select(".cl").attr("x1",cx).attr("x2",cx);
+    cursor.select(".cb").attr("x",cx-19).attr("y",-m.t+7);
+    cursor.select(".ct").attr("x",cx).text(String(h).padStart(2,"0")+":00");
+    const barTopY=pY(Math.max(0,D.price));
+    actIcon.attr("x",cx).attr("y",barTopY-4).attr("opacity",1)
+      .style("fill",isNeg?"#6D28D9":isChg?"#1B5E96":isDis?"#D4540A":"#A8A29E")
+      .text(isChg?"⬇":isDis?"⬆":"·");
+    actPrice.attr("x",cx).attr("y",barTopY-20).attr("opacity",.9)
+      .style("fill",priceColor(D.price))
+      .text((D.price>=0?"+":"")+D.price.toFixed(0)+"€");
+
+    // SOC curve
+    if (!socPts.find(p=>p.h===h)) socPts.push({{h,x:cx,soc}});
+    if (socPts.length>1) {{ socPath.attr("d",socLineF(socPts)); socFill.attr("d",socAreaFn(socPts)); }}
+
+    // ── Battery animation ───────────────────────────────────────────
+    const fillH=Math.max(0,(BH-6)*(soc/2));
+    const fillColor=isNeg?"#6D28D9":isChg?"#1B5E96":isDis?"#D4540A":"#8BAFC4";
+    battFill.transition().duration(420).ease(d3.easeQuadOut)
+      .attr("y",BY+BH-3-fillH).attr("height",fillH).attr("fill",fillColor);
+    const pct=Math.round(soc/2*100);
+    battPct.text(pct+"%").style("fill",pct>58?"#fff":"#1C1917");
+    battMwh.text(soc.toFixed(1)+" MWh").style("fill",pct>58?"rgba(255,255,255,.65)":"#78716C");
+
+    // Action label + animated arrow
+    if (isChg||isDis) {{
+      battAct.attr("opacity",1).style("fill",isNeg?"#6D28D9":isChg?"#1B5E96":"#D4540A")
+        .text(isNeg?"← grid pays":"CHARGING".slice(0,isChg?8:0)||(isDis?"SELLING":""));
+      flowArrow.attr("opacity",isChg?0:isDis?0:0);  // handled by battAct
+    }} else {{
+      battAct.attr("opacity",0);
     }}
 
-    reheat();
+    // Stats
+    $("sim-price").textContent=(D.price>=0?"+":"")+D.price.toFixed(0)+" €/MWh";
+    $("sim-price").style.color=isNeg?"#6D28D9":D.price>80?"#D4540A":"var(--text)";
+    $("sim-soc").textContent=soc.toFixed(1)+" MWh ("+pct+"%)";
+    $("sim-soc-bar").style.width=pct+"%";
+    $("sim-revenue").textContent=fmtE(Math.round(cumRev));
+    $("sim-hour-disp").textContent=String(h).padStart(2,"0")+":00";
+    $("sim-slider").value=h;
 
-    // ── Update UI ────────────────────────────────────────────────
-    const realBatt = dots.filter(d=>d.kind==="energy"&&d.zone==="battery"&&!d.flying).length;
-    const socPct   = Math.round(realBatt / N_E * 100);
-    const isNeg    = D.price < 0;
-    const isChg    = D.charge > 0.05;
-    const isDis    = D.discharge > 0.05;
-
-    let action, narr, col;
-    if (isChg && isNeg) {{
-      action="⬇ Charging";
-      narr=`Grid oversupplied with renewables — the market pays ${{Math.abs(D.price).toFixed(0)}} €/MWh to consumers who absorb surplus power`;
+    // Narrative
+    let action,narr,col;
+    if (isChg&&isNeg) {{
+      action="⬇ Charging — grid pays us";
+      narr=`${{D.price.toFixed(0)}} €/MWh — renewables flooding the grid. We're paid ${{Math.abs(D.price).toFixed(0)}} €/MWh to absorb surplus. Battery charges and earns.`;
       col="#6D28D9";
     }} else if (isChg) {{
-      action="⚡ Charging";
-      narr=`Buying electricity at ${{D.price.toFixed(0)}} €/MWh and storing it — dots move from Grid into Battery`;
+      action="⬇ Charging — buying low";
+      narr=`${{D.price.toFixed(0)}} €/MWh — one of today's cheapest hours. Buying ${{D.charge.toFixed(1)}} MW now to sell at the day's peak.`;
       col="#1B5E96";
     }} else if (isDis) {{
-      action="💰 Discharging";
-      narr=`Selling stored electricity at ${{D.price.toFixed(0)}} €/MWh — battery dots fly out, converting stored energy into revenue`;
+      action="⬆ Discharging — selling high";
+      narr=`${{D.price.toFixed(0)}} €/MWh — peak demand. Releasing ${{D.discharge.toFixed(1)}} MW earns €${{(D.price*D.discharge).toFixed(0)}} this hour alone.`;
       col="#D4540A";
     }} else {{
-      action="○ Holding";
-      narr=`Price at ${{D.price.toFixed(0)}} €/MWh — not attractive enough to buy or sell right now`;
+      action="○ Holding — optimal wait";
+      narr=`${{D.price.toFixed(0)}} €/MWh — the LP says wait. Not cheap enough to charge, not high enough to sell. Every idle hour is intentional.`;
       col="#78716C";
     }}
-
-    $("sim-action").textContent    = action;
-    $("sim-action").style.color    = col;
-    $("sim-narrative").textContent = narr;
-
-    $("sim-price").textContent  = (D.price>=0?"+":"")+D.price.toFixed(0)+" €/MWh";
-    $("sim-price").style.color  = isNeg?"#6D28D9":D.price>100?"#D4540A":"var(--text)";
-    $("sim-soc").textContent    = (realBatt/N_E*2).toFixed(1)+" MWh ("+socPct+"%)";
-    $("sim-soc-bar").style.width= socPct+"%";
-    $("sim-revenue").textContent= fmtE(Math.round(cumRev));
-    $("sim-hour-disp").textContent = String(h).padStart(2,"0")+":00";
-    $("sim-slider").value = h;
-    curH = h;
+    $("sim-action").textContent=action; $("sim-action").style.color=col;
+    $("sim-narrative").textContent=narr;
   }}
 
-  // ── Jump to arbitrary hour (fast-forward from scratch) ───────────
   function jumpTo(h) {{
-    cumRev = 0;
-    dots.forEach(d => {{ d.flying=false; d.zone="grid"; }});
-    let b = 0;
-    dots.filter(d=>d.kind==="energy").forEach(d=>{{ if(b<initBatt){{d.zone="battery";b++;}} }});
-    for (let i=1;i<=h;i++) {{
-      const D  = simDay[i];
-      const t  = Math.round(D.soc/2*N_E);
-      const ed = dots.filter(d=>d.kind==="energy"&&!d.flying);
-      const ib = ed.filter(d=>d.zone==="battery").length;
-      const dl = t - ib;
-      if (dl>0) {{ let mv=0; ed.forEach(d=>{{if(d.zone==="grid"&&mv<dl){{d.zone="battery";mv++;}}}}); }}
-      else if (dl<0) {{ let mv=0; ed.forEach(d=>{{if(d.zone==="battery"&&mv<-dl){{if(D.price>0)cumRev+=D.price*(2/N_E);d.zone="grid";mv++;}}}}); }}
-    }}
-    // Scatter dots into their zones then let sim settle
-    dots.forEach(d=>{{
-      const cx = d.zone==="battery" ? BCX : GCX;
-      d.x = cx+(Math.random()-.5)*80; d.y=CY+(Math.random()-.5)*100;
-    }});
-    reheat();
+    cumRev=0; socPts.length=0;
+    socPath.attr("d",null); socFill.attr("d",null);
+    cursor.attr("opacity",0); actIcon.attr("opacity",0); actPrice.attr("opacity",0);
+    bars.attr("opacity",0.2);
+    battFill.attr("y",BY+BH-3).attr("height",0).attr("fill","#8BAFC4");
+    battPct.text("0%").style("fill","#1C1917");
+    battMwh.text("0.0 MWh").style("fill","#78716C");
+    for (let i=0;i<=h;i++) {{ const D=simDay[i]; if(D.discharge>0.05&&D.price>0) cumRev+=D.price*D.discharge; }}
     stepHour(h);
   }}
 
-  // ── Controls ─────────────────────────────────────────────────────
   let playing=false, timer=null;
-  const SPEED=950;
-
   function advance() {{
     if (!playing) return;
-    stepHour(curH);
-    if (curH>=23) {{
-      playing=false;
-      $("sim-play-btn").textContent="↺ Replay";
-      $("sim-play-btn").dataset.mode="replay";
-      return;
-    }}
-    curH++;
-    timer = setTimeout(advance, SPEED);
+    if (curH>=23) {{ playing=false; $("sim-play-btn").textContent="↺ Replay"; $("sim-play-btn").dataset.mode="replay"; return; }}
+    curH++; stepHour(curH); timer=setTimeout(advance,1050);
   }}
-
   $("sim-play-btn").addEventListener("click", function() {{
     if (this.dataset.mode==="replay") {{
-      this.dataset.mode=""; playing=true; this.textContent="⏸ Pause";
-      curH=0; jumpTo(0); setTimeout(advance,400);
+      this.dataset.mode=""; playing=true; this.textContent="⏸ Pause"; jumpTo(0); setTimeout(advance,400);
     }} else {{
-      playing=!playing;
-      this.textContent=playing?"⏸ Pause":"▶ Play";
-      if (playing) advance();
-      else if (timer) {{ clearTimeout(timer); timer=null; }}
+      playing=!playing; this.textContent=playing?"⏸ Pause":"▶ Play";
+      if(playing) advance(); else if(timer){{clearTimeout(timer);timer=null;}}
     }}
   }});
-
   $("sim-slider").addEventListener("input", function() {{
-    playing=false;
-    if (timer) {{ clearTimeout(timer); timer=null; }}
-    $("sim-play-btn").textContent="▶ Play";
-    $("sim-play-btn").dataset.mode="";
+    playing=false; if(timer){{clearTimeout(timer);timer=null;}}
+    $("sim-play-btn").textContent="▶ Play"; $("sim-play-btn").dataset.mode="";
     jumpTo(parseInt(this.value));
   }});
-
-  // Auto-play on load
-  setTimeout(()=>{{ playing=true; $("sim-play-btn").textContent="⏸ Pause"; advance(); }},900);
+  stepHour(0);
+  setTimeout(()=>{{playing=true;$("sim-play-btn").textContent="⏸ Pause";advance();}},900);
 }})();
 
 // ════════════════════════════════════════════════════════════════════
@@ -814,73 +845,162 @@ const priceColor = d3.scaleLinear()
 }})();
 
 // ════════════════════════════════════════════════════════════════════
-// CHART 4 · DECISION CLOCK
+// CHART 4 · DECISION CLOCK  (radius = revenue impact, colour = flip rate)
 // ════════════════════════════════════════════════════════════════════
 (function drawClock(){{
-  const S=330, cx=S/2, cy=S/2;
-  const maxR=S/2-28, minR=S/2-100;
+  const S=360, cx=S/2, cy=S/2;
+  const maxR=S/2-32, minR=S/2-116;
   const overallS=(clock.reduce((a,d)=>a+d.sensitivity,0)/clock.length*100).toFixed(1);
+  const maxImpact = d3.max(clock,d=>d.impact);
+  const avgImpact = Math.round(clock.filter(d=>d.impact>0).reduce((a,d)=>a+d.impact,0)/clock.filter(d=>d.impact>0).length);
+
   const svg=d3.select("#clock-chart").append("svg").attr("width",S).attr("height",S);
   const g=svg.append("g").attr("transform",`translate(${{cx}},${{cy}})`);
+
+  // Subtle guide rings
   [.25,.5,.75,1].forEach(f=>
     g.append("circle").attr("r",minR+(maxR-minR)*f)
-     .attr("fill","none").attr("stroke","#E5E0D8").attr("stroke-width",.8));
+      .attr("fill","none").attr("stroke","rgba(0,0,0,.07)").attr("stroke-width",.8));
+
+  // Arc: radius ∝ revenue impact, colour = flip-rate sensitivity
   const arc=d3.arc()
-    .innerRadius(minR).outerRadius(d=>minR+(maxR-minR)*d.sensitivity)
+    .innerRadius(minR)
+    .outerRadius(d=>d.impact>0 ? minR+(maxR-minR)*(d.impact/maxImpact) : minR+4)
     .startAngle(d=>(d.hour/24)*2*Math.PI-Math.PI/2)
     .endAngle(d=>((d.hour+1)/24)*2*Math.PI-Math.PI/2)
-    .padAngle(.025).cornerRadius(3);
-  const clr=d3.scaleSequential(d3.interpolateYlOrRd).domain([0,1]);
+    .padAngle(.018).cornerRadius(3);
+
+  // Colour: grey=safe → amber=medium → deep red=most sensitive
+  const clr=d3.scaleLinear().domain([0,0.6,1])
+    .range(["#C9E8D4","#F59E0B","#991B1B"]);
+
   g.selectAll("path.seg").data(clock).join("path").attr("class","seg")
-    .attr("d",arc).attr("fill",d=>clr(d.sensitivity)).attr("opacity",.88)
+    .attr("d",arc).attr("fill",d=>clr(d.sensitivity)).attr("opacity",.9)
     .on("mousemove",(ev,d)=>showTip(ev,`${{d.hour}}:00–${{d.hour+1}}:00`,
-      `Flip rate: <b>${{(d.sensitivity*100).toFixed(0)}}%</b><br>Avg impact: ${{fmtE(d.impact)}}`))
+      `Flip rate: <b>${{(d.sensitivity*100).toFixed(0)}}%</b><br>Avg revenue impact: <b>${{fmtE(d.impact)}}</b>`))
     .on("mouseleave",hideTip);
+
+  // Hour labels every 3h
   d3.range(0,24,3).forEach(h=>{{
     const angle=(h/24)*2*Math.PI-Math.PI/2;
-    const r=maxR+16;
+    const r=maxR+20;
     g.append("text").attr("x",r*Math.cos(angle)).attr("y",r*Math.sin(angle))
       .attr("text-anchor","middle").attr("dominant-baseline","middle")
-      .style("font-size","11px").style("fill","#A8A29E").text(h+"h");
+      .style("font-size","11px").style("fill","#A8A29E").text(h===0?"midnight":h+"h");
   }});
-  g.append("text").attr("text-anchor","middle").attr("y",-9)
-   .style("font-size","26px").style("font-family","'Playfair Display',serif")
-   .style("fill","#D4540A").style("font-weight","700").text(overallS+"%");
+
+  // Annotate the single "safe" hour
+  const safeD=clock.find(d=>d.sensitivity<0.1);
+  if(safeD){{
+    const ha=(safeD.hour/24+0.5/24)*2*Math.PI-Math.PI/2;
+    const rl=maxR+38;
+    g.append("text").attr("x",rl*Math.cos(ha)).attr("y",rl*Math.sin(ha))
+      .attr("text-anchor","middle").attr("dominant-baseline","middle")
+      .style("font-size","9px").style("font-weight","600").style("fill","#1B7A45").text("safe ✓");
+  }}
+
+  // Centre stats
+  g.append("text").attr("text-anchor","middle").attr("y",-22)
+    .style("font-size","28px").style("font-family","'Playfair Display',serif")
+    .style("fill","#991B1B").style("font-weight","700").text(overallS+"%");
+  g.append("text").attr("text-anchor","middle").attr("y",-3)
+    .style("font-size","10px").style("fill","#78716C").text("of hours flip on");
   g.append("text").attr("text-anchor","middle").attr("y",12)
-   .style("font-size","10px").style("fill","#78716C").text("of hours sensitive");
+    .style("font-size","10px").style("fill","#78716C").text("a ±10 €/MWh shift");
+  g.append("line").attr("x1",-28).attr("x2",28).attr("y1",22).attr("y2",22)
+    .attr("stroke","#E5E0D8").attr("stroke-width",1);
+  g.append("text").attr("text-anchor","middle").attr("y",36)
+    .style("font-size","13px").style("font-family","'Playfair Display',serif")
+    .style("fill","#D4540A").style("font-weight","700").text(`€${{avgImpact}} avg`);
+  g.append("text").attr("text-anchor","middle").attr("y",50)
+    .style("font-size","9px").style("fill","#A8A29E").text("revenue at risk / hour");
+
+  // Colour legend
+  const lgG=svg.append("g").attr("transform",`translate(${{cx-44}},${{S-13}})`);
+  const ld=svg.append("defs").append("linearGradient").attr("id","ck-g").attr("x1","0%").attr("x2","100%");
+  [["0%","#C9E8D4"],["50%","#F59E0B"],["100%","#991B1B"]].forEach(([o,c])=>
+    ld.append("stop").attr("offset",o).attr("stop-color",c));
+  lgG.append("rect").attr("width",88).attr("height",6).attr("rx",3).attr("fill","url(#ck-g)");
+  lgG.append("text").attr("y",17).style("font-size","8px").style("fill","#A8A29E").text("safe");
+  lgG.append("text").attr("x",88).attr("y",17).attr("text-anchor","end")
+    .style("font-size","8px").style("fill","#A8A29E").text("highly sensitive");
 }})();
 
 // ════════════════════════════════════════════════════════════════════
-// CHART 5 · SCATTER
+// CHART 5 · SCATTER  (MAE vs dispatch revenue, per test day)
 // ════════════════════════════════════════════════════════════════════
 (function drawScatter(){{
-  const m={{t:16,r:24,b:48,l:60}};
-  const S=320, iW=S-m.l-m.r, iH=S-m.t-m.b;
-  const svg=d3.select("#scatter-chart").append("svg").attr("width",S).attr("height",S);
+  const W=Math.min($("scatter-chart").clientWidth||480,480);
+  const H=Math.round(W*0.78);
+  const m={{t:20,r:32,b:52,l:66}};
+  const iW=W-m.l-m.r, iH=H-m.t-m.b;
+  const svg=d3.select("#scatter-chart").append("svg").attr("width",W).attr("height",H);
   const g=svg.append("g").attr("transform",`translate(${{m.l}},${{m.t}})`);
+
   const xs=scatter.map(d=>d.mae), ys=scatter.map(d=>d.revenue);
-  const x=d3.scaleLinear().domain(d3.extent(xs)).nice().range([0,iW]);
-  const y=d3.scaleLinear().domain(d3.extent(ys)).nice().range([iH,0]);
+  const x=d3.scaleLinear().domain([0,d3.max(xs)*1.06]).nice().range([0,iW]);
+  const y=d3.scaleLinear().domain([d3.min(ys)*1.12,d3.max(ys)*1.12]).nice().range([iH,0]);
   const {{slope,intercept,r,p}}=ols;
-  const x1=d3.min(xs), x2=d3.max(xs);
+
+  // Zero-revenue reference line (profitable vs loss days)
+  if(d3.min(ys)<0){{
+    g.append("line").attr("x1",0).attr("x2",iW).attr("y1",y(0)).attr("y2",y(0))
+      .attr("stroke","#D6D0C8").attr("stroke-width",1).attr("stroke-dasharray","3,3");
+    g.append("text").attr("x",iW+4).attr("y",y(0)+4)
+      .style("font-size","9px").style("fill","#B0A89E").text("€0");
+  }}
+
+  // OLS trend line
+  const x1=0, x2=d3.max(xs)*1.04;
   g.append("line").attr("x1",x(x1)).attr("y1",y(slope*x1+intercept))
     .attr("x2",x(x2)).attr("y2",y(slope*x2+intercept))
-    .attr("stroke","#D4540A").attr("stroke-width",1.8).attr("opacity",.6).attr("stroke-dasharray","5,3");
-  g.append("text").attr("x",x(x1)+4).attr("y",y(slope*x1+intercept)-8)
-    .style("font-size","10px").style("fill","#D4540A").text(`r = ${{r}}, p = ${{p}}`);
-  const dc=d3.scaleSequential(d3.interpolateRdYlGn).domain([d3.max(xs),d3.min(xs)]);
+    .attr("stroke","#D4540A").attr("stroke-width",1.6).attr("opacity",.5)
+    .attr("stroke-dasharray","5,3");
+
+  // Annotation badge for OLS stats
+  const ax=x(x1)+6, ay=y(slope*x1+intercept)-(y(0)-y(d3.max(ys)*0.55));
+  g.append("rect").attr("x",ax-4).attr("y",ay-14).attr("width",116).attr("height",30)
+    .attr("rx",5).attr("fill","rgba(255,255,255,.9)").attr("stroke","#E5E0D8");
+  g.append("text").attr("x",ax+2).attr("y",ay-2)
+    .style("font-size","10px").style("fill","#D4540A").style("font-weight","600")
+    .text(`r = ${{r}}   p = ${{p<0.01?"< 0.01":p}}`);
+  g.append("text").attr("x",ax+2).attr("y",ay+12)
+    .style("font-size","9px").style("fill","#78716C").text("lower MAE → higher revenue");
+
+  // Dots — green = profitable day, red = loss day, size ∝ |revenue|
+  const rScale=d3.scaleSqrt().domain([0,d3.max(ys.map(Math.abs))]).range([3.5,8]);
   g.selectAll("circle").data(scatter).join("circle")
-    .attr("cx",d=>x(d.mae)).attr("cy",d=>y(d.revenue)).attr("r",5)
-    .attr("fill",d=>dc(d.mae)).attr("opacity",.82).attr("stroke","#fff").attr("stroke-width",.8)
+    .attr("cx",d=>x(d.mae)).attr("cy",d=>y(d.revenue))
+    .attr("r",d=>rScale(Math.abs(d.revenue)))
+    .attr("fill",d=>d.revenue>=0?"#1B7A45":"#991B1B")
+    .attr("opacity",.72).attr("stroke","#fff").attr("stroke-width",.8)
     .on("mousemove",(ev,d)=>showTip(ev,d.date,`MAE: <b>${{d.mae}} €/MWh</b><br>Revenue: <b>${{fmtE(d.revenue)}}</b>`))
     .on("mouseleave",hideTip);
+
+  // Axes — numbers only on ticks; unit in title
   g.append("g").attr("transform",`translate(0,${{iH}})`)
-    .call(d3.axisBottom(x).ticks(5).tickFormat(d=>d+" €/MWh"))
-    .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+    .call(d3.axisBottom(x).ticks(5).tickFormat(d=>d))
+    .call(g=>g.select(".domain").remove())
+    .call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
   g.append("g").call(d3.axisLeft(y).ticks(5).tickFormat(fmtE))
-    .call(g=>g.select(".domain").remove()).call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
-  g.append("text").attr("x",iW/2).attr("y",iH+38)
-    .attr("text-anchor","middle").style("font-size","11px").style("fill","#A8A29E").text("Forecast MAE (€/MWh)");
+    .call(g=>g.select(".domain").remove())
+    .call(g=>g.selectAll("text").style("font-size","10px").style("fill","#A8A29E"));
+
+  // Axis titles
+  g.append("text").attr("x",iW/2).attr("y",iH+40)
+    .attr("text-anchor","middle").style("font-size","11px").style("fill","#A8A29E")
+    .text("Forecast MAE (€/MWh)");
+  svg.append("text").attr("transform",`translate(12,${{m.t+iH/2}}) rotate(-90)`)
+    .attr("text-anchor","middle").style("font-size","11px").style("fill","#A8A29E")
+    .text("Daily revenue (€)");
+
+  // Legend
+  const legG=svg.append("g").attr("transform",`translate(${{m.l+4}},${{m.t+4}})`);
+  [["#1B7A45","Profitable day"],["#991B1B","Loss day"]].forEach(([c,lbl],i)=>{{
+    legG.append("circle").attr("cx",5).attr("cy",i*16).attr("r",4).attr("fill",c).attr("opacity",.75);
+    legG.append("text").attr("x",13).attr("y",i*16+4)
+      .style("font-size","9px").style("fill","#78716C").text(lbl);
+  }});
 }})();
 
 // ════════════════════════════════════════════════════════════════════
