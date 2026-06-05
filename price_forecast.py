@@ -258,6 +258,15 @@ def main():
     print("\nTop-10 feature importances:")
     print(importances.nlargest(10).round(4).to_string())
 
+    # Save full importance vector for build_track1.py to consume
+    imp_df = pd.DataFrame({
+        "feature":    FEATURE_COLS,
+        "importance": model.feature_importances_.tolist(),
+        "is_rich":    is_rich,
+    })
+    imp_df.to_json(DATA_DIR / "feature_importances.json", orient="records", indent=2)
+    log.info("Feature importances → %s", DATA_DIR / "feature_importances.json")
+
     # SHAP (optional)
     try:
         import shap

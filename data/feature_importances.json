@@ -1,0 +1,122 @@
+[
+  {
+    "feature": "rolling_mean_24h",
+    "importance": 0.401335,
+    "is_rich": true
+  },
+  {
+    "feature": "lag_1h",
+    "importance": 0.100504,
+    "is_rich": true
+  },
+  {
+    "feature": "rolling_std_24h",
+    "importance": 0.075405,
+    "is_rich": true
+  },
+  {
+    "feature": "lag_2h",
+    "importance": 0.067128,
+    "is_rich": true
+  },
+  {
+    "feature": "rolling_mean_168h",
+    "importance": 0.042683,
+    "is_rich": true
+  },
+  {
+    "feature": "net_load_forecast",
+    "importance": 0.040576,
+    "is_rich": true
+  },
+  {
+    "feature": "lag_24h",
+    "importance": 0.026247,
+    "is_rich": true
+  },
+  {
+    "feature": "load_forecast",
+    "importance": 0.024795,
+    "is_rich": true
+  },
+  {
+    "feature": "cos_hour",
+    "importance": 0.019466,
+    "is_rich": true
+  },
+  {
+    "feature": "renewable_share_forecast",
+    "importance": 0.018893,
+    "is_rich": true
+  },
+  {
+    "feature": "sin_hour",
+    "importance": 0.016701,
+    "is_rich": true
+  },
+  {
+    "feature": "gas_lag24",
+    "importance": 0.016431,
+    "is_rich": true
+  },
+  {
+    "feature": "total_wind_forecast",
+    "importance": 0.01538,
+    "is_rich": true
+  },
+  {
+    "feature": "lag_168h",
+    "importance": 0.014568,
+    "is_rich": true
+  },
+  {
+    "feature": "rolling_std_168h",
+    "importance": 0.014387,
+    "is_rich": true
+  },
+  {
+    "feature": "nuclear_lag24",
+    "importance": 0.013244,
+    "is_rich": true
+  },
+  {
+    "feature": "lag_48h",
+    "importance": 0.013243,
+    "is_rich": true
+  },
+  {
+    "feature": "sin_dow",
+    "importance": 0.012894,
+    "is_rich": true
+  },
+  {
+    "feature": "wind_total_lag24",
+    "importance": 0.012341,
+    "is_rich": true
+  },
+  {
+    "feature": "sin_month",
+    "importance": 0.012246,
+    "is_rich": true
+  },
+  {
+    "feature": "cos_month",
+    "importance": 0.012095,
+    "is_rich": true
+  },
+  {
+    "feature": "cos_dow",
+    "importance": 0.010843,
+    "is_rich": true
+  },
+  {
+    "feature": "solar_forecast",
+    "importance": 0.010832,
+    "is_rich": true
+  },
+  {
+    "feature": "is_weekend",
+    "importance": 0.00776,
+    "is_rich": true
+  }
+]

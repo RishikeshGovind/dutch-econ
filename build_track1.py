@@ -97,6 +97,62 @@ def data_source_meta() -> dict:
             "start": "Jan 2022", "end": "Dec 2023", "rows": 0}
 
 
+FEATURE_META = {
+    # Temporal
+    "sin_hour":   ("Temporal",        "Hour of day (sin)",       "ENTSO-E A44", "Cyclical sine encoding of hour — captures intraday price shape"),
+    "cos_hour":   ("Temporal",        "Hour of day (cos)",       "ENTSO-E A44", "Cosine pair for hour — together with sin gives smooth 24h cycle"),
+    "sin_dow":    ("Temporal",        "Day of week (sin)",       "ENTSO-E A44", "Cyclical encoding of weekday — captures Mon–Fri vs weekend pricing"),
+    "cos_dow":    ("Temporal",        "Day of week (cos)",       "ENTSO-E A44", "Cosine pair for day-of-week"),
+    "sin_month":  ("Temporal",        "Month (sin)",             "ENTSO-E A44", "Cyclical month encoding — captures winter heating vs summer surplus"),
+    "cos_month":  ("Temporal",        "Month (cos)",             "ENTSO-E A44", "Cosine pair for month"),
+    "is_weekend": ("Temporal",        "Weekend flag",            "ENTSO-E A44", "Binary 1/0 — lower industrial demand on Sat–Sun depresses prices"),
+    # Price history
+    "lag_1h":          ("Price History", "Price lag 1 h",        "ENTSO-E A44", "Day-ahead price one hour ago (€/MWh) — strongest autocorrelation signal"),
+    "lag_2h":          ("Price History", "Price lag 2 h",        "ENTSO-E A44", "Day-ahead price two hours ago (€/MWh)"),
+    "lag_24h":         ("Price History", "Price lag 24 h",       "ENTSO-E A44", "Same hour yesterday — used as the naive persistence baseline"),
+    "lag_48h":         ("Price History", "Price lag 48 h",       "ENTSO-E A44", "Same hour two days ago (€/MWh)"),
+    "lag_168h":        ("Price History", "Price lag 168 h",      "ENTSO-E A44", "Same hour last week — captures weekly seasonal patterns"),
+    "rolling_mean_24h":("Price History", "Rolling mean 24 h",    "ENTSO-E A44", "24 h moving average of day-ahead price — dominant feature"),
+    "rolling_std_24h": ("Price History", "Rolling vol. 24 h",    "ENTSO-E A44", "24 h rolling standard deviation — recent price volatility"),
+    "rolling_mean_168h":("Price History","Rolling mean 168 h",   "ENTSO-E A44", "7-day moving average — medium-term price regime"),
+    "rolling_std_168h":("Price History", "Rolling vol. 168 h",   "ENTSO-E A44", "7-day rolling standard deviation — weekly volatility regime"),
+    # Supply-demand
+    "load_forecast":            ("Supply-Demand", "Load forecast",          "ENTSO-E A65", "Day-ahead load forecast for Netherlands (MW)"),
+    "net_load_forecast":        ("Supply-Demand", "Net load",               "ENTSO-E A65+A69", "Load minus wind and solar forecast — residual demand for dispatchable plant"),
+    "renewable_share_forecast": ("Supply-Demand", "Renewable share",        "ENTSO-E A69", "Wind + solar as fraction of load — key price suppressor; high share → low/negative prices"),
+    "total_wind_forecast":      ("Supply-Demand", "Total wind forecast",    "ENTSO-E A69", "Onshore + offshore wind generation forecast (MW)"),
+    "solar_forecast":           ("Supply-Demand", "Solar forecast",         "ENTSO-E A69", "PV generation forecast (MW)"),
+    # Generation mix
+    "nuclear_lag24":    ("Generation Mix", "Nuclear output (lag 24 h)",  "ENTSO-E A75", "Nuclear generation 24 h ago (MW) — stable baseload, signals available capacity"),
+    "gas_lag24":        ("Generation Mix", "Gas output (lag 24 h)",      "ENTSO-E A75", "Gas-fired generation 24 h ago (MW) — marginal cost proxy; high gas → high prices"),
+    "wind_total_lag24": ("Generation Mix", "Wind output (lag 24 h)",     "ENTSO-E A75", "Actual total wind output 24 h ago (MW) — validates forecast reliability"),
+}
+
+
+def feature_data() -> list:
+    """Load feature importances and attach human-readable metadata."""
+    fi_path = DATA_DIR / "feature_importances.json"
+    if not fi_path.exists():
+        return []
+    rows = pd.read_json(fi_path).to_dict("records")
+    total = sum(r["importance"] for r in rows)
+    out = []
+    for r in rows:
+        meta = FEATURE_META.get(r["feature"],
+               ("Other", r["feature"], "Derived", "Engineered feature"))
+        out.append({
+            "name":        r["feature"],
+            "label":       meta[1],
+            "category":    meta[0],
+            "source":      meta[2],
+            "description": meta[3],
+            "importance":  round(r["importance"], 5),
+            "pct":         round(r["importance"] / total * 100, 1) if total else 0,
+        })
+    out.sort(key=lambda x: -x["importance"])
+    return out
+
+
 def build_payload():
     check_files()
     preds   = pd.read_csv(DATA_DIR / "price_predictions.csv")
@@ -134,6 +190,7 @@ def build_payload():
             "sens_pct": round(sens["sensitivity_score"].mean() * 100, 1),
             "mae": round(float(np.mean(np.abs(preds["actual"] - preds["forecast"]))), 1),
         },
+        "features": feature_data(),
     }
 
 
@@ -236,6 +293,37 @@ h2{{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-hei
 
 svg text{{font-family:'Inter',-apple-system,sans-serif}}
 
+/* ML Feature export */
+#feat-toggle{{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 20px;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;color:var(--text);width:100%;text-align:left;transition:border-color .2s}}
+#feat-toggle:hover{{border-color:var(--orange)}}
+#feat-toggle .arrow{{transition:transform .3s;font-size:11px;color:var(--orange)}}
+#feat-toggle.open .arrow{{transform:rotate(180deg)}}
+#feat-body{{margin-top:20px;display:none}}
+.ftabs{{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}}
+.ftab{{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;color:var(--muted);transition:all .2s}}
+.ftab.on{{background:var(--orange);border-color:var(--orange);color:#fff}}
+.ftab:hover:not(.on){{border-color:var(--orange);color:var(--orange)}}
+.feat-grid{{display:grid;grid-template-columns:1fr;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden}}
+.feat-hdr,.feat-row{{display:grid;grid-template-columns:180px 140px 160px 1fr 140px;gap:0;align-items:center}}
+.feat-hdr{{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 0}}
+.feat-hdr span{{font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--subtle);padding:0 16px}}
+.feat-row{{padding:10px 0;border-bottom:1px solid var(--border);transition:background .15s}}
+.feat-row:last-child{{border-bottom:none}}
+.feat-row:hover{{background:var(--surface)}}
+.feat-row > *{{padding:0 16px;font-size:12.5px}}
+.feat-name{{font-family:'JetBrains Mono',monospace,sans-serif;font-size:11.5px;color:var(--text);font-weight:500}}
+.feat-cat{{display:inline-flex}}.feat-cat span{{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap}}
+.cat-Temporal{{background:#EEF2FB;color:#3B5998}}
+.cat-Price{{background:#FEF3E2;color:#B45309}}
+.cat-Supply{{background:#EAFAF1;color:#1B7A45}}
+.cat-Generation{{background:#F3E8FF;color:#6D28D9}}
+.feat-src{{font-size:11px;color:var(--subtle)}}
+.feat-desc{{font-size:12px;color:var(--muted);line-height:1.5}}
+.feat-bar-wrap{{display:flex;align-items:center;gap:8px}}
+.feat-bar-bg{{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}}
+.feat-bar{{height:100%;background:var(--orange);border-radius:3px;opacity:.85}}
+.feat-pct{{font-size:11px;color:var(--muted);white-space:nowrap;min-width:34px;text-align:right}}
+
 /* Live data badge */
 #data-badge{{
   position:fixed;bottom:18px;left:22px;z-index:400;
@@ -264,6 +352,7 @@ svg text{{font-family:'Inter',-apple-system,sans-serif}}
   <div class="dot"     data-i="3" title="Dispatch Portrait"></div>
   <div class="dot"     data-i="4" title="Revenue Race"></div>
   <div class="dot"     data-i="5" title="Decision Sensitivity"></div>
+  <div class="dot"     data-i="6" title="ML Features"></div>
 </div>
 <div id="tip"><div class="tl"></div><div class="tv"></div></div>
 
@@ -410,10 +499,37 @@ svg text{{font-family:'Inter',-apple-system,sans-serif}}
   </div>
 </section>
 
+<!-- ══════════════════════════════════════════════════════════════ ML FEATURES -->
+<section id="features" style="min-height:auto;padding-top:64px;padding-bottom:80px">
+  <div class="eyebrow fade">Model Transparency · XGBoost Training Set</div>
+  <h2 class="fade">Feature Export</h2>
+  <p class="lead fade">Every variable used to train the day-ahead price forecaster.
+  Sourced from five ENTSO-E transparency series — no proprietary data.
+  Importance = XGBoost split gain, normalised to sum to 100%.</p>
+
+  <div class="fade" style="margin-top:8px">
+    <button id="feat-toggle">
+      <span class="arrow">▼</span>
+      <span id="feat-toggle-label">Show all features</span>
+      <span style="margin-left:auto;font-size:11px;color:var(--subtle)" id="feat-count"></span>
+    </button>
+    <div id="feat-body">
+      <div class="ftabs" id="feat-tabs"></div>
+      <div class="feat-grid" id="feat-grid">
+        <div class="feat-hdr">
+          <span>Feature</span><span>Category</span><span>Source</span>
+          <span>Description</span><span>Importance</span>
+        </div>
+        <div id="feat-rows"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script>
 const DATA = {data_json};
-const {{meta,heatmap,dispatch,revenue,clock,scatter,spo,ols,stats}} = DATA;
+const {{meta,heatmap,dispatch,revenue,clock,scatter,spo,ols,stats,features}} = DATA;
 
 // ── Data source badge ────────────────────────────────────────────────────────
 (function(){{
@@ -1016,6 +1132,81 @@ const priceColor = d3.scaleLinear()
       <td>${{d.pct.toFixed(1)}}%</td>
       <td><div class="spo-bar" style="width:${{d.pct}}%"></div></td>
     </tr>`).join("");
+}})();
+
+// ════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════
+// ML FEATURE EXPORT
+// ════════════════════════════════════════════════════════════════════
+(function initFeatures(){{
+  if (!features || !features.length) return;
+
+  const maxImp = features[0].pct;
+  const cats = ["All", ...new Set(features.map(f=>f.category))];
+
+  // Populate count badge and toggle label
+  $("feat-count").textContent = features.length + " features";
+  $("feat-toggle-label").textContent = "Show all " + features.length + " features";
+
+  // Category tabs
+  const tabsEl = $("feat-tabs");
+  cats.forEach(cat => {{
+    const btn = document.createElement("button");
+    btn.className = "ftab" + (cat==="All"?" on":"");
+    btn.textContent = cat;
+    btn.dataset.cat = cat;
+    btn.addEventListener("click", () => {{
+      tabsEl.querySelectorAll(".ftab").forEach(b=>b.classList.toggle("on", b===btn));
+      renderRows(cat);
+    }});
+    tabsEl.appendChild(btn);
+  }});
+
+  // Category colour helper
+  function catClass(c){{
+    if(c==="Temporal")      return "cat-Temporal";
+    if(c==="Price History") return "cat-Price";
+    if(c==="Supply-Demand") return "cat-Supply";
+    if(c==="Generation Mix")return "cat-Generation";
+    return "";
+  }}
+  function catShort(c){{
+    if(c==="Price History") return "Price Hist.";
+    if(c==="Supply-Demand") return "Supply / Demand";
+    if(c==="Generation Mix")return "Generation";
+    return c;
+  }}
+
+  // Render rows
+  function renderRows(cat){{
+    const list = cat==="All" ? features : features.filter(f=>f.category===cat);
+    $("feat-rows").innerHTML = list.map(f=>`
+      <div class="feat-row">
+        <div class="feat-name">${{f.name}}</div>
+        <div class="feat-cat"><span class="${{catClass(f.category)}}">${{catShort(f.category)}}</span></div>
+        <div class="feat-src">${{f.source}}</div>
+        <div class="feat-desc">${{f.description}}</div>
+        <div class="feat-bar-wrap">
+          <div class="feat-bar-bg">
+            <div class="feat-bar" style="width:${{Math.round(f.pct/maxImp*100)}}%"></div>
+          </div>
+          <span class="feat-pct">${{f.pct}}%</span>
+        </div>
+      </div>`).join("");
+  }}
+  renderRows("All");
+
+  // Toggle open/close
+  const toggle = $("feat-toggle");
+  const body   = $("feat-body");
+  toggle.addEventListener("click", () => {{
+    const open = toggle.classList.contains("open");
+    toggle.classList.toggle("open", !open);
+    $("feat-toggle-label").textContent = open
+      ? "Show all " + features.length + " features"
+      : "Hide features";
+    body.style.display = open ? "none" : "block";
+  }});
 }})();
 
 // ════════════════════════════════════════════════════════════════════

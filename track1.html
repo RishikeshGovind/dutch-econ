@@ -94,6 +94,59 @@ h2{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-heig
 
 svg text{font-family:'Inter',-apple-system,sans-serif}
 
+/* ML Features section */
+#ml-features{min-height:100vh;padding:80px clamp(48px,6vw,120px);border-top:1px solid var(--border)}
+.ml-categories{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:28px 48px}
+.ml-cat-hd{
+  font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:var(--subtle);
+  font-weight:600;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);
+}
+.ml-row{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.ml-name{font-size:11.5px;color:var(--muted);width:190px;flex-shrink:0}
+.ml-bar-bg{flex:1;height:7px;background:var(--border);border-radius:4px;overflow:hidden;min-width:60px}
+.ml-bar-fill{height:100%;border-radius:4px;width:0;transition:width 1s ease}
+.ml-pct{font-size:10.5px;color:var(--subtle);min-width:38px;text-align:right;flex-shrink:0}
+.ml-summary{
+  display:flex;flex-wrap:wrap;gap:16px 32px;
+  margin-top:28px;padding-top:20px;border-top:1px solid var(--border);
+}
+.ml-sum-item{font-size:12px;color:var(--muted)}
+.ml-sum-item strong{color:var(--text)}
+
+/* ML Table view */
+.ml-view-tabs{display:flex;gap:0;margin-bottom:24px;border:1px solid var(--border);border-radius:8px;overflow:hidden;width:fit-content}
+.ml-view-tab{
+  padding:7px 18px;font-size:12px;font-weight:500;cursor:pointer;border:none;
+  background:var(--surface);color:var(--muted);border-right:1px solid var(--border);
+  font-family:'Inter',sans-serif;transition:all .2s;
+}
+.ml-view-tab:last-child{border-right:none}
+.ml-view-tab.active{background:var(--text);color:#fff}
+.ml-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.ml-chip{
+  padding:4px 12px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;
+  border:1.5px solid var(--border);background:var(--surface);color:var(--muted);
+  font-family:'Inter',sans-serif;transition:all .2s;white-space:nowrap;
+}
+.ml-chip.active{color:#fff;border-color:transparent}
+.ml-tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;max-height:400px;overflow-y:auto}
+.ml-tbl{width:100%;border-collapse:collapse;font-size:12.5px;min-width:700px}
+.ml-tbl th{
+  font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--subtle);
+  font-weight:500;padding:10px 14px;border-bottom:1px solid var(--border);
+  text-align:left;background:var(--surface);position:sticky;top:0;z-index:1;white-space:nowrap;
+}
+.ml-tbl td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+.ml-tbl tbody tr:last-child td{border-bottom:none}
+.ml-tbl tbody tr:hover td{background:rgba(0,0,0,.018)}
+.ml-feat-code{font-family:'Courier New',monospace;font-size:10.5px;color:var(--text);font-weight:600}
+.ml-cat-badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:9px;font-weight:600;color:#fff;white-space:nowrap;letter-spacing:.03em}
+.ml-tbl-imp{display:flex;align-items:center;gap:8px;min-width:110px}
+.ml-tbl-bar{height:5px;border-radius:3px;flex-shrink:0}
+.ml-tbl-desc{font-size:11.5px;color:var(--muted);max-width:260px;line-height:1.4}
+.ml-tbl-src{font-size:10px;color:var(--subtle);white-space:nowrap}
+.ml-tbl-foot{margin-top:10px;font-size:10.5px;color:var(--subtle)}
+
 /* Live data badge */
 #data-badge{
   position:fixed;bottom:18px;left:22px;z-index:400;
@@ -122,6 +175,7 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
   <div class="dot"     data-i="3" title="Dispatch Portrait"></div>
   <div class="dot"     data-i="4" title="Revenue Race"></div>
   <div class="dot"     data-i="5" title="Decision Sensitivity"></div>
+  <div class="dot"     data-i="6" title="ML Features"></div>
 </div>
 <div id="tip"><div class="tl"></div><div class="tv"></div></div>
 
@@ -265,6 +319,46 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
     Standard XGBoost minimises MSE uniformly across all hours.
     Smart Predict-Then-Optimize (Elmachtoub & Grigas, 2022) trains the model to minimise
     <em>decision regret</em> — concentrating accuracy at the sensitive hours shown in the clock above.</div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ ML FEATURES -->
+<section id="ml-features">
+  <div class="eyebrow fade">Model Internals</div>
+  <h2 class="fade">Feature Engineering &amp; Importances</h2>
+  <p class="lead fade">XGBoost trained on 3+ years of Dutch ENTSO-E data (Jan 2021 – Sep 2024).
+  24 engineered features capture price momentum, seasonal cycles, and grid supply signals.
+  Importance = mean gain across all boosted trees.</p>
+  <div class="ml-view-tabs fade">
+    <button class="ml-view-tab active" data-view="table">Feature Matrix</button>
+    <button class="ml-view-tab" data-view="bars">Overview</button>
+  </div>
+  <!-- Feature table (default) -->
+  <div id="ml-view-table" class="fade">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">
+      24 features &nbsp;·&nbsp; 1 row = 1 hourly observation &nbsp;·&nbsp; Ready for XGBoost training
+    </div>
+    <div class="ml-chips" id="ml-chips"></div>
+    <div class="ml-tbl-wrap">
+      <table class="ml-tbl">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Category</th>
+            <th>Importance</th>
+            <th>Description</th>
+            <th>Source</th>
+          </tr>
+        </thead>
+        <tbody id="ml-tbl-body"></tbody>
+      </table>
+    </div>
+    <div class="ml-tbl-foot">Source: ENTSO-E Transparency Platform &nbsp;·&nbsp; CC BY 4.0 &nbsp;·&nbsp; NL bidding zone</div>
+  </div>
+  <!-- Overview bars (secondary tab) -->
+  <div id="ml-view-bars" style="display:none">
+    <div class="ml-categories" id="ml-cats"></div>
+    <div class="ml-summary" id="ml-summary"></div>
   </div>
 </section>
 
@@ -897,9 +991,10 @@ document.querySelectorAll(".fade").forEach(el=>{
 });
 
 // Nav dot highlight + hero counter trigger
+let heroLeft=false;
 document.querySelectorAll("section").forEach((s,i)=>{
   new IntersectionObserver(([e])=>{
-    if(!e.isIntersecting) return;
+    if(!e.isIntersecting){if(s.id==="hero")heroLeft=true;return;}
     document.querySelectorAll(".dot").forEach(d=>d.classList.remove("on"));
     const dot=document.querySelectorAll(".dot")[i];
     if(dot) dot.classList.add("on");
@@ -908,7 +1003,7 @@ document.querySelectorAll("section").forEach((s,i)=>{
         animCount($("h-oracle"),stats.oracle,1600);
         animCount($("h-naive"),stats.naive,1600);
         animCount($("h-gap"),stats.gap,1800);
-      },200);
+      },heroLeft?200:1000);
     }
   },{threshold:.35}).observe(s);
 });
@@ -916,6 +1011,156 @@ document.querySelectorAll("section").forEach((s,i)=>{
 document.querySelectorAll(".dot").forEach((d,i)=>{
   d.addEventListener("click",()=>document.querySelectorAll("section")[i].scrollIntoView({behavior:"smooth"}));
 });
+
+// ════════════════════════════════════════════════════════════════════
+// ML FEATURES PANEL
+// ════════════════════════════════════════════════════════════════════
+(function initMLFeatures(){
+  const FEATS = [
+    {code:"rolling_mean_24h",    label:"24h rolling mean",     importance:0.401335, cat:"Rolling Statistics", color:"#D4540A", desc:"Average DA price over the previous 24 hours",            src:"ENTSO-E DA prices"},
+    {code:"lag_1h",              label:"1h price lag",          importance:0.100504, cat:"Temporal Lags",      color:"#1B5E96", desc:"Day-ahead price one hour prior",                        src:"ENTSO-E DA prices"},
+    {code:"rolling_std_24h",     label:"24h rolling std dev",   importance:0.075405, cat:"Rolling Statistics", color:"#D4540A", desc:"Price volatility over a 24-hour window",                src:"ENTSO-E DA prices"},
+    {code:"lag_2h",              label:"2h price lag",          importance:0.067128, cat:"Temporal Lags",      color:"#1B5E96", desc:"Day-ahead price two hours prior",                       src:"ENTSO-E DA prices"},
+    {code:"rolling_mean_168h",   label:"168h rolling mean",     importance:0.042683, cat:"Rolling Statistics", color:"#D4540A", desc:"7-day rolling average price (weekly baseline)",         src:"ENTSO-E DA prices"},
+    {code:"net_load_forecast",   label:"Net load forecast",     importance:0.040576, cat:"Grid Forecasts",     color:"#1B7A45", desc:"Forecast demand minus wind & solar generation",          src:"ENTSO-E forecasts"},
+    {code:"lag_24h",             label:"24h price lag",         importance:0.026247, cat:"Temporal Lags",      color:"#1B5E96", desc:"Same-hour price from the prior day",                    src:"ENTSO-E DA prices"},
+    {code:"load_forecast",       label:"Load forecast",         importance:0.024795, cat:"Grid Forecasts",     color:"#1B7A45", desc:"Total electricity demand forecast (MWh)",               src:"ENTSO-E forecasts"},
+    {code:"cos_hour",            label:"Hour cosine",           importance:0.019466, cat:"Cyclical Encodings", color:"#78716C", desc:"cos(2π·h/24) — smooth continuous hour encoding",        src:"Derived: timestamp"},
+    {code:"renewable_share_forecast",label:"Renewable share",  importance:0.018893, cat:"Grid Forecasts",     color:"#1B7A45", desc:"Forecast wind+solar as % of total generation",          src:"ENTSO-E forecasts"},
+    {code:"sin_hour",            label:"Hour sine",             importance:0.016701, cat:"Cyclical Encodings", color:"#78716C", desc:"sin(2π·h/24) — smooth continuous hour encoding",        src:"Derived: timestamp"},
+    {code:"gas_lag24",           label:"Gas price (24h lag)",   importance:0.016431, cat:"Fuel Signals",       color:"#6D28D9", desc:"TTF natural gas price with 24-hour lag",                src:"TTF (derived)"},
+    {code:"total_wind_forecast", label:"Wind forecast",         importance:0.015380, cat:"Grid Forecasts",     color:"#1B7A45", desc:"Forecast onshore + offshore wind output (MWh)",         src:"ENTSO-E forecasts"},
+    {code:"lag_168h",            label:"168h price lag",        importance:0.014568, cat:"Temporal Lags",      color:"#1B5E96", desc:"Same-hour price from one week prior",                   src:"ENTSO-E DA prices"},
+    {code:"rolling_std_168h",    label:"168h rolling std dev",  importance:0.014387, cat:"Rolling Statistics", color:"#D4540A", desc:"7-day price volatility (weekly variance signal)",       src:"ENTSO-E DA prices"},
+    {code:"nuclear_lag24",       label:"Nuclear out (24h lag)", importance:0.013244, cat:"Fuel Signals",       color:"#6D28D9", desc:"Nuclear generation output from the prior day",          src:"ENTSO-E generation"},
+    {code:"lag_48h",             label:"48h price lag",         importance:0.013243, cat:"Temporal Lags",      color:"#1B5E96", desc:"Same-hour price from two days prior",                   src:"ENTSO-E DA prices"},
+    {code:"sin_dow",             label:"Day-of-week sine",      importance:0.012894, cat:"Cyclical Encodings", color:"#78716C", desc:"sin(2π·dow/7) — captures weekly load pattern",         src:"Derived: timestamp"},
+    {code:"wind_total_lag24",    label:"Wind total (24h lag)",  importance:0.012341, cat:"Fuel Signals",       color:"#6D28D9", desc:"Actual wind generation from the prior day",             src:"ENTSO-E generation"},
+    {code:"sin_month",           label:"Month sine",            importance:0.012246, cat:"Cyclical Encodings", color:"#78716C", desc:"sin(2π·m/12) — captures seasonal price pattern",       src:"Derived: timestamp"},
+    {code:"cos_month",           label:"Month cosine",          importance:0.012095, cat:"Cyclical Encodings", color:"#78716C", desc:"cos(2π·m/12) — captures seasonal price pattern",       src:"Derived: timestamp"},
+    {code:"cos_dow",             label:"Day-of-week cosine",    importance:0.010843, cat:"Cyclical Encodings", color:"#78716C", desc:"cos(2π·dow/7) — captures weekly load pattern",         src:"Derived: timestamp"},
+    {code:"solar_forecast",      label:"Solar forecast",        importance:0.010832, cat:"Grid Forecasts",     color:"#1B7A45", desc:"Forecast solar PV generation (MWh)",                   src:"ENTSO-E forecasts"},
+    {code:"is_weekend",          label:"Is weekend",            importance:0.007760, cat:"Cyclical Encodings", color:"#78716C", desc:"Binary flag: 1 if Saturday or Sunday",                 src:"Derived: timestamp"},
+  ];
+
+  const maxImp = FEATS[0].importance;
+  const catOrder = ["Rolling Statistics","Temporal Lags","Grid Forecasts","Fuel Signals","Cyclical Encodings"];
+  const cats = {};
+  FEATS.forEach(f => { if(!cats[f.cat]) cats[f.cat]=[]; cats[f.cat].push(f); });
+
+  // ── Overview bars ──────────────────────────────────────────────────
+  const catsEl = document.getElementById("ml-cats");
+  catOrder.forEach(catName => {
+    if(!cats[catName]) return;
+    const total = cats[catName].reduce((s,f)=>s+f.importance,0);
+    const div = document.createElement("div");
+    div.innerHTML = `<div class="ml-cat-hd">${catName} <span style="font-weight:400">(${(total*100).toFixed(1)}% total)</span></div>`;
+    cats[catName].forEach(f => {
+      const barW = (f.importance / maxImp * 100).toFixed(2);
+      const row = document.createElement("div");
+      row.className = "ml-row";
+      row.innerHTML = `
+        <span class="ml-name">${f.label}</span>
+        <div class="ml-bar-bg"><div class="ml-bar-fill" data-w="${barW}" style="background:${f.color};opacity:.75"></div></div>
+        <span class="ml-pct">${(f.importance*100).toFixed(1)}%</span>
+      `;
+      div.appendChild(row);
+    });
+    catsEl.appendChild(div);
+  });
+
+  const sumEl = document.getElementById("ml-summary");
+  [
+    ["Model","XGBoost (gradient boosted trees)"],
+    ["Features","24 engineered inputs"],
+    ["Top feature","24h rolling mean (40.1%)"],
+    ["Training","Jan 2021 – Sep 2024 · ENTSO-E NL"],
+    ["Target","Day-ahead price (€/MWh)"],
+    ["Test window","60 out-of-sample days"],
+  ].forEach(([k,v])=>{
+    const d = document.createElement("div");
+    d.className = "ml-sum-item";
+    d.innerHTML = `<strong>${k}</strong> · ${v}`;
+    sumEl.appendChild(d);
+  });
+
+  // ── Feature table ──────────────────────────────────────────────────
+  const tbody = document.getElementById("ml-tbl-body");
+  const chipsEl = document.getElementById("ml-chips");
+  let activeChip = "All";
+
+  function renderRows(filter){
+    tbody.innerHTML = "";
+    FEATS.filter(f => filter === "All" || f.cat === filter).forEach(f => {
+      const barW = Math.round(f.importance / maxImp * 80);
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><span class="ml-feat-code">${f.code}</span></td>
+        <td><span class="ml-cat-badge" style="background:${f.color}">${f.cat}</span></td>
+        <td>
+          <div class="ml-tbl-imp">
+            <div class="ml-tbl-bar" style="width:${barW}px;background:${f.color};opacity:.7"></div>
+            <span style="font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums">${(f.importance*100).toFixed(1)}%</span>
+          </div>
+        </td>
+        <td class="ml-tbl-desc">${f.desc}</td>
+        <td class="ml-tbl-src">${f.src}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Build chips: All + each category
+  const chipDefs = [
+    {label:`All (${FEATS.length})`, key:"All"},
+    ...catOrder.map(c=>({label:`${c} (${(cats[c]||[]).length})`, key:c}))
+  ];
+  chipDefs.forEach(({label, key}) => {
+    const chip = document.createElement("button");
+    chip.className = "ml-chip" + (key==="All"?" active":"");
+    chip.textContent = label;
+    chip.style.setProperty("--chip-color", cats[key]?.[0]?.color || "#1C1917");
+    chip.addEventListener("click",()=>{
+      activeChip = key;
+      document.querySelectorAll(".ml-chip").forEach(c=>c.classList.remove("active"));
+      chip.classList.add("active");
+      if(key!=="All") chip.style.background = cats[key][0].color;
+      else chip.style.background = "";
+      renderRows(key);
+    });
+    chipsEl.appendChild(chip);
+  });
+  renderRows("All");
+
+  // ── Tab switching ──────────────────────────────────────────────────
+  const viewBars  = document.getElementById("ml-view-bars");
+  const viewTable = document.getElementById("ml-view-table");
+  let animated = false;
+
+  function animateBars(){
+    if(animated) return;
+    animated = true;
+    setTimeout(()=>{
+      document.querySelectorAll(".ml-bar-fill").forEach(b=>{ b.style.width = b.dataset.w+"%"; });
+    }, 80);
+  }
+
+  document.querySelectorAll(".ml-view-tab").forEach(tab => {
+    tab.addEventListener("click",()=>{
+      document.querySelectorAll(".ml-view-tab").forEach(t=>t.classList.remove("active"));
+      tab.classList.add("active");
+      const v = tab.dataset.view;
+      viewBars.style.display  = v==="bars"  ? "" : "none";
+      viewTable.style.display = v==="table" ? "" : "none";
+      if(v==="bars") animateBars();
+    });
+  });
+
+  // Trigger bar animation when overview tab scrolls into view
+  new IntersectionObserver(([e])=>{
+    if(e.isIntersecting && viewBars.style.display !== "none") animateBars();
+  },{threshold:0.1}).observe(document.getElementById("ml-features"));
+})();
 </script>
 </body>
 </html>

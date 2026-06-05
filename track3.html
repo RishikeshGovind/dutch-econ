@@ -1051,9 +1051,10 @@ function animCountKm(el,end,dur){
 document.querySelectorAll(".fade").forEach(el=>{
   new IntersectionObserver(([e])=>{if(e.isIntersecting)el.classList.add("in")},{threshold:0.1}).observe(el);
 });
+let heroLeft=false;
 document.querySelectorAll("section").forEach((s,i)=>{
   new IntersectionObserver(([e])=>{
-    if(!e.isIntersecting)return;
+    if(!e.isIntersecting){if(s.id==="hero")heroLeft=true;return;}
     document.querySelectorAll(".dot").forEach(d=>d.classList.remove("on"));
     const dot=document.querySelectorAll(".dot")[i]; if(dot)dot.classList.add("on");
     if(s.id==="hero"){
@@ -1061,7 +1062,7 @@ document.querySelectorAll("section").forEach((s,i)=>{
         animCountKm($("h-oracle"),finalOracle,1600);
         animCountKm($("h-nn"),finalNN,1600);
         animCountKm($("h-twoopt"),finalTwoOpt,1600);
-      },200);
+      },heroLeft?200:1000);
     }
   },{threshold:.35}).observe(s);
 });
