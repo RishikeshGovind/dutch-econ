@@ -1,8 +1,8 @@
 :root{
   --bg:#F7F4EE;--surface:#FBF9F5;--border:#E5E0D8;
   --text:#1C1917;--muted:#78716C;--subtle:#A8A29E;
-  --primary:#B45309;
-  --amber:#B45309;--teal:#0C7A91;--green:#1B7A45;--blue:#1B5E96;--red:#991B1B;--orange:#D4540A;
+  --primary:#7C3AED;
+  --violet:#7C3AED;--amber:#7C3AED;--teal:#0C7A91;--green:#1B7A45;--blue:#1B5E96;--red:#991B1B;--orange:#D4540A;
 }
 
 /* ─── Chart grid ─────────────────────────────────────────────────────────── */
