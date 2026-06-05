@@ -1,0 +1,209 @@
+[
+  {
+    "feature": "lag_7d",
+    "label": "7-day demand lag",
+    "importance": 0.272824,
+    "cat": "Temporal Lags",
+    "color": "#1B5E96",
+    "desc": "Actual deliveries same day last week",
+    "src": "Delivery records (PostNL-calibrated synthetic series)"
+  },
+  {
+    "feature": "lag_14d",
+    "label": "14-day demand lag",
+    "importance": 0.26516,
+    "cat": "Temporal Lags",
+    "color": "#1B5E96",
+    "desc": "Actual deliveries same day two weeks ago",
+    "src": "Delivery records (PostNL-calibrated synthetic series)"
+  },
+  {
+    "feature": "is_holiday",
+    "label": "Is Dutch holiday",
+    "importance": 0.20919,
+    "cat": "Cyclical Encodings",
+    "color": "#78716C",
+    "desc": "Binary: 1 if Dutch public holiday",
+    "src": "Derived from date"
+  },
+  {
+    "feature": "households",
+    "label": "Household count",
+    "importance": 0.074769,
+    "cat": "Zone Demographics",
+    "color": "#1B7A45",
+    "desc": "Total households in zone \u2014 CBS Kerncijfers 2023",
+    "src": "CBS Kerncijfers wijken en buurten 2023"
+  },
+  {
+    "feature": "sin_dow",
+    "label": "Day-of-week sine",
+    "importance": 0.040654,
+    "cat": "Cyclical Encodings",
+    "color": "#78716C",
+    "desc": "sin(2\u03c0\u00b7dow/7) \u2014 smooth day-of-week encoding",
+    "src": "Derived from date"
+  },
+  {
+    "feature": "rolling_mean_28d",
+    "label": "28-day rolling mean",
+    "importance": 0.037842,
+    "cat": "Rolling Statistics",
+    "color": "#7C3AED",
+    "desc": "Monthly baseline demand (28-day rolling average)",
+    "src": "Delivery records (PostNL-calibrated synthetic series)"
+  },
+  {
+    "feature": "is_weekend",
+    "label": "Is weekend",
+    "importance": 0.025058,
+    "cat": "Cyclical Encodings",
+    "color": "#78716C",
+    "desc": "Binary: 1 if Saturday or Sunday (near-zero deliveries)",
+    "src": "Derived from date"
+  },
+  {
+    "feature": "rolling_std_7d",
+    "label": "7-day rolling std dev",
+    "importance": 0.016814,
+    "cat": "Rolling Statistics",
+    "color": "#7C3AED",
+    "desc": "Delivery variability over the past 7 days",
+    "src": "Delivery records (PostNL-calibrated synthetic series)"
+  },
+  {
+    "feature": "is_q4",
+    "label": "Is Q4 (peak season)",
+    "importance": 0.014759,
+    "cat": "E-commerce Signals",
+    "color": "#D4540A",
+    "desc": "Binary: 1 in Oct\u2013Dec (Sinterklaas + Christmas peak)",
+    "src": "Derived from date + CBS e-commerce survey"
+  },
+  {
+    "feature": "lag_1d",
+    "label": "1-day demand lag",
+    "importance": 0.007064,
+    "cat": "Temporal Lags",
+    "color": "#1B5E96",
+    "desc": "Actual deliveries in this zone the day before",
+    "src": "Delivery records (PostNL-calibrated synthetic series)"
+  },
+  {
+    "feature": "rolling_mean_7d",
+    "label": "7-day rolling mean",
+    "importance": 0.006165,
+    "cat": "Rolling Statistics",
+    "color": "#7C3AED",
+    "desc": "Average daily deliveries over the past 7 days",
+    "src": "Delivery records (PostNL-calibrated synthetic series)"
+  },
+  {
+    "feature": "is_residential",
+    "label": "Residential zone flag",
+    "importance": 0.005739,
+    "cat": "Zone Demographics",
+    "color": "#1B7A45",
+    "desc": "Binary: 1 if zone is primarily residential",
+    "src": "CBS Kerncijfers wijken en buurten 2023"
+  },
+  {
+    "feature": "rolling_mean_3d",
+    "label": "3-day rolling mean",
+    "importance": 0.004071,
+    "cat": "Rolling Statistics",
+    "color": "#7C3AED",
+    "desc": "Average demand over the past 3 days",
+    "src": "Delivery records (PostNL-calibrated synthetic series)"
+  },
+  {
+    "feature": "cos_dow",
+    "label": "Day-of-week cosine",
+    "importance": 0.003563,
+    "cat": "Cyclical Encodings",
+    "color": "#78716C",
+    "desc": "cos(2\u03c0\u00b7dow/7) \u2014 smooth day-of-week encoding",
+    "src": "Derived from date"
+  },
+  {
+    "feature": "household_density",
+    "label": "Household density (per km\u00b2)",
+    "importance": 0.003201,
+    "cat": "Zone Demographics",
+    "color": "#1B7A45",
+    "desc": "Households per km\u00b2 \u2014 CBS Kerncijfers 2023",
+    "src": "CBS Kerncijfers wijken en buurten 2023"
+  },
+  {
+    "feature": "days_to_month_end",
+    "label": "Days to month end",
+    "importance": 0.003086,
+    "cat": "E-commerce Signals",
+    "color": "#D4540A",
+    "desc": "Days remaining in the current month",
+    "src": "Derived from date + CBS e-commerce survey"
+  },
+  {
+    "feature": "cos_month",
+    "label": "Month cosine",
+    "importance": 0.002614,
+    "cat": "Cyclical Encodings",
+    "color": "#78716C",
+    "desc": "cos(2\u03c0\u00b7month/12) \u2014 captures seasonal demand",
+    "src": "Derived from date"
+  },
+  {
+    "feature": "is_business",
+    "label": "Business zone flag",
+    "importance": 0.002605,
+    "cat": "Zone Demographics",
+    "color": "#1B7A45",
+    "desc": "Binary: 1 if zone is primarily business / commercial",
+    "src": "CBS Kerncijfers wijken en buurten 2023"
+  },
+  {
+    "feature": "sin_month",
+    "label": "Month sine",
+    "importance": 0.002179,
+    "cat": "Cyclical Encodings",
+    "color": "#78716C",
+    "desc": "sin(2\u03c0\u00b7month/12) \u2014 captures seasonal demand",
+    "src": "Derived from date"
+  },
+  {
+    "feature": "month_end_flag",
+    "label": "Month-end flag",
+    "importance": 0.001577,
+    "cat": "E-commerce Signals",
+    "color": "#D4540A",
+    "desc": "Binary: 1 in final 3 days of month (payday spike)",
+    "src": "Derived from date + CBS e-commerce survey"
+  },
+  {
+    "feature": "income_idx",
+    "label": "Income index (WOZ)",
+    "importance": 0.000894,
+    "cat": "Zone Demographics",
+    "color": "#1B7A45",
+    "desc": "Average WOZ property value normalised to NL average \u2014 CBS 2023",
+    "src": "CBS Kerncijfers wijken en buurten 2023"
+  },
+  {
+    "feature": "urbanisation",
+    "label": "Urbanisation class",
+    "importance": 0.00017,
+    "cat": "Zone Demographics",
+    "color": "#1B7A45",
+    "desc": "CBS urbanisation class: 1 = very strongly urban, 5 = rural",
+    "src": "CBS Kerncijfers wijken en buurten 2023"
+  },
+  {
+    "feature": "avg_household_size",
+    "label": "Avg household size",
+    "importance": 0.0,
+    "cat": "Zone Demographics",
+    "color": "#1B7A45",
+    "desc": "Average persons per household \u2014 CBS Kerncijfers 2023",
+    "src": "CBS Kerncijfers wijken en buurten 2023"
+  }
+]
