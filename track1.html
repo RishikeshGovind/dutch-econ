@@ -6,163 +6,8 @@
 <title>Track 1 · Predict-Then-Optimize · NL Battery Dispatch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#F7F4EE;--surface:#FBF9F5;--border:#E5E0D8;
-  --text:#1C1917;--muted:#78716C;--subtle:#A8A29E;
-  --orange:#D4540A;--blue:#1B5E96;--green:#1B7A45;
-  --purple:#6D28D9;--red:#9B1C1C;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,sans-serif;font-size:15px;line-height:1.6;overflow-x:hidden}
-
-/* Nav */
-#sidenav{position:fixed;right:22px;top:50%;transform:translateY(-50%);z-index:300;display:flex;flex-direction:column;gap:9px}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .25s}
-.dot.on{background:var(--orange);transform:scale(1.4)}
-
-/* Sections */
-section{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px clamp(48px,6vw,120px);width:100%;position:relative}
-section+section{border-top:1px solid var(--border)}
-.eyebrow{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:10px}
-h1{font-family:'Playfair Display',serif;font-size:clamp(32px,4vw,56px);line-height:1.15;margin-bottom:18px}
-h2{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-height:1.2;margin-bottom:14px}
-.lead{font-size:16px;color:var(--muted);max-width:min(1000px,88%);margin-bottom:36px;font-weight:300}
-
-/* Hero */
-#hero{min-height:100vh;padding-top:120px}
-#hero h1 em{font-style:italic;color:var(--orange)}
-.hero-line{width:40px;height:3px;background:var(--orange);margin:20px 0 32px}
-.hero-stats{display:flex;gap:48px;flex-wrap:wrap;margin-bottom:52px}
-.stat .num{font-family:'Playfair Display',serif;font-size:clamp(38px,5vw,64px);font-weight:700;line-height:1;color:var(--orange)}
-.stat .num.blue{color:var(--blue)}.stat .num.green{color:var(--green)}
-.stat .lbl{font-size:11px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.1em}
-
-/* Insight */
-.insight{display:inline-flex;gap:14px;align-items:flex-start;background:var(--surface);border-left:3px solid var(--orange);padding:14px 20px;border-radius:0 8px 8px 0;margin-top:24px;max-width:min(1000px,88%)}
-.insight-icon{font-size:18px;flex-shrink:0;margin-top:1px}
-.insight-text{font-size:13px;color:var(--muted);line-height:1.6}
-.insight-text strong{display:block;color:var(--text);margin-bottom:3px;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
-
-/* Simulation section */
-#sim-banner{display:flex;align-items:center;gap:18px;padding:14px 22px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;min-height:58px}
-#sim-action{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;min-width:170px;white-space:nowrap;transition:color .4s}
-#sim-narrative{font-size:13px;color:var(--muted);font-style:italic;line-height:1.5}
-#sim-controls{display:flex;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap}
-#sim-play-btn{
-  background:var(--orange);color:#fff;border:none;border-radius:6px;
-  padding:8px 20px;font-size:13px;font-weight:500;cursor:pointer;
-  font-family:'Inter',sans-serif;letter-spacing:.02em;transition:background .2s;min-width:90px
-}
-#sim-play-btn:hover{background:#B84508}
-#sim-slider{flex:1;min-width:160px;accent-color:var(--orange);height:4px;cursor:pointer}
-.sim-time{font-family:'Playfair Display',serif;font-size:22px;color:var(--text);min-width:60px}
-.sim-stat-row{display:flex;gap:0;flex-wrap:wrap;margin-top:14px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)}
-.sim-stat{flex:1;min-width:140px;padding:14px 20px;border-right:1px solid var(--border)}
-.sim-stat:last-child{border-right:none}
-.sim-stat .sv{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);line-height:1.2;transition:color .3s}
-.sim-stat .sl{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--subtle);margin-top:4px}
-.soc-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:6px;width:100%}
-#sim-soc-bar{height:100%;background:var(--blue);border-radius:3px;transition:width .6s ease}
-
-/* Chart common */
-.chart-wrap{width:100%;overflow-x:auto}
-.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}
-
-/* Tooltip */
-#tip{position:fixed;background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12.5px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.09);max-width:210px;line-height:1.5}
-#tip .tl{font-weight:600;margin-bottom:4px;color:var(--text)}
-#tip .tv{color:var(--muted)}
-
-/* Legend */
-.legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px}
-.legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
-.legend-rect{width:20px;height:10px;border-radius:2px;flex-shrink:0}
-
-/* SPO table */
-.spo-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
-.spo-table th{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--subtle);font-weight:500;padding:0 10px 10px 0;border-bottom:1px solid var(--border);text-align:left}
-.spo-table td{padding:10px 10px 10px 0;border-bottom:1px solid var(--border);vertical-align:middle}
-.spo-table tr.hl td{font-weight:500}
-.spo-bar{height:5px;border-radius:3px;background:var(--orange);opacity:.8}
-
-/* Fade-in */
-.fade{opacity:0;transform:translateY(28px);transition:opacity .65s ease,transform .65s ease}
-.fade.in{opacity:1;transform:none}
-.fade.d1{transition-delay:.12s}.fade.d2{transition-delay:.24s}
-
-svg text{font-family:'Inter',-apple-system,sans-serif}
-
-/* ML Features section */
-#ml-features{min-height:100vh;padding:80px clamp(48px,6vw,120px);border-top:1px solid var(--border)}
-.ml-categories{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:28px 48px}
-.ml-cat-hd{
-  font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:var(--subtle);
-  font-weight:600;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);
-}
-.ml-row{display:flex;align-items:center;gap:10px;margin-bottom:7px}
-.ml-name{font-size:11.5px;color:var(--muted);width:190px;flex-shrink:0}
-.ml-bar-bg{flex:1;height:7px;background:var(--border);border-radius:4px;overflow:hidden;min-width:60px}
-.ml-bar-fill{height:100%;border-radius:4px;width:0;transition:width 1s ease}
-.ml-pct{font-size:10.5px;color:var(--subtle);min-width:38px;text-align:right;flex-shrink:0}
-.ml-summary{
-  display:flex;flex-wrap:wrap;gap:16px 32px;
-  margin-top:28px;padding-top:20px;border-top:1px solid var(--border);
-}
-.ml-sum-item{font-size:12px;color:var(--muted)}
-.ml-sum-item strong{color:var(--text)}
-
-/* ML Table view */
-.ml-view-tabs{display:flex;gap:0;margin-bottom:24px;border:1px solid var(--border);border-radius:8px;overflow:hidden;width:fit-content}
-.ml-view-tab{
-  padding:7px 18px;font-size:12px;font-weight:500;cursor:pointer;border:none;
-  background:var(--surface);color:var(--muted);border-right:1px solid var(--border);
-  font-family:'Inter',sans-serif;transition:all .2s;
-}
-.ml-view-tab:last-child{border-right:none}
-.ml-view-tab.active{background:var(--text);color:#fff}
-.ml-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.ml-chip{
-  padding:4px 12px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;
-  border:1.5px solid var(--border);background:var(--surface);color:var(--muted);
-  font-family:'Inter',sans-serif;transition:all .2s;white-space:nowrap;
-}
-.ml-chip.active{color:#fff;border-color:transparent}
-.ml-tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;max-height:400px;overflow-y:auto}
-.ml-tbl{width:100%;border-collapse:collapse;font-size:12.5px;min-width:700px}
-.ml-tbl th{
-  font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--subtle);
-  font-weight:500;padding:10px 14px;border-bottom:1px solid var(--border);
-  text-align:left;background:var(--surface);position:sticky;top:0;z-index:1;white-space:nowrap;
-}
-.ml-tbl td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
-.ml-tbl tbody tr:last-child td{border-bottom:none}
-.ml-tbl tbody tr:hover td{background:rgba(0,0,0,.018)}
-.ml-feat-code{font-family:'Courier New',monospace;font-size:10.5px;color:var(--text);font-weight:600}
-.ml-cat-badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:9px;font-weight:600;color:#fff;white-space:nowrap;letter-spacing:.03em}
-.ml-tbl-imp{display:flex;align-items:center;gap:8px;min-width:110px}
-.ml-tbl-bar{height:5px;border-radius:3px;flex-shrink:0}
-.ml-tbl-desc{font-size:11.5px;color:var(--muted);max-width:260px;line-height:1.4}
-.ml-tbl-src{font-size:10px;color:var(--subtle);white-space:nowrap}
-.ml-tbl-foot{margin-top:10px;font-size:10.5px;color:var(--subtle)}
-
-/* Live data badge */
-#data-badge{
-  position:fixed;bottom:18px;left:22px;z-index:400;
-  display:inline-flex;align-items:center;gap:7px;
-  background:rgba(251,249,245,.92);border:1px solid var(--border);
-  border-radius:20px;padding:6px 14px 6px 10px;
-  font-size:11px;color:var(--muted);backdrop-filter:blur(6px);
-  box-shadow:0 2px 8px rgba(0,0,0,.06);
-}
-#data-badge .pulse{
-  width:7px;height:7px;border-radius:50%;background:#1B7A45;flex-shrink:0;
-  animation:pulse 2s infinite;
-}
-#data-badge .synth{background:var(--subtle);animation:none;}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
-</style>
+<link rel="stylesheet" href="style/base.css">
+<link rel="stylesheet" href="style/track1.css">
 </head>
 <body>
 
@@ -184,20 +29,26 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
   <div class="eyebrow fade">Track 1 · Predict-Then-Optimize</div>
   <h1 class="fade d1">Between <em>Oracle</em> and Reality:<br>A 60-Day Energy Storage Experiment</h1>
   <div class="hero-line fade d1"></div>
-  <p class="lead fade d2">A 1 MW / 2 MWh battery charges from the Dutch day-ahead electricity market when prices are low
-  and sells when they peak. The only problem — prices must be forecast 24 hours ahead.
-  How much does forecast error cost?</p>
+  <p class="lead fade d2">A 1 MW / 2 MWh battery buys electricity from the Dutch day-ahead market when prices are cheap and sells it back when prices spike. The catch is that prices have to be predicted 24 hours before you can act on them. This project tracks what that forecast error actually costs.</p>
   <div class="hero-stats">
-    <div class="stat fade"><div class="num green" id="h-oracle">—</div><div class="lbl">Oracle revenue (€) — perfect foresight</div></div>
-    <div class="stat fade d1"><div class="num blue" id="h-naive">—</div><div class="lbl">Naive P-T-O revenue (€) — XGBoost forecast</div></div>
-    <div class="stat fade d2"><div class="num" id="h-gap">—</div><div class="lbl">Decision quality gap (€) — lost to forecast error</div></div>
+    <div class="stat fade"><div class="num green" id="h-oracle">—</div><div class="lbl">Oracle revenue (€), perfect foresight</div></div>
+    <div class="stat fade d1"><div class="num blue" id="h-naive">—</div><div class="lbl">XGBoost P-T-O revenue (€)</div></div>
+    <div class="stat fade d2"><div class="num" id="h-gap">—</div><div class="lbl">Revenue lost to forecast error (€)</div></div>
   </div>
   <div class="insight fade d2">
     <span class="insight-icon">↓</span>
-    <div class="insight-text"><strong>The Research Question</strong>
-    Minimising forecast MSE is not the same as maximising dispatch profit.
-    The sections below trace exactly where and why this gap opens — and motivate
-    decision-focused learning (SPO+) as the remedy.</div>
+    <div class="insight-text"><strong>The research question</strong>
+    Getting the forecast as accurate as possible is not the same as making better charging decisions.
+    The charts below show where the gap comes from and why a different training approach (SPO+) could close it.</div>
+  </div>
+  <div class="data-src fade d2">
+    <strong>Data &amp; Methods</strong>
+    Price data:
+    <a href="https://transparency.entsoe.eu" target="_blank" rel="noopener">ENTSO-E Transparency Platform</a>
+    NL day-ahead prices (bidding zone NL) · Jan 2021 to Sep 2024 · 34,320 hourly observations ·
+    Forecast model: XGBoost · 24 engineered features · trained on 3-year history ·
+    Optimiser: linear program (LP) · 1 MW / 2 MWh battery · round-trip efficiency 90% ·
+    Test period: Oct to Nov 2024 · 60 out-of-sample days
   </div>
 </section>
 
@@ -205,9 +56,8 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <section id="sim">
   <div class="eyebrow fade">Hour-by-Hour Dispatch</div>
   <h2 class="fade">The Oracle's Perfect Day</h2>
-  <p class="lead fade">24 hours of NL day-ahead prices — known in advance. The oracle charges during
-  the cheapest windows (blue arrows) and sells at the peaks (orange arrows). The <span style="color:var(--blue);font-weight:500">blue curve</span>
-  tracks the battery's charge level as the day unfolds. Every idle hour is a calculated decision, not a missed opportunity.</p>
+  <p class="lead fade">24 hours of Dutch day-ahead prices, shown as if we already know them. The battery charges in the cheapest slots (blue arrows) and sells at the peaks (orange arrows). The <span style="color:var(--blue);font-weight:500">blue line</span>
+  shows the charge level over the day. Sitting idle in some hours is the right call, not a missed opportunity.</p>
 
   <div class="fade">
     <!-- Status banner — tells the story each hour -->
@@ -244,16 +94,16 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <section id="heatmap">
   <div class="eyebrow fade">Chart 1 of 5</div>
   <h2 class="fade">What the Market Looks Like</h2>
-  <p class="lead fade">Netherlands day-ahead prices across 14 test days and 24 hours.
-  <span style="color:var(--purple);font-weight:500">Purple = negative prices</span> (renewables flood the grid);
-  <span style="color:var(--orange);font-weight:500">deep orange = scarcity peaks</span>.
-  These are the signals the battery must read — one day ahead.</p>
+  <p class="lead fade">Dutch day-ahead prices across 14 test days and 24 hours.
+  <span style="color:var(--purple);font-weight:500">Purple means negative prices</span>, when there is too much renewable power on the grid.
+  <span style="color:var(--orange);font-weight:500">Deep orange is where prices spike.</span>
+  The battery needs to read these patterns from a forecast made the day before.</p>
   <div class="chart-wrap fade"><div id="heatmap-chart"></div></div>
   <div class="insight fade">
     <span class="insight-icon">⚡</span>
-    <div class="insight-text"><strong>Why this matters for the LP</strong>
-    Negative price hours are golden — the grid pays you to consume. The battery's entire profit
-    depends on forecasting these relative rankings 24 hours early.</div>
+    <div class="insight-text"><strong>Why negative prices matter</strong>
+    When prices go negative, the grid pays you to consume. The battery can charge for free and sell later at a peak.
+    The whole job of the forecast is to spot these windows 24 hours in advance.</div>
   </div>
 </section>
 
@@ -261,13 +111,12 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <section id="dispatch">
   <div class="eyebrow fade">Chart 2 of 5</div>
   <h2 class="fade">Charge Low, Sell High</h2>
-  <p class="lead fade">72 hours of oracle dispatch. The battery charges during cheap or negative-price periods
-  (blue, below zero) and discharges at peaks (orange, above zero).
-  The grey dashed line is the state of charge — what is physically possible at each moment.</p>
+  <p class="lead fade">72 hours of oracle dispatch. The battery charges when prices are cheap or negative (blue bars, below zero) and sells when prices peak (orange bars, above zero).
+  The grey dashed line shows the charge level, which limits what the battery can do at each point.</p>
   <div class="chart-wrap fade"><div id="dispatch-chart"></div></div>
   <div class="legend fade">
-    <div class="legend-item"><div class="legend-rect" style="background:var(--orange);opacity:.8"></div>Discharge — selling to grid</div>
-    <div class="legend-item"><div class="legend-rect" style="background:var(--blue);opacity:.8"></div>Charge — buying from grid</div>
+    <div class="legend-item"><div class="legend-rect" style="background:var(--orange);opacity:.8"></div>Discharge, selling to grid</div>
+    <div class="legend-item"><div class="legend-rect" style="background:var(--blue);opacity:.8"></div>Charge, buying from grid</div>
     <div class="legend-item"><div class="legend-rect" style="background:#999;opacity:.5;height:3px;margin-top:3px"></div>State of charge (MWh)</div>
   </div>
 </section>
@@ -276,16 +125,13 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <section id="revenue">
   <div class="eyebrow fade">Chart 3 of 5</div>
   <h2 class="fade">The Growing Gap</h2>
-  <p class="lead fade">Cumulative revenue over 60 test days. The oracle (dashed) is the upper bound of what
-  is physically achievable with perfect foresight. Every missed negative-price hour and misjudged
-  peak compounds the loss.</p>
+  <p class="lead fade">Total revenue across 60 test days. The dashed line is the best the battery could do with perfect price knowledge. Each bad forecast day adds to the gap.</p>
   <div class="chart-wrap fade"><div id="revenue-chart"></div></div>
   <div class="insight fade">
     <span class="insight-icon">📉</span>
-    <div class="insight-text"><strong>The compounding effect</strong>
-    The gap spikes on high-volatility days where price events were missed or misforecast.
-    These are exactly the days SPO+ is designed to target by training on decision regret,
-    not prediction error.</div>
+    <div class="insight-text"><strong>Where the gap comes from</strong>
+    The gap grows fastest on days when prices were volatile and the forecast missed a big move.
+    SPO+ targets these days specifically, because it trains on the cost of wrong decisions rather than just how far off the number was.</div>
   </div>
 </section>
 
@@ -293,19 +139,18 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <section id="explain">
   <div class="eyebrow fade">Charts 4 & 5 of 5</div>
   <h2 class="fade">When Forecast Errors Matter</h2>
-  <p class="lead fade">Not all forecast errors are equal. A 10 €/MWh error at 3 am changes nothing;
-  the same error at 6 pm can flip the charge/discharge decision entirely.</p>
+  <p class="lead fade">Not all forecast errors matter the same. A 10 €/MWh miss at 3 am makes no difference to what the battery does. The same error at 6 pm can flip the charge or discharge decision completely.</p>
   <div class="chart-row">
     <div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
         <strong style="color:var(--text)">Decision sensitivity clock</strong><br>
-        Arc radius = probability that a ±10 €/MWh forecast shift flips dispatch. Colour = sensitivity level.</p>
+        Arc radius shows the probability that a ±10 €/MWh forecast shift would change what the battery does that hour.</p>
       <div class="fade"><div id="clock-chart"></div></div>
     </div>
     <div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
-        <strong style="color:var(--text)">Lower MAE → Higher revenue</strong><br>
-        Each point is one test day. OLS confirms: forecast accuracy and decision quality move together.</p>
+        <strong style="color:var(--text)">Lower MAE, higher revenue</strong><br>
+        Each point is one test day. Days with smaller forecast errors tend to earn more.</p>
       <div class="fade"><div id="scatter-chart"></div></div>
       <div class="fade" style="margin-top:28px">
         <p style="font-size:11px;color:var(--subtle);margin-bottom:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:500">Model comparison · 60-day dispatch revenue</p>
@@ -315,10 +160,10 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
   </div>
   <div class="insight fade" style="margin-top:40px">
     <span class="insight-icon">🎯</span>
-    <div class="insight-text"><strong>The SPO+ research agenda</strong>
-    Standard XGBoost minimises MSE uniformly across all hours.
-    Smart Predict-Then-Optimize (Elmachtoub & Grigas, 2022) trains the model to minimise
-    <em>decision regret</em> — concentrating accuracy at the sensitive hours shown in the clock above.</div>
+    <div class="insight-text"><strong>Why SPO+ helps here</strong>
+    Standard XGBoost tries to be accurate across all 24 hours equally.
+    Smart Predict-Then-Optimize (Elmachtoub &amp; Grigas, 2022) trains the model to focus on getting the hours right
+    where errors actually change decisions, as shown in the clock above.</div>
   </div>
 </section>
 
@@ -326,9 +171,9 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <section id="ml-features">
   <div class="eyebrow fade">Model Internals</div>
   <h2 class="fade">Feature Engineering &amp; Importances</h2>
-  <p class="lead fade">XGBoost trained on 3+ years of Dutch ENTSO-E data (Jan 2021 – Sep 2024).
-  24 engineered features capture price momentum, seasonal cycles, and grid supply signals.
-  Importance = mean gain across all boosted trees.</p>
+  <p class="lead fade">XGBoost trained on 3 years of Dutch day-ahead price data from ENTSO-E, January 2021 to September 2024.
+  The 24 features cover recent price history, grid supply forecasts, and time-based patterns.
+  Importance is the average gain each feature adds across all trees.</p>
   <div class="ml-view-tabs fade">
     <button class="ml-view-tab active" data-view="table">Feature Matrix</button>
     <button class="ml-view-tab" data-view="bars">Overview</button>
@@ -598,20 +443,20 @@ const priceColor = d3.scaleLinear()
     // Narrative
     let action,narr,col;
     if (isChg&&isNeg) {
-      action="⬇ Charging — grid pays us";
-      narr=`${D.price.toFixed(0)} €/MWh — renewables flooding the grid. We're paid ${Math.abs(D.price).toFixed(0)} €/MWh to absorb surplus. Battery charges and earns.`;
+      action="⬇ Charging, grid pays us";
+      narr=`${D.price.toFixed(0)} €/MWh. Renewables are flooding the grid. We get paid ${Math.abs(D.price).toFixed(0)} €/MWh to absorb the surplus. Battery charges and earns.`;
       col="#6D28D9";
     } else if (isChg) {
-      action="⬇ Charging — buying low";
-      narr=`${D.price.toFixed(0)} €/MWh — one of today's cheapest hours. Buying ${D.charge.toFixed(1)} MW now to sell at the day's peak.`;
+      action="⬇ Charging, buying cheap";
+      narr=`${D.price.toFixed(0)} €/MWh, one of today's cheapest hours. Buying ${D.charge.toFixed(1)} MW now to sell at the day's peak.`;
       col="#1B5E96";
     } else if (isDis) {
-      action="⬆ Discharging — selling high";
-      narr=`${D.price.toFixed(0)} €/MWh — peak demand. Releasing ${D.discharge.toFixed(1)} MW earns €${(D.price*D.discharge).toFixed(0)} this hour alone.`;
+      action="⬆ Discharging, selling high";
+      narr=`${D.price.toFixed(0)} €/MWh, peak demand. Releasing ${D.discharge.toFixed(1)} MW earns €${(D.price*D.discharge).toFixed(0)} this hour alone.`;
       col="#D4540A";
     } else {
-      action="○ Holding — optimal wait";
-      narr=`${D.price.toFixed(0)} €/MWh — the LP says wait. Not cheap enough to charge, not high enough to sell. Every idle hour is intentional.`;
+      action="○ Holding, waiting for a better price";
+      narr=`${D.price.toFixed(0)} €/MWh. The LP says wait. Not cheap enough to charge, not high enough to sell. Sitting idle here is the right call.`;
       col="#78716C";
     }
     $("sim-action").textContent=action; $("sim-action").style.color=col;

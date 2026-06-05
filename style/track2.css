@@ -1,0 +1,14 @@
+:root{
+  --bg:#F7F4EE;--surface:#FBF9F5;--border:#E5E0D8;
+  --text:#1C1917;--muted:#78716C;--subtle:#A8A29E;
+  --primary:#0C7A91;
+  --teal:#0C7A91;--blue:#1B5E96;--green:#1B7A45;--red:#991B1B;--orange:#D4540A;--purple:#6D28D9;
+}
+
+/* ─── Sim specifics ──────────────────────────────────────────────────────── */
+#sim-action{min-width:200px}
+.sim-stat{min-width:130px}
+#sim-play-btn:hover{background:#0A6478}
+.chart-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:56px;align-items:start}
+.occ-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:6px;width:100%}
+#sim-occ-bar{height:100%;background:var(--teal);border-radius:3px;transition:width .6s ease,background .3s}

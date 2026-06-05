@@ -7,90 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<style>
-:root{
-  --bg:#F7F4EE;--surface:#FBF9F5;--border:#E5E0D8;
-  --text:#1C1917;--muted:#78716C;--subtle:#A8A29E;
-  --amber:#B45309;--teal:#0C7A91;--green:#1B7A45;
-  --blue:#1B5E96;--red:#991B1B;--orange:#D4540A;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,sans-serif;font-size:15px;line-height:1.6;overflow-x:hidden}
-
-#sidenav{position:fixed;right:22px;top:50%;transform:translateY(-50%);z-index:300;display:flex;flex-direction:column;gap:9px}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .25s}
-.dot.on{background:var(--amber);transform:scale(1.4)}
-
-section{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px clamp(48px,6vw,120px);width:100%;position:relative}
-section+section{border-top:1px solid var(--border)}
-.eyebrow{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);margin-bottom:10px}
-h1{font-family:'Playfair Display',serif;font-size:clamp(32px,4vw,56px);line-height:1.15;margin-bottom:18px}
-h2{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-height:1.2;margin-bottom:14px}
-.lead{font-size:16px;color:var(--muted);max-width:min(1000px,88%);margin-bottom:36px;font-weight:300}
-
-#hero{min-height:100vh;padding-top:120px}
-#hero h1 em{font-style:italic;color:var(--amber)}
-.hero-line{width:40px;height:3px;background:var(--amber);margin:20px 0 32px}
-.hero-stats{display:flex;gap:48px;flex-wrap:wrap;margin-bottom:52px}
-.stat .num{font-family:'Playfair Display',serif;font-size:clamp(38px,5vw,64px);font-weight:700;line-height:1;color:var(--amber)}
-.stat .num.red{color:var(--red)}.stat .num.green{color:var(--green)}.stat .num.blue{color:var(--blue)}.stat .num.teal{color:var(--teal)}
-.stat .lbl{font-size:11px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.1em}
-
-.insight{display:inline-flex;gap:14px;align-items:flex-start;background:var(--surface);border-left:3px solid var(--amber);padding:14px 20px;border-radius:0 8px 8px 0;margin-top:24px;max-width:min(1000px,88%);flex-shrink:0;margin-top:1px}
-.insight-text{font-size:13px;color:var(--muted);line-height:1.6}
-.insight-text strong{display:block;color:var(--text);margin-bottom:3px;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
-
-.route-controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-.route-btn{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 18px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;color:var(--text)}
-.route-btn.active{background:var(--amber);border-color:var(--amber);color:#fff}
-.route-btn:hover:not(.active){border-color:var(--amber);color:var(--amber)}
-.route-btn.teal.active{background:var(--teal);border-color:var(--teal)}
-.route-btn.teal:hover:not(.active){border-color:var(--teal);color:var(--teal)}
-.route-btn.green.active{background:var(--green);border-color:var(--green)}
-.route-btn.green:hover:not(.active){border-color:var(--green);color:var(--green)}
-
-.sim-stat-row{display:flex;gap:0;flex-wrap:wrap;margin-top:14px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)}
-.sim-stat{flex:1;min-width:130px;padding:14px 20px;border-right:1px solid var(--border)}
-.sim-stat:last-child{border-right:none}
-.sim-stat .sv{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);line-height:1.2;transition:color .3s,opacity .3s}
-.sim-stat .sl{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--subtle);margin-top:4px}
-
-.chart-wrap{width:100%;overflow-x:auto}
-.chart-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:56px;align-items:start}
-
-#tip{position:fixed;background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12.5px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.09);max-width:220px;line-height:1.5}
-#tip .tl{font-weight:600;margin-bottom:4px;color:var(--text)}
-#tip .tv{color:var(--muted)}
-
-.legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px}
-.legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
-.legend-rect{width:20px;height:10px;border-radius:2px;flex-shrink:0}
-
-.spo-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
-.spo-table th{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--subtle);font-weight:500;padding:0 10px 10px 0;border-bottom:1px solid var(--border);text-align:left}
-.spo-table td{padding:10px 10px 10px 0;border-bottom:1px solid var(--border);vertical-align:middle}
-.spo-table tr.hl td{font-weight:500}
-.spo-bar{height:5px;border-radius:3px;background:var(--amber);opacity:.8}
-
-.fade{opacity:0;transform:translateY(28px);transition:opacity .65s ease,transform .65s ease}
-.fade.in{opacity:1;transform:none}
-.fade.d1{transition-delay:.12s}.fade.d2{transition-delay:.24s}
-
-svg text{font-family:'Inter',-apple-system,sans-serif}
-/* Leaflet overrides to match page theme */
-.leaflet-container{font-family:'Inter',-apple-system,sans-serif;border-radius:inherit}
-.leaflet-tooltip{background:#fff;border:1px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:12.5px;padding:8px 13px;box-shadow:0 4px 16px rgba(0,0,0,.09);color:var(--muted)}
-.leaflet-tooltip-top:before{border-top-color:var(--border)}
-.leaflet-control-zoom a{font-family:'Inter',sans-serif;color:var(--text)}
-.leaflet-bar a{border-color:var(--border)}
-
-
-.data-src{margin-top:28px;padding-top:16px;border-top:1px solid var(--border);font-size:11px;color:var(--subtle);line-height:1.9;max-width:min(900px,90%)}
-.data-src strong{display:block;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
-.data-src a{color:inherit;text-decoration:underline;text-decoration-color:var(--border)}
-.data-src a:hover{color:var(--primary)}
-</style>
+<link rel="stylesheet" href="style/base.css">
+<link rel="stylesheet" href="style/track3.css">
 </head>
 <body>
 
@@ -110,24 +28,21 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
   <div class="eyebrow fade">Transfer Case · Last-Mile Logistics</div>
   <h1 class="fade d1">The <em>Last-Mile Problem:</em><br>When Routing Meets Forecasting</h1>
   <div class="hero-line fade d1"></div>
-  <p class="lead fade d2">This page is a transfer case for the same research agenda. A Dutch last-mile carrier predicts daily parcel demand per postcode zone
-  from CBS demographic data and day-of-week patterns, then solves a Capacitated VRP.
-  The routing problem is NP-hard — exact solutions are intractable at scale — making
-  this the natural test bed for <em>heuristic-enhanced</em> predict-then-optimize.</p>
+  <p class="lead fade d2">This page applies the same research question to parcel delivery. A Dutch carrier forecasts daily parcel demand by postcode zone and uses that forecast to plan delivery routes using a Capacitated VRP.
+  Routing at this scale is too complex to solve exactly, so heuristics are used instead.
+  That is what makes this case different from the energy and hospital tracks.</p>
   <div class="hero-stats">
-    <div class="stat fade"><div class="num green" id="h-oracle">—</div><div class="lbl">Best-known benchmark route (km) — perfect demand foresight</div></div>
-    <div class="stat fade d1"><div class="num" id="h-nn">—</div><div class="lbl">Nearest-neighbour heuristic (km) — 39% longer</div></div>
-    <div class="stat fade d2"><div class="num teal" id="h-twoopt">—</div><div class="lbl">2-opt improved (km) — closes 60% of gap</div></div>
+    <div class="stat fade"><div class="num green" id="h-oracle">—</div><div class="lbl">Best-known benchmark route (km)</div></div>
+    <div class="stat fade d1"><div class="num" id="h-nn">—</div><div class="lbl">Nearest-neighbour heuristic (km), 39% longer</div></div>
+    <div class="stat fade d2"><div class="num teal" id="h-twoopt">—</div><div class="lbl">2-opt improved (km), closes 60% of gap</div></div>
   </div>
   <div class="insight fade d2">
     <span class="insight-icon">↓</span>
     <div class="insight-text"><strong>Why VRP motivates SPO+</strong>
-    With NP-hard routing, no exact oracle exists at scale — the green route shown here is a
-    best-known prototype benchmark rather than a proved optimum. SPO+ trained on <em>route cost regret</em> learns to
-    forecast demand where prediction error most inflates route distance, not where
-    MSE is largest. This is the methodological gap that Track 1 (LP) and Track 2
-    (asymmetric LP) do not reach.</div>
-  
+    There is no provably optimal route at this scale, so the green benchmark is just the best found, not a guarantee.
+    SPO+ trained on route cost would learn to focus on zones where a bad demand forecast adds the most distance, not just the zones where the number is furthest off.
+    Track 1 and Track 2 both use a linear program you can differentiate through. This track cannot.</div>
+  </div>
   <div class="data-src fade d2">
     <strong>Data &amp; Methods</strong>
     Demand: synthetic parcel volumes calibrated on
@@ -142,16 +57,15 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
     Routing: capacitated VRP · nearest-neighbour + 2-opt ·
     Demand forecast: XGBoost on CBS parcel proxy features
   </div>
-</div>
 </section>
 
 <!-- ══ ROUTE SIMULATION ═══════════════════════════════════════════════════ -->
 <section id="sim">
   <div class="eyebrow fade">Interactive Demo</div>
   <h2 class="fade">Watch the Route Improve</h2>
-  <p class="lead fade">Twelve Amsterdam postcode zones and a central depot. Switch between
-  the forecast-naive nearest-neighbour route, a 2-opt cleanup pass, and the best-known benchmark sweep.
-  The route is drawn over Amsterdam street tiles so the detours are legible in geographic context.</p>
+  <p class="lead fade">12 Amsterdam postcode zones and a depot in the centre. Switch between
+  the basic nearest-neighbour route, a 2-opt improvement, and the best-known benchmark.
+  The routes are shown on the actual Amsterdam street map so you can see where the detours happen.</p>
   <div class="fade">
     <div class="route-controls">
       <button class="route-btn active" id="btn-nn">Nearest-Neighbour</button>
@@ -177,9 +91,9 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
   <div class="insight fade" style="margin-top:28px">
     <span class="insight-icon">🚐</span>
     <div class="insight-text"><strong>The demand forecasting link</strong>
-    Each zone's visit order depends on its demand weight. Better demand forecasting
-    → better priority ordering → fewer crossings emerge naturally.
-    SPO+ trains the demand model to minimise routing cost, not prediction MSE.</div>
+    The order zones are visited depends on how much demand each one has.
+    A more accurate demand forecast leads to a better visit order and fewer crossing paths.
+    SPO+ would train the model to reduce route distance rather than just prediction error.</div>
   </div>
 </section>
 
@@ -187,10 +101,9 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <section id="demandmap">
   <div class="eyebrow fade">Illustrative Geography · OpenStreetMap Tiles</div>
   <h2 class="fade">Where Amsterdam's Parcels Come From</h2>
-  <p class="lead fade">Household density is the primary driver of parcel demand.
-  This map uses <a href="https://www.openstreetmap.org" target="_blank" rel="noopener" style="color:var(--amber)">OpenStreetMap</a>
-  tiles for street-level context and overlays the twelve Amsterdam demand zones used in the routing demo.
-  Dense outer residential districts generate materially more daily delivery stops than the historic centre.</p>
+  <p class="lead fade">Parcel demand mostly follows household density.
+  This map shows the 12 delivery zones on <a href="https://www.openstreetmap.org" target="_blank" rel="noopener" style="color:var(--amber)">OpenStreetMap</a> tiles.
+  The denser outer residential areas get a lot more delivery stops per day than the city centre.</p>
 
   <div class="fade">
     <div id="dm-wrap" style="width:100%;height:520px;background:#EDE7DE;border-radius:12px;overflow:hidden;position:relative">
@@ -208,9 +121,8 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
   <div class="insight fade" style="margin-top:28px">
     <span class="insight-icon">📍</span>
     <div class="insight-text"><strong>Why geography matters for routing</strong>
-    A demand forecast that underestimates Nieuw-West or Noord forces the VRP solver to
-    dispatch an understocked vehicle that must double back — adding 8–12 km per round trip.
-    Accurate zone-level demand is the direct input to every route decision shown in the charts below.</div>
+    If the forecast underestimates a busy zone like Nieuw-West, the vehicle arrives understocked and has to loop back, adding 8 to 12 km per trip.
+    Every route in the charts below starts with a zone-level demand forecast as its input.</div>
   </div>
 </section>
 
@@ -218,17 +130,15 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <section id="heatmap">
   <div class="eyebrow fade">Chart 1 of 5</div>
   <h2 class="fade">Parcel Demand Across the City</h2>
-  <p class="lead fade">Average daily parcel demand by postcode zone and day of week
-  (synthetic, calibrated on CBS Kerncijfers wijken data).
+  <p class="lead fade">Average daily parcel demand by zone and day of week, based on synthetic data calibrated against CBS neighbourhood statistics.
   <span style="color:var(--amber);font-weight:500">Dense residential zones</span>
-  spike midweek; business zones peak Monday–Tuesday.</p>
+  are busiest midweek. Business zones peak Monday and Tuesday.</p>
   <div class="chart-wrap fade"><div id="heatmap-chart"></div></div>
   <div class="insight fade">
     <span class="insight-icon">📦</span>
     <div class="insight-text"><strong>Demand variability drives route variance</strong>
-    A ±20% demand error in a high-density zone can force a vehicle to make an
-    unplanned second sweep, adding 8–12 km per vehicle per day.
-    The VRP solver needs accurate demand <em>before</em> it can produce good routes.</div>
+    A 20% demand error in a dense zone can mean a vehicle runs short and needs a second pass, adding 8 to 12 km per day.
+    Good routing starts with a good demand forecast.</div>
   </div>
 </section>
 
@@ -236,9 +146,9 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <section id="routeport">
   <div class="eyebrow fade">Chart 2 of 5</div>
   <h2 class="fade">30 Days of Routes Overlaid</h2>
-  <p class="lead fade">Each line is one day's route, colour-coded by algorithm.
-  The benchmark routes (green) cluster tightly. Nearest-neighbour routes (orange) scatter
-  widely, with many crossing paths. 2-opt (teal) sits in between, all drawn over the same Amsterdam street context.</p>
+  <p class="lead fade">One line per day, coloured by algorithm.
+  The benchmark routes (green) cluster tightly. Nearest-neighbour routes (orange) spread out all over the place.
+  2-opt (teal) falls somewhere in the middle. All routes are on the same Amsterdam street map.</p>
   <div class="chart-wrap fade"><div id="routeport-chart" style="height:400px;background:#EDE7DE;border-radius:10px;overflow:hidden;position:relative"></div></div>
   <div class="legend fade">
     <div class="legend-item"><div class="legend-rect" style="background:var(--green);opacity:.5"></div>Best-known benchmark route</div>
@@ -251,16 +161,14 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <section id="distrace">
   <div class="eyebrow fade">Chart 3 of 5</div>
   <h2 class="fade">The Compounding Distance Gap</h2>
-  <p class="lead fade">Cumulative route kilometres over 30 operating days.
-  Every inefficient route compounds — a 12 km daily gap adds 360 km and roughly
-  €540 in fuel cost per month, per vehicle.</p>
+  <p class="lead fade">Total route distance across 30 days.
+  A 12 km daily gap adds up to 360 km and around €540 in extra fuel costs per month, per vehicle.</p>
   <div class="chart-wrap fade"><div id="dist-chart"></div></div>
   <div class="insight fade">
     <span class="insight-icon">⛽</span>
     <div class="insight-text"><strong>The operational cost</strong>
-    Assuming €0.45/km fuel+wear and 3 vehicles: the NN→2-opt improvement alone
-    saves ~€162/day. A 10% reduction in demand forecast error (via SPO+) could
-    close a further share of the remaining 2-opt→benchmark gap.</div>
+    At €0.45 per km across 3 vehicles, switching from nearest-neighbour to 2-opt alone saves around €162 per day.
+    A 10% improvement in demand forecast accuracy through SPO+ could close more of the remaining gap to the benchmark.</div>
   </div>
 </section>
 
@@ -268,22 +176,19 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <section id="explain">
   <div class="eyebrow fade">Charts 4 &amp; 5 of 5</div>
   <h2 class="fade">Where Heuristics Win and Lose</h2>
-  <p class="lead fade">2-opt dramatically improves NN on dense routes but still leaves
-  a gap versus the benchmark on days with large demand uncertainty. These are precisely
-  the days where a better demand forecast would allow a superior initial route order.</p>
+  <p class="lead fade">2-opt cuts a lot of the distance that nearest-neighbour wastes on dense routes, but on days when demand is hard to predict it still falls short of the benchmark.
+  Those are the days where a better forecast would have changed the initial route order.</p>
   <div class="chart-row">
     <div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
         <strong style="color:var(--text)">Zone savings map</strong><br>
-        Arc radius = km saved per day when demand for that zone is forecast accurately.
-        Dense residential zones in the outer ring dominate.</p>
+        Arc radius shows km saved per day when that zone's demand is forecast correctly. The outer residential zones matter most.</p>
       <div class="fade"><div id="clock-chart"></div></div>
     </div>
     <div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
-        <strong style="color:var(--text)">Forecast accuracy → Route efficiency</strong><br>
-        Each point is one operating day. Days with low demand MAE consistently
-        achieve routes closer to the benchmark.</p>
+        <strong style="color:var(--text)">Forecast accuracy, route efficiency</strong><br>
+        Each point is one operating day. Days with smaller demand forecast errors tend to produce shorter routes.</p>
       <div class="fade"><div id="scatter-chart"></div></div>
       <div class="fade" style="margin-top:28px">
         <p style="font-size:11px;color:var(--subtle);margin-bottom:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:500">Algorithm comparison · 30-day total distance</p>
@@ -294,11 +199,10 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
   <div class="insight fade" style="margin-top:40px">
     <span class="insight-icon">🎯</span>
     <div class="insight-text"><strong>The research gap this track opens</strong>
-    Track 1 optimises a continuous LP. Track 2 introduces asymmetric loss into the LP.
-    Track 3 replaces the LP with an NP-hard heuristic — the solver is no longer
-    differentiable. SPO+ must be adapted for combinatorial settings
-    (perturbation-based gradients, surrogate losses), which is the open methodological
-    frontier connecting energy, hospitals, and logistics.</div>
+    Track 1 uses a linear program you can differentiate through. Track 2 adds asymmetric costs to that LP.
+    This track replaces the LP with a heuristic solver that cannot be differentiated directly.
+    Extending SPO+ to work here, using things like perturbation-based gradients or surrogate losses,
+    is the open question that connects all three tracks.</div>
   </div>
 </section>
 

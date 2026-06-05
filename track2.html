@@ -6,84 +6,8 @@
 <title>Transfer Case · Hospital Operations · NL ICU Staffing</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#F7F4EE;--surface:#FBF9F5;--border:#E5E0D8;
-  --text:#1C1917;--muted:#78716C;--subtle:#A8A29E;
-  --teal:#0C7A91;--blue:#1B5E96;--green:#1B7A45;
-  --red:#991B1B;--orange:#D4540A;--purple:#6D28D9;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,sans-serif;font-size:15px;line-height:1.6;overflow-x:hidden}
-
-#sidenav{position:fixed;right:22px;top:50%;transform:translateY(-50%);z-index:300;display:flex;flex-direction:column;gap:9px}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .25s}
-.dot.on{background:var(--teal);transform:scale(1.4)}
-
-section{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px clamp(48px,6vw,120px);width:100%;position:relative}
-section+section{border-top:1px solid var(--border)}
-.eyebrow{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);margin-bottom:10px}
-h1{font-family:'Playfair Display',serif;font-size:clamp(32px,4vw,56px);line-height:1.15;margin-bottom:18px}
-h2{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-height:1.2;margin-bottom:14px}
-.lead{font-size:16px;color:var(--muted);max-width:min(1000px,88%);margin-bottom:36px;font-weight:300}
-
-#hero{min-height:100vh;padding-top:120px}
-#hero h1 em{font-style:italic;color:var(--teal)}
-.hero-line{width:40px;height:3px;background:var(--teal);margin:20px 0 32px}
-.hero-stats{display:flex;gap:48px;flex-wrap:wrap;margin-bottom:52px}
-.stat .num{font-family:'Playfair Display',serif;font-size:clamp(38px,5vw,64px);font-weight:700;line-height:1;color:var(--teal)}
-.stat .num.red{color:var(--red)}.stat .num.green{color:var(--green)}.stat .num.blue{color:var(--blue)}
-.stat .lbl{font-size:11px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.1em}
-
-.insight{display:inline-flex;gap:14px;align-items:flex-start;background:var(--surface);border-left:3px solid var(--teal);padding:14px 20px;border-radius:0 8px 8px 0;margin-top:24px;max-width:min(1000px,88%);flex-shrink:0;margin-top:1px}
-.insight-text{font-size:13px;color:var(--muted);line-height:1.6}
-.insight-text strong{display:block;color:var(--text);margin-bottom:3px;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
-
-#sim-banner{display:flex;align-items:center;gap:18px;padding:14px 22px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;min-height:58px}
-#sim-action{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;min-width:200px;white-space:nowrap;transition:color .4s}
-#sim-narrative{font-size:13px;color:var(--muted);font-style:italic;line-height:1.5}
-#sim-controls{display:flex;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap}
-#sim-play-btn{background:var(--teal);color:#fff;border:none;border-radius:6px;padding:8px 20px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:.02em;transition:background .2s;min-width:90px}
-#sim-play-btn:hover{background:#0A6478}
-#sim-slider{flex:1;min-width:160px;accent-color:var(--teal);height:4px;cursor:pointer}
-.sim-time{font-family:'Playfair Display',serif;font-size:22px;color:var(--text);min-width:60px}
-.sim-stat-row{display:flex;gap:0;flex-wrap:wrap;margin-top:14px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)}
-.sim-stat{flex:1;min-width:130px;padding:14px 20px;border-right:1px solid var(--border)}
-.sim-stat:last-child{border-right:none}
-.sim-stat .sv{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);line-height:1.2;transition:color .3s}
-.sim-stat .sl{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--subtle);margin-top:4px}
-.occ-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:6px;width:100%}
-#sim-occ-bar{height:100%;background:var(--teal);border-radius:3px;transition:width .6s ease,background .3s}
-
-.chart-wrap{width:100%;overflow-x:auto}
-.chart-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:56px;align-items:start}
-
-#tip{position:fixed;background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12.5px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.09);max-width:220px;line-height:1.5}
-#tip .tl{font-weight:600;margin-bottom:4px;color:var(--text)}
-#tip .tv{color:var(--muted)}
-
-.legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px}
-.legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
-.legend-rect{width:20px;height:10px;border-radius:2px;flex-shrink:0}
-
-.spo-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
-.spo-table th{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--subtle);font-weight:500;padding:0 10px 10px 0;border-bottom:1px solid var(--border);text-align:left}
-.spo-table td{padding:10px 10px 10px 0;border-bottom:1px solid var(--border);vertical-align:middle}
-.spo-table tr.hl td{font-weight:500}
-.spo-bar{height:5px;border-radius:3px;background:var(--teal);opacity:.8}
-
-.fade{opacity:0;transform:translateY(28px);transition:opacity .65s ease,transform .65s ease}
-.fade.in{opacity:1;transform:none}
-.fade.d1{transition-delay:.12s}.fade.d2{transition-delay:.24s}
-
-svg text{font-family:'Inter',-apple-system,sans-serif}
-
-.data-src{margin-top:28px;padding-top:16px;border-top:1px solid var(--border);font-size:11px;color:var(--subtle);line-height:1.9;max-width:min(900px,90%)}
-.data-src strong{display:block;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
-.data-src a{color:inherit;text-decoration:underline;text-decoration-color:var(--border)}
-.data-src a:hover{color:var(--primary)}
-</style>
+<link rel="stylesheet" href="style/base.css">
+<link rel="stylesheet" href="style/track2.css">
 </head>
 <body>
 
@@ -102,21 +26,19 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
   <div class="eyebrow fade">Transfer Case · Hospital Operations</div>
   <h1 class="fade d1">Staffing the Ward Under <em>Forecast Error</em><br>Cost and Service Risk</h1>
   <div class="hero-line fade d1"></div>
-  <p class="lead fade d2">This page is a transfer case showing how the same predict-then-optimize logic could extend
-  to hospital operations. A teaching hospital predicts next-day ICU admissions 24 hours ahead and solves a staffing LP,
-  where understaffing is materially more costly than overstaffing.</p>
+  <p class="lead fade d2">This page applies the same predict-then-optimize idea to a hospital setting. A teaching hospital forecasts ICU admissions for the next day and uses that forecast to plan nurse staffing. The catch is that being short-staffed costs far more than having too many staff on shift.</p>
   <div class="hero-stats">
-    <div class="stat fade"><div class="num green" id="h-oracle">—</div><div class="lbl">Clairvoyant benchmark cost (€) — perfect foresight</div></div>
-    <div class="stat fade d1"><div class="num red" id="h-naive">—</div><div class="lbl">Naive P-T-O cost (€) — XGBoost forecast</div></div>
-    <div class="stat fade d2"><div class="num" id="h-gap">—</div><div class="lbl">Excess cost (€) — paid for forecast error</div></div>
+    <div class="stat fade"><div class="num green" id="h-oracle">—</div><div class="lbl">Benchmark cost with perfect foresight (€)</div></div>
+    <div class="stat fade d1"><div class="num red" id="h-naive">—</div><div class="lbl">XGBoost P-T-O cost (€)</div></div>
+    <div class="stat fade d2"><div class="num" id="h-gap">—</div><div class="lbl">Extra cost from forecast error (€)</div></div>
   </div>
   <div class="insight fade d2">
     <span class="insight-icon">↓</span>
-    <div class="insight-text"><strong>The Asymmetric Loss Problem</strong>
-    Standard XGBoost minimises symmetric MSE — it penalises over- and under-prediction equally.
-    In this illustrative setup, understaffing is several times more expensive per patient-hour than idle staff.
-    SPO+ is appealing here because it would train directly on staffing regret rather than raw prediction error.</div>
-  
+    <div class="insight-text"><strong>The asymmetric loss problem</strong>
+    Standard XGBoost treats overpredicting and underpredicting patient numbers as equally bad.
+    In practice, calling in extra staff on a quiet day costs much less than being short-staffed on a busy one.
+    SPO+ would train the forecast to care about that difference directly.</div>
+  </div>
   <div class="data-src fade d2">
     <strong>Data &amp; Methods</strong>
     Prototype data: synthetic admissions calibrated on
@@ -133,16 +55,13 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
     Staffing LP with asymmetric penalty (understaffing: 4× overstaffing in the prototype) ·
     Potential partner setting: Maastricht UMC+
   </div>
-</div>
 </section>
 
 <!-- ══ SIMULATION ════════════════════════════════════════════════════════ -->
 <section id="sim">
   <div class="eyebrow fade">Live Simulation</div>
   <h2 class="fade">Watch the Ward</h2>
-  <p class="lead fade">Each dot is a patient (1 ICU bed-occupancy unit). The staffing level —
-  the LP decision made the <em>previous night</em> based on the forecast — is shown as a
-  dashed capacity line. Watch the morning surge push occupancy above it.</p>
+  <p class="lead fade">Each dot is one ICU patient. The dashed line is the staffing level set the <em>previous night</em> based on the forecast. Hit Play to see a day where morning admissions push past it.</p>
   <div class="fade">
     <div id="sim-banner">
       <span id="sim-action" style="color:var(--muted)">○ Ready</span>
@@ -176,17 +95,14 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <section id="heatmap">
   <div class="eyebrow fade">Chart 1 of 5</div>
   <h2 class="fade">When Patients Arrive</h2>
-  <p class="lead fade">Average ICU admission rate by day-of-week and hour of day
-  (synthetic, calibrated on LCPS/CBS reference distributions).
-  <span style="color:var(--teal);font-weight:500">Teal peaks</span> mark the
-  morning and evening surge windows the LP must anticipate.</p>
+  <p class="lead fade">Average ICU admission rate by day and hour, based on synthetic data calibrated against LCPS and CBS figures.
+  <span style="color:var(--teal);font-weight:500">Teal peaks</span> are the morning and early evening surges the staffing plan has to prepare for.</p>
   <div class="chart-wrap fade"><div id="heatmap-chart"></div></div>
   <div class="insight fade">
     <span class="insight-icon">🏥</span>
     <div class="insight-text"><strong>The staffing horizon problem</strong>
-    ICU shifts are rostered 12–24 h in advance. Monday morning surge rates swing ±40%
-    depending on weekend bed clearance — the exact type of structural pattern that
-    decision-focused learning should exploit over generic regression.</div>
+    ICU shifts are usually set 12 to 24 hours in advance. Monday morning admissions can swing by around 40% depending on how many patients were discharged over the weekend.
+    A model trained on staffing cost rather than pure accuracy should handle this kind of pattern better.</div>
   </div>
 </section>
 
@@ -194,9 +110,9 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <section id="staffing">
   <div class="eyebrow fade">Chart 2 of 5</div>
   <h2 class="fade">Charge the Ward, Pay the Penalty</h2>
-  <p class="lead fade">72 hours of benchmark staffing vs naive-forecast staffing against
-  actual demand. Grey = idle staff (overstaffing waste). Red = demand above capacity
-  (service penalty). The benchmark wastes nothing and breaches never.</p>
+  <p class="lead fade">72 hours comparing benchmark staffing to what the XGBoost forecast produced.
+  Grey shows idle staff time. Red is when actual demand exceeded capacity.
+  The benchmark uses just enough staff each shift and never gets caught short.</p>
   <div class="chart-wrap fade"><div id="staffing-chart"></div></div>
   <div class="legend fade">
     <div class="legend-item"><div class="legend-rect" style="background:var(--teal);opacity:.8"></div>Actual demand (patients)</div>
@@ -209,16 +125,13 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <section id="cost">
   <div class="eyebrow fade">Chart 3 of 5</div>
   <h2 class="fade">The Growing Cost Gap</h2>
-  <p class="lead fade">Cumulative staffing cost over 60 simulated days. The benchmark (dashed)
-  is the minimum achievable with perfect demand knowledge. Forecast error compounds —
-  the gap widens on days when the XGBoost model missed a surge event.</p>
+  <p class="lead fade">Total staffing cost across 60 simulated days. The dashed line is the minimum cost possible if you knew demand perfectly. A few missed surge days are enough to drive most of the gap.</p>
   <div class="chart-wrap fade"><div id="cost-chart"></div></div>
   <div class="insight fade">
     <span class="insight-icon">📈</span>
     <div class="insight-text"><strong>Asymmetry in action</strong>
-    Overstaffing days contribute a smooth linear increase. Understaffing events —
-    rare but expensive — create visible step-jumps in the naive cost series.
-    In a synthetic example like this, a handful of bad surge misses explain much of the total gap.</div>
+    Overstaffing adds a slow steady cost day by day. Short-staffed shifts are rare but expensive and show up as sharp jumps in the cost line.
+    In this prototype, just a few missed surges account for most of the total gap.</div>
   </div>
 </section>
 
@@ -226,21 +139,18 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
 <section id="explain">
   <div class="eyebrow fade">Charts 4 &amp; 5 of 5</div>
   <h2 class="fade">When Forecast Errors Are Expensive</h2>
-  <p class="lead fade">A ±2 patient forecast error at 3 am is harmless — night staff are
-  already scheduled. The same error at 9 am Monday triggers emergency agency calls at
-  3× the regular rate. The clock maps where accuracy actually matters.</p>
+  <p class="lead fade">A 2-patient miss at 3 am does not change anything because night staffing is fixed anyway. The same miss at 9 am on Monday means calling in agency nurses at three times the normal rate. The clock shows which hours the forecast really needs to get right.</p>
   <div class="chart-row">
     <div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
         <strong style="color:var(--text)">Cost-impact clock</strong><br>
-        Arc radius = expected cost of a ±2 patient forecast error at that hour.
-        Morning and post-surgery afternoon windows dominate.</p>
+        Arc radius shows the expected cost of a 2-patient forecast miss at each hour. Morning and afternoon post-surgery windows are the most expensive.</p>
       <div class="fade"><div id="clock-chart"></div></div>
     </div>
     <div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
-        <strong style="color:var(--text)">Lower forecast error → Lower staffing cost</strong><br>
-        Each point is one simulated day. Days with low MAE tend to land nearer the benchmark cost floor.</p>
+        <strong style="color:var(--text)">Lower forecast error, lower staffing cost</strong><br>
+        Each point is one simulated day. Days with smaller forecast errors generally cost less.</p>
       <div class="fade"><div id="scatter-chart"></div></div>
       <div class="fade" style="margin-top:28px">
         <p style="font-size:11px;color:var(--subtle);margin-bottom:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:500">Model comparison · 60-day staffing cost</p>
@@ -250,11 +160,10 @@ svg text{font-family:'Inter',-apple-system,sans-serif}
   </div>
   <div class="insight fade" style="margin-top:40px">
     <span class="insight-icon">🎯</span>
-    <div class="insight-text"><strong>The SPO+ research agenda for hospitals</strong>
-    Standard XGBoost ignores the asymmetry: an underprediction that triggers emergency
-    staffing costs €180/patient-hour vs €45/patient-hour for idle staff.
-    SPO+ (Elmachtoub &amp; Grigas, 2022) trains the forecast model to minimise
-    <em>staffing regret</em> — concentrating accuracy on the surge windows shown above.</div>
+    <div class="insight-text"><strong>Why SPO+ fits hospitals</strong>
+    Standard XGBoost ignores the cost difference: a short-staffed shift costs around €180 per patient-hour versus €45 for staff sitting idle.
+    SPO+ (Elmachtoub &amp; Grigas, 2022) trains the model to reduce the actual staffing cost, not just the prediction error,
+    focusing on the surge windows shown in the clock above.</div>
   </div>
 </section>
 
@@ -472,15 +381,15 @@ function hideTip(){tip.style.opacity=0;}
     let action, narr, col;
     if (isOver) {
       action="🚨 Understaffed";
-      narr=`${target-cap} patients above staffed capacity of ${cap} — emergency admissions exceeded the overnight forecast`;
+      narr=`${target-cap} patients above the staffed capacity of ${cap}. Emergency admissions came in above the overnight forecast.`;
       col="var(--red)";
     } else if (isUnder) {
       action="⬜ Overstaffed";
-      narr=`Ward at ${target}/${cap} — forecast overestimated demand, ${cap-target} staff idle (waste cost)`;
+      narr=`Ward at ${target}/${cap}. The forecast overestimated demand. ${cap-target} staff are idle, adding waste cost.`;
       col="var(--subtle)";
     } else {
       action="✓ Well Matched";
-      narr=`Ward at ${target}/${cap} — staffing level matched to forecast, efficient allocation`;
+      narr=`Ward at ${target}/${cap}. Staffing matched demand well. Good forecast day.`;
       col="var(--teal)";
     }
     $("sim-action").textContent=action; $("sim-action").style.color=col;
