@@ -18,3 +18,4 @@ data/*.joblib
 data/spo_corrections.joblib
 areastat-dk-python-api/
 areastat-dk-r-api/
+.env
