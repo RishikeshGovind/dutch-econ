@@ -18,6 +18,7 @@
   <div class="dot"     data-i="3" title="Staffing Portrait"></div>
   <div class="dot"     data-i="4" title="Cost Race"></div>
   <div class="dot"     data-i="5" title="Decision Sensitivity"></div>
+  <div class="dot"     data-i="6" title="ML Features"></div>
 </div>
 <div id="tip"><div class="tl"></div><div class="tv"></div></div>
 
@@ -164,6 +165,45 @@
     Standard XGBoost ignores the cost difference: a short-staffed shift costs around €180 per patient-hour versus €45 for staff sitting idle.
     SPO+ (Elmachtoub &amp; Grigas, 2022) trains the model to reduce the actual staffing cost, not just the prediction error,
     focusing on the surge windows shown in the clock above.</div>
+  </div>
+</section>
+
+<!-- ══ ML FEATURES ═══════════════════════════════════════════════════════ -->
+<section id="ml-features">
+  <div class="eyebrow fade">Model Internals</div>
+  <h2 class="fade">Feature Engineering &amp; Importances</h2>
+  <p class="lead fade">XGBoost trained on real RIVM national ICU admission data (Oct 2021–Apr 2024),
+  scaled to a single teaching hospital (40 IC beds, 3.5% of national capacity) and combined
+  with a NICE-calibrated non-COVID occupancy baseline. The model predicts tomorrow's total
+  ICU occupancy — the number the LP uses to set staffing. Importance = mean gain across all trees.</p>
+  <div class="ml-view-tabs fade">
+    <button class="ml-view-tab active" data-view="table">Feature Matrix</button>
+    <button class="ml-view-tab" data-view="bars">Overview</button>
+  </div>
+  <div id="ml-view-table" class="fade">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">
+      18 features &nbsp;·&nbsp; 1 row = 1 day &nbsp;·&nbsp; 716 training samples (2022–2023)
+    </div>
+    <div class="ml-chips" id="ml-chips"></div>
+    <div class="ml-tbl-wrap">
+      <table class="ml-tbl">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Category</th>
+            <th>Importance</th>
+            <th>Description</th>
+            <th>Source</th>
+          </tr>
+        </thead>
+        <tbody id="ml-tbl-body"></tbody>
+      </table>
+    </div>
+    <div class="ml-tbl-foot">RIVM COVID-19_ic_opnames (data.rivm.nl, public) &nbsp;·&nbsp; NICE ICU registry annual report 2023 (non-COVID baseline) &nbsp;·&nbsp; CBS IC capacity reference</div>
+  </div>
+  <div id="ml-view-bars" style="display:none">
+    <div class="ml-categories" id="ml-cats"></div>
+    <div class="ml-summary" id="ml-summary"></div>
   </div>
 </section>
 
@@ -666,6 +706,120 @@ document.querySelectorAll("section").forEach((s,i)=>{
 document.querySelectorAll(".dot").forEach((d,i)=>{
   d.addEventListener("click",()=>document.querySelectorAll("section")[i].scrollIntoView({behavior:"smooth"}));
 });
+
+// ════════════════════════════════════════════════════════════════════
+// ML FEATURES PANEL
+// ════════════════════════════════════════════════════════════════════
+(function initMLFeatures(){
+  const FEATS = [{"feature":"flu_season","label":"Flu season flag","importance":0.298099,"cat":"Hospital Patterns","color":"#1B7A45","desc":"Binary: 1 in Oct–Mar (influenza season, more respiratory IC admissions)","src":"Domain knowledge (NICE annual report)"},{"feature":"lag_1d","label":"1-day occupancy lag","importance":0.296946,"cat":"Temporal Lags","color":"#0C7A91","desc":"ICU beds occupied yesterday (most recent census)","src":"RIVM COVID-19_ic_opnames + NICE baseline"},{"feature":"rolling_mean_7d","label":"7-day rolling mean","importance":0.113868,"cat":"Rolling Statistics","color":"#1B5E96","desc":"Average daily ICU occupancy over the past 7 days","src":"RIVM COVID-19_ic_opnames + NICE baseline"},{"feature":"is_weekend","label":"Is weekend","importance":0.069274,"cat":"Cyclical Encodings","color":"#78716C","desc":"Binary: 1 if Saturday or Sunday (minimal elective admissions)","src":"Derived from date"},{"feature":"lag_7d","label":"7-day occupancy lag","importance":0.057338,"cat":"Temporal Lags","color":"#0C7A91","desc":"Occupancy same day last week (captures weekly census pattern)","src":"RIVM COVID-19_ic_opnames + NICE baseline"},{"feature":"sin_dow","label":"Day-of-week sine","importance":0.042085,"cat":"Cyclical Encodings","color":"#78716C","desc":"sin(2π·dow/7) — smooth day-of-week encoding","src":"Derived from date"},{"feature":"is_holiday","label":"Is Dutch holiday","importance":0.036544,"cat":"Cyclical Encodings","color":"#78716C","desc":"Binary: 1 if Dutch public holiday","src":"Derived from date"},{"feature":"day_after_holiday","label":"Day after public holiday","importance":0.032735,"cat":"Hospital Patterns","color":"#1B7A45","desc":"Binary: 1 on day after a public holiday — delayed emergency cases","src":"Domain knowledge (NICE annual report)"},{"feature":"summer_low","label":"Summer low flag","importance":0.016689,"cat":"Hospital Patterns","color":"#1B7A45","desc":"Binary: 1 in Jul–Aug (planned admissions decline in summer)","src":"Domain knowledge (NICE annual report)"},{"feature":"sin_month","label":"Month sine","importance":0.007834,"cat":"Cyclical Encodings","color":"#78716C","desc":"sin(2π·month/12) — captures seasonal demand","src":"Derived from date"},{"feature":"cos_month","label":"Month cosine","importance":0.00705,"cat":"Cyclical Encodings","color":"#78716C","desc":"cos(2π·month/12) — captures seasonal demand","src":"Derived from date"},{"feature":"occupancy_lag1","label":"ICU occupancy yesterday","importance":0.006446,"cat":"Capacity Signal","color":"#991B1B","desc":"Estimated beds occupied yesterday (rolling admission sum / avg LOS)","src":"Derived from admissions"},{"feature":"cos_dow","label":"Day-of-week cosine","importance":0.005364,"cat":"Cyclical Encodings","color":"#78716C","desc":"cos(2π·dow/7) — smooth day-of-week encoding","src":"Derived from date"},{"feature":"rolling_std_7d","label":"7-day rolling std dev","importance":0.003066,"cat":"Rolling Statistics","color":"#1B5E96","desc":"Occupancy variability over the past 7 days","src":"RIVM COVID-19_ic_opnames + NICE baseline"},{"feature":"lag_2d","label":"2-day occupancy lag","importance":0.002046,"cat":"Temporal Lags","color":"#0C7A91","desc":"ICU beds occupied two days ago","src":"RIVM COVID-19_ic_opnames + NICE baseline"},{"feature":"day_after_weekend","label":"Day after weekend (Mon surge)","importance":0.001655,"cat":"Hospital Patterns","color":"#1B7A45","desc":"Binary: 1 on Monday — post-weekend surgery backlog causes admission surge","src":"Domain knowledge (NICE annual report)"},{"feature":"rolling_mean_28d","label":"28-day rolling mean","importance":0.001552,"cat":"Rolling Statistics","color":"#1B5E96","desc":"Monthly baseline occupancy — 28-day rolling average","src":"RIVM COVID-19_ic_opnames + NICE baseline"},{"feature":"lag_14d","label":"14-day occupancy lag","importance":0.001407,"cat":"Temporal Lags","color":"#0C7A91","desc":"Occupancy same day two weeks ago","src":"RIVM COVID-19_ic_opnames + NICE baseline"}];
+
+  const maxImp = FEATS[0].importance;
+  const catOrder = ["Temporal Lags","Hospital Patterns","Rolling Statistics","Cyclical Encodings","Capacity Signal"];
+  const cats = {};
+  FEATS.forEach(f => { if(!cats[f.cat]) cats[f.cat]=[]; cats[f.cat].push(f); });
+
+  // ── Overview bars ──────────────────────────────────────────────────
+  const catsEl = document.getElementById("ml-cats");
+  catOrder.forEach(catName => {
+    if(!cats[catName]) return;
+    const total = cats[catName].reduce((s,f)=>s+f.importance,0);
+    const div = document.createElement("div");
+    div.innerHTML = `<div class="ml-cat-hd">${catName} <span style="font-weight:400">(${(total*100).toFixed(1)}% total)</span></div>`;
+    cats[catName].forEach(f => {
+      const barW = (f.importance / maxImp * 100).toFixed(2);
+      const row = document.createElement("div");
+      row.className = "ml-row";
+      row.innerHTML = `
+        <span class="ml-name">${f.label}</span>
+        <div class="ml-bar-bg"><div class="ml-bar-fill" data-w="${barW}" style="background:${f.color};opacity:.75"></div></div>
+        <span class="ml-pct">${(f.importance*100).toFixed(1)}%</span>
+      `;
+      div.appendChild(row);
+    });
+    catsEl.appendChild(div);
+  });
+
+  const sumEl = document.getElementById("ml-summary");
+  [
+    ["Model","XGBoost (gradient boosted trees)"],
+    ["Features","18 engineered inputs"],
+    ["Top features","Flu season flag (29.8%) and 1-day occupancy lag (29.7%)"],
+    ["Training","2022–2023 · RIVM IC opnames + NICE non-COVID baseline"],
+    ["Target","Next-day ICU occupancy (beds in use)"],
+    ["Test window","Nov–Dec 2023 · MAE 0.09 patients/day"],
+  ].forEach(([k,v])=>{
+    const d = document.createElement("div");
+    d.className = "ml-sum-item";
+    d.innerHTML = `<strong>${k}</strong> · ${v}`;
+    sumEl.appendChild(d);
+  });
+
+  // ── Feature table ──────────────────────────────────────────────────
+  const tbody = document.getElementById("ml-tbl-body");
+  const chipsEl = document.getElementById("ml-chips");
+
+  function renderRows(filter){
+    tbody.innerHTML = "";
+    FEATS.filter(f => filter==="All" || f.cat===filter).forEach(f => {
+      const barW = Math.round(f.importance / maxImp * 80);
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><span class="ml-feat-code">${f.feature}</span></td>
+        <td><span class="ml-cat-badge" style="background:${f.color}">${f.cat}</span></td>
+        <td>
+          <div class="ml-tbl-imp">
+            <div class="ml-tbl-bar" style="width:${barW}px;background:${f.color};opacity:.7"></div>
+            <span style="font-size:11.5px;color:var(--muted)">${(f.importance*100).toFixed(1)}%</span>
+          </div>
+        </td>
+        <td class="ml-tbl-desc">${f.desc}</td>
+        <td class="ml-tbl-src">${f.src}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  const chipDefs = [
+    {label:`All (${FEATS.length})`, key:"All"},
+    ...catOrder.map(c=>({label:`${c} (${(cats[c]||[]).length})`, key:c}))
+  ];
+  chipDefs.forEach(({label, key}) => {
+    const chip = document.createElement("button");
+    chip.className = "ml-chip" + (key==="All"?" active":"");
+    chip.textContent = label;
+    chip.addEventListener("click",()=>{
+      document.querySelectorAll(".ml-chip").forEach(c=>c.classList.remove("active"));
+      chip.classList.add("active");
+      if(key!=="All" && cats[key]) chip.style.background = cats[key][0].color;
+      else chip.style.background = "";
+      renderRows(key);
+    });
+    chipsEl.appendChild(chip);
+  });
+  renderRows("All");
+
+  // ── Tab switching ──────────────────────────────────────────────────
+  const viewBars  = document.getElementById("ml-view-bars");
+  const viewTable = document.getElementById("ml-view-table");
+  let animated = false;
+
+  function animateBars(){
+    if(animated) return;
+    animated = true;
+    setTimeout(()=>{ document.querySelectorAll(".ml-bar-fill").forEach(b=>{ b.style.width = b.dataset.w+"%"; }); }, 80);
+  }
+
+  document.querySelectorAll(".ml-view-tab").forEach(tab => {
+    tab.addEventListener("click",()=>{
+      document.querySelectorAll(".ml-view-tab").forEach(t=>t.classList.remove("active"));
+      tab.classList.add("active");
+      const v = tab.dataset.view;
+      viewBars.style.display  = v==="bars"  ? "" : "none";
+      viewTable.style.display = v==="table" ? "" : "none";
+      if(v==="bars") animateBars();
+    });
+  });
+})();
 </script>
 </body>
 </html>

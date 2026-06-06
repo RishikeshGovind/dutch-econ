@@ -1,0 +1,164 @@
+[
+  {
+    "feature": "flu_season",
+    "label": "Flu season flag",
+    "importance": 0.298099,
+    "cat": "Hospital Patterns",
+    "color": "#1B7A45",
+    "desc": "Binary: 1 in Oct\u2013Mar (influenza season, more respiratory IC admissions)",
+    "src": "Domain knowledge (NICE annual report, Dutch holiday calendar)"
+  },
+  {
+    "feature": "lag_1d",
+    "label": "1-day occupancy lag",
+    "importance": 0.296946,
+    "cat": "Temporal Lags",
+    "color": "#0C7A91",
+    "desc": "ICU beds occupied yesterday (most recent census)",
+    "src": "RIVM COVID-19_ic_opnames + NICE non-COVID baseline"
+  },
+  {
+    "feature": "rolling_mean_7d",
+    "label": "7-day rolling mean",
+    "importance": 0.113868,
+    "cat": "Rolling Statistics",
+    "color": "#1B5E96",
+    "desc": "Average daily ICU occupancy over the past 7 days",
+    "src": "RIVM COVID-19_ic_opnames + NICE non-COVID baseline"
+  },
+  {
+    "feature": "is_weekend",
+    "label": "Is weekend",
+    "importance": 0.069274,
+    "cat": "Cyclical Encodings",
+    "color": "#78716C",
+    "desc": "Binary: 1 if Saturday or Sunday (minimal elective admissions)",
+    "src": "Derived from date"
+  },
+  {
+    "feature": "lag_7d",
+    "label": "7-day occupancy lag",
+    "importance": 0.057338,
+    "cat": "Temporal Lags",
+    "color": "#0C7A91",
+    "desc": "Occupancy same day last week (captures weekly census pattern)",
+    "src": "RIVM COVID-19_ic_opnames + NICE non-COVID baseline"
+  },
+  {
+    "feature": "sin_dow",
+    "label": "Day-of-week sine",
+    "importance": 0.042085,
+    "cat": "Cyclical Encodings",
+    "color": "#78716C",
+    "desc": "sin(2\u03c0\u00b7dow/7) \u2014 smooth day-of-week encoding",
+    "src": "Derived from date"
+  },
+  {
+    "feature": "is_holiday",
+    "label": "Is Dutch holiday",
+    "importance": 0.036544,
+    "cat": "Cyclical Encodings",
+    "color": "#78716C",
+    "desc": "Binary: 1 if Dutch public holiday",
+    "src": "Derived from date"
+  },
+  {
+    "feature": "day_after_holiday",
+    "label": "Day after public holiday",
+    "importance": 0.032735,
+    "cat": "Hospital Patterns",
+    "color": "#1B7A45",
+    "desc": "Binary: 1 on day after a public holiday \u2014 delayed emergency cases",
+    "src": "Domain knowledge (NICE annual report, Dutch holiday calendar)"
+  },
+  {
+    "feature": "summer_low",
+    "label": "Summer low flag",
+    "importance": 0.016689,
+    "cat": "Hospital Patterns",
+    "color": "#1B7A45",
+    "desc": "Binary: 1 in Jul\u2013Aug (planned admissions decline in summer)",
+    "src": "Domain knowledge (NICE annual report, Dutch holiday calendar)"
+  },
+  {
+    "feature": "sin_month",
+    "label": "Month sine",
+    "importance": 0.007834,
+    "cat": "Cyclical Encodings",
+    "color": "#78716C",
+    "desc": "sin(2\u03c0\u00b7month/12) \u2014 captures seasonal demand",
+    "src": "Derived from date"
+  },
+  {
+    "feature": "cos_month",
+    "label": "Month cosine",
+    "importance": 0.00705,
+    "cat": "Cyclical Encodings",
+    "color": "#78716C",
+    "desc": "cos(2\u03c0\u00b7month/12) \u2014 captures seasonal demand",
+    "src": "Derived from date"
+  },
+  {
+    "feature": "occupancy_lag1",
+    "label": "ICU occupancy yesterday",
+    "importance": 0.006446,
+    "cat": "Capacity Signal",
+    "color": "#991B1B",
+    "desc": "Estimated ICU beds occupied yesterday (rolling admission sum / avg LOS)",
+    "src": "Derived from admissions (rolling sum / avg LOS)"
+  },
+  {
+    "feature": "cos_dow",
+    "label": "Day-of-week cosine",
+    "importance": 0.005364,
+    "cat": "Cyclical Encodings",
+    "color": "#78716C",
+    "desc": "cos(2\u03c0\u00b7dow/7) \u2014 smooth day-of-week encoding",
+    "src": "Derived from date"
+  },
+  {
+    "feature": "rolling_std_7d",
+    "label": "7-day rolling std dev",
+    "importance": 0.003066,
+    "cat": "Rolling Statistics",
+    "color": "#1B5E96",
+    "desc": "Occupancy variability over the past 7 days",
+    "src": "RIVM COVID-19_ic_opnames + NICE non-COVID baseline"
+  },
+  {
+    "feature": "lag_2d",
+    "label": "2-day occupancy lag",
+    "importance": 0.002046,
+    "cat": "Temporal Lags",
+    "color": "#0C7A91",
+    "desc": "ICU beds occupied two days ago",
+    "src": "RIVM COVID-19_ic_opnames + NICE non-COVID baseline"
+  },
+  {
+    "feature": "day_after_weekend",
+    "label": "Day after weekend (Mon surge)",
+    "importance": 0.001655,
+    "cat": "Hospital Patterns",
+    "color": "#1B7A45",
+    "desc": "Binary: 1 on Monday \u2014 post-weekend surgery backlog causes admission surge",
+    "src": "Domain knowledge (NICE annual report, Dutch holiday calendar)"
+  },
+  {
+    "feature": "rolling_mean_28d",
+    "label": "28-day rolling mean",
+    "importance": 0.001552,
+    "cat": "Rolling Statistics",
+    "color": "#1B5E96",
+    "desc": "Monthly baseline occupancy \u2014 28-day rolling average",
+    "src": "RIVM COVID-19_ic_opnames + NICE non-COVID baseline"
+  },
+  {
+    "feature": "lag_14d",
+    "label": "14-day occupancy lag",
+    "importance": 0.001407,
+    "cat": "Temporal Lags",
+    "color": "#0C7A91",
+    "desc": "Occupancy same day two weeks ago",
+    "src": "RIVM COVID-19_ic_opnames + NICE non-COVID baseline"
+  }
+]
