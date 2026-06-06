@@ -3,33 +3,448 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Predict-Then-Optimize · Dutch PhD Proposal</title>
+<title>Data-Driven Decision Making · PhD Proposal · Maastricht University</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style/index.css">
 </head>
 <body>
 
+<!-- ── Fixed nav ─────────────────────────────────────────────────────── -->
 <nav id="topnav">
-  <div class="brand"><em>Predict-Then-Optimize</em> &middot; Dutch PhD Proposal</div>
-  <div class="tabs">
-    <button class="tab t1 active" onclick="show(1)">Track 1 &middot; Energy</button>
-    <button class="tab t2"        onclick="show(2)">Track 2 &middot; Hospital</button>
-    <button class="tab t3"        onclick="show(3)">Track 3 &middot; Logistics</button>
+  <div class="brand"><em>Decision-Focused Learning</em> &middot; PhD Proposal &middot; SBE Maastricht</div>
+  <div class="nav-links">
+    <a class="nav-link t1" href="track1.html">
+      <span class="nav-dot"></span>Case 1 &middot; Energy
+    </a>
+    <a class="nav-link t2" href="track2.html">
+      <span class="nav-dot"></span>Case 2 &middot; Hospital
+    </a>
+    <a class="nav-link t3" href="track3.html">
+      <span class="nav-dot"></span>Case 3 &middot; Logistics
+    </a>
   </div>
 </nav>
 
-<div id="frame-wrap">
-  <iframe id="f1" src="track1.html" class="active" title="Track 1 Energy"></iframe>
-  <iframe id="f2" src="track2.html" title="Track 2 Hospital"></iframe>
-  <iframe id="f3" src="track3.html" title="Track 3 Logistics"></iframe>
-</div>
+<!-- ══════════════════════════════════════════════════════════════ HERO -->
+<section id="hero">
+  <div class="eyebrow fade">PhD Proposal &middot; Quantitative Economics &middot; Maastricht University</div>
+  <h1 class="fade d1">The Gap Between<br><em>Knowing</em> and Deciding</h1>
+  <div class="orange-line fade d1"></div>
+  <p class="lead fade d2">
+    Companies today use machine learning to forecast things like electricity prices, hospital
+    demand, and delivery volumes. They feed those forecasts into planning software that makes
+    decisions. The problem is that the forecasting model is trained to get the numbers right,
+    not to help the planner make better decisions. Those are two very different things.
+    This research builds and tests methods that fix that gap, across three real industries.
+  </p>
+
+  <div class="hero-thesis fade d2">
+    <p>
+      <strong>The core idea.</strong> When a machine learning model makes a prediction mistake,
+      standard training treats all mistakes the same. But in the real world, some mistakes are
+      very costly and others do not matter at all. A wrong electricity price forecast at 3am
+      changes nothing for a battery. The same mistake at 6pm can cause the battery to charge
+      when it should be selling, losing hundreds of euros. We build a better training method
+      called SPO+ that makes the model focus its effort on the mistakes that actually lead to
+      bad decisions. We test this idea across three industries that Maastricht University
+      works with directly.
+    </p>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat fade d1">
+      <div class="num">3</div>
+      <div class="lbl">Industries studied</div>
+    </div>
+    <div class="stat fade d1">
+      <div class="num teal">LP + VRP</div>
+      <div class="lbl">Two types of planning problems</div>
+    </div>
+    <div class="stat fade d1">
+      <div class="num violet">SPO+</div>
+      <div class="lbl">The new training method</div>
+    </div>
+  </div>
+
+  <div class="scroll-cue fade d2">Scroll to explore the research</div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ PROBLEM -->
+<section id="problem">
+  <div class="eyebrow fade">The Research Problem</div>
+  <h2 class="fade">Why Getting the Forecast Right<br>Does Not Mean Making Good Decisions</h2>
+  <p class="lead fade d1">
+    Most planning systems split the work into two steps: first predict, then decide.
+    That split is where the problem hides.
+  </p>
+
+  <div class="problem-grid">
+    <div class="problem-col fade d1">
+      <div class="gap-badge">The flaw in standard machine learning</div>
+      <h3>How it works today</h3>
+      <p>
+        A machine learning model makes a forecast. A planning tool takes that forecast and
+        works out the best decision. The model is trained to be accurate. The planning tool
+        is designed to optimise. But they never talk to each other during training.
+      </p>
+      <p>
+        This only works well if every forecast mistake is equally bad. In real operations,
+        they are not. For a hospital, being short of nurses by two people costs four times
+        more than having two extra nurses sitting idle. Standard training does not know that.
+        It treats both mistakes exactly the same.
+      </p>
+      <p>
+        The result: a model that looks accurate on paper but makes bad planning decisions
+        in practice.
+      </p>
+    </div>
+
+    <div class="problem-col fade d2">
+      <div class="gap-badge" style="background:#EEF9F3;border-color:#6EE7B7;color:#065F46">The better approach</div>
+      <h3>What SPO+ does differently</h3>
+      <p>
+        Two researchers at Cornell (Elmachtoub and Grigas, 2022) proposed a different way
+        to train forecasting models. Instead of asking "how close was my prediction to the
+        truth?", ask "did my prediction lead to a good decision?"
+      </p>
+      <p>
+        This is straightforward when the planning tool is a linear program, because you can
+        calculate exactly which prediction mistakes changed the final decision. It becomes a
+        research challenge when the planning tool is a routing algorithm for delivery trucks,
+        because those are too complex to work backwards through.
+      </p>
+      <p>
+        That research challenge is what makes this PhD interesting. The three case studies
+        below each expose a different version of the same core problem.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ FRAMEWORK -->
+<section id="framework">
+  <div class="eyebrow fade">How the Research Works</div>
+  <h2 class="fade">The Same Five Steps, Three Times Over</h2>
+  <p class="lead fade d1">
+    All three case studies follow the same process. The only thing that changes
+    is Step 3, and that is where the interesting research lives.
+  </p>
+
+  <div class="pipeline fade d2">
+    <div class="pipe-step">
+      <div class="step-num">Step 1</div>
+      <h4>Collect Data</h4>
+      <p>Real or calibrated data from each industry. Electricity prices, hospital
+        admissions, parcel volumes by postcode.</p>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step">
+      <div class="step-num">Step 2</div>
+      <h4>Train a Forecast Model</h4>
+      <p>XGBoost trained first the standard way (minimise error), then retrained
+        the SPO+ way (minimise bad decisions).</p>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step highlight">
+      <div class="step-num">Step 3 &middot; The research question</div>
+      <h4>Run the Planner</h4>
+      <p>Energy and hospital use a linear program. Logistics uses a routing
+        algorithm. Only one of these can be taught to give feedback to the
+        forecast model.</p>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step">
+      <div class="step-num">Step 4</div>
+      <h4>Make the Decision</h4>
+      <p>Charge or sell the battery. Call in nurses. Plan the delivery routes.
+        Each decision is made using the forecast.</p>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step">
+      <div class="step-num">Step 5</div>
+      <h4>Measure the Cost</h4>
+      <p>Compare the outcome to what would have happened with a perfect forecast.
+        That gap is what we are trying to close.</p>
+    </div>
+  </div>
+
+  <div class="spo-callout fade d2">
+    <div class="icon">⚡</div>
+    <div>
+      <h4>What changes when SPO+ is in charge of training</h4>
+      <p>
+        In Step 2, instead of the model learning "I was 8 euros off on this prediction",
+        it learns "my mistake at 6pm caused the battery to charge instead of sell, which
+        cost 200 euros". The model then pays more attention to getting 6pm right and stops
+        worrying so much about 3am, where the decision would have been the same either way.
+        This is the key insight that makes SPO+ work in energy and hospital settings.
+        The open research challenge is making it work for delivery routing too.
+      </p>
+      <span class="cite">Elmachtoub and Grigas (2022) &middot; Management Science &middot; "Smart Predict-Then-Optimize"</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ CASES -->
+<section id="cases">
+  <div class="eyebrow fade">Three Case Studies</div>
+  <h2 class="fade">The Same Problem Shows Up<br>Differently in Each Industry</h2>
+  <p class="lead fade d1">
+    Each case study is a working demo built on real Dutch data. Click any card to
+    explore the full interactive version.
+  </p>
+
+  <div class="cases-grid">
+
+    <!-- Case 1: Energy -->
+    <a class="case-card t1 fade d1" href="track1.html">
+      <div class="case-header">
+        <span class="case-icon">⚡</span>
+        <div class="case-num">Case Study 1 &middot; Energy</div>
+        <h3>A Battery Trading Electricity on the Dutch Market</h3>
+      </div>
+      <div class="case-body">
+        <p>
+          A 1 MW battery buys electricity when prices are low and sells when they are high.
+          To do this it needs to know tomorrow's prices today. We forecast those prices with
+          machine learning, feed them into a linear program that decides when to charge and
+          sell, then measure how much money was lost compared to a perfect forecast.
+        </p>
+        <div class="case-spec">
+          <div class="spec-item">
+            <div class="spec-label">What we predict</div>
+            <div class="spec-val">Hourly electricity price</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-label">Planner type</div>
+            <div class="spec-val">Linear program</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-label">Data source</div>
+            <div class="spec-val">ENTSO-E, 34,320 hours</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-label">What we measure</div>
+            <div class="spec-val">Revenue lost vs perfect</div>
+          </div>
+        </div>
+        <div class="case-insight">
+          This is the cleanest case for SPO+. Because the planner is a linear program,
+          we can calculate exactly which forecast mistakes led to wrong decisions and
+          train the model to fix those first.
+        </div>
+      </div>
+      <div class="case-footer">
+        <span>Open full demo</span>
+        <span class="arrow">→</span>
+      </div>
+    </a>
+
+    <!-- Case 2: Hospital -->
+    <a class="case-card t2 fade d2" href="track2.html">
+      <div class="case-header">
+        <span class="case-icon">🏥</span>
+        <div class="case-num">Case Study 2 &middot; Hospital</div>
+        <h3>Staffing an ICU Ward When Patient Numbers Are Uncertain</h3>
+      </div>
+      <div class="case-body">
+        <p>
+          A teaching hospital forecasts how many patients will arrive in the ICU tomorrow
+          and uses that number to plan how many nurses to call in. Being short-staffed costs
+          four times more than having too many nurses. The standard model does not know
+          about that imbalance when it is learning to predict.
+        </p>
+        <div class="case-spec">
+          <div class="spec-item">
+            <div class="spec-label">What we predict</div>
+            <div class="spec-val">Patient admissions</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-label">Planner type</div>
+            <div class="spec-val">Linear program with penalty</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-label">Data source</div>
+            <div class="spec-val">LCPS, NZa, CBS</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-label">What we measure</div>
+            <div class="spec-val">Extra staffing cost</div>
+          </div>
+        </div>
+        <div class="case-insight">
+          SPO+ here learns to be cautious. Rather than being equally accurate up and down,
+          it learns that guessing slightly high is much safer than guessing slightly low,
+          because the consequences are so different.
+        </div>
+      </div>
+      <div class="case-footer">
+        <span>Open full demo</span>
+        <span class="arrow">→</span>
+      </div>
+    </a>
+
+    <!-- Case 3: Logistics -->
+    <a class="case-card t3 fade d3" href="track3.html">
+      <div class="case-header">
+        <span class="case-icon">🚚</span>
+        <div class="case-num">Case Study 3 &middot; Logistics</div>
+        <h3>Planning Delivery Routes When Parcel Demand Is Unknown</h3>
+      </div>
+      <div class="case-body">
+        <p>
+          A Dutch delivery company forecasts how many parcels will need to go to each
+          neighbourhood tomorrow and uses that to plan its van routes. Unlike the battery
+          and the hospital, there is no clean mathematical formula for the best route
+          at this scale. The planner uses shortcuts instead.
+        </p>
+        <div class="case-spec">
+          <div class="spec-item">
+            <div class="spec-label">What we predict</div>
+            <div class="spec-val">Parcels per postcode zone</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-label">Planner type</div>
+            <div class="spec-val">Routing algorithm (VRP)</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-label">Data source</div>
+            <div class="spec-val">CBS, OpenStreetMap NL</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-label">What we measure</div>
+            <div class="spec-val">Extra kilometres driven</div>
+          </div>
+        </div>
+        <div class="case-insight">
+          This is the hardest case. The routing algorithm cannot easily give feedback
+          to the forecast model. Figuring out how to make SPO+ work here anyway is the
+          most novel part of the research.
+        </div>
+      </div>
+      <div class="case-footer">
+        <span>Open full demo</span>
+        <span class="arrow">→</span>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ CONTRIBUTION -->
+<section id="contribution">
+  <div class="eyebrow fade">What This Research Will Build</div>
+  <h2 class="fade">Four Things That Do Not Exist Yet</h2>
+  <p class="lead fade d1">
+    The three demos show the problem is real and worth solving.
+    The PhD will produce four concrete things that are new to the field.
+  </p>
+
+  <div class="contrib-grid">
+    <ul class="contrib-list fade d1">
+      <li>
+        <span class="contrib-num">1</span>
+        <div>
+          <strong>SPO+ that understands time</strong>
+          The original SPO+ paper treats each prediction independently. But battery
+          charging carries over from hour to hour, and hospital shifts overlap. We extend
+          the method to handle this kind of chain reaction across time.
+        </div>
+      </li>
+      <li>
+        <span class="contrib-num">2</span>
+        <div>
+          <strong>SPO+ for planning tools that use shortcuts</strong>
+          When the planner is a routing algorithm instead of a linear program, SPO+
+          cannot work directly. We develop and test ways to approximate the feedback
+          signal so the training still works.
+        </div>
+      </li>
+      <li>
+        <span class="contrib-num">3</span>
+        <div>
+          <strong>Explaining decisions, not just predictions</strong>
+          Most explainability tools tell you why the model made a certain prediction.
+          We build tools that tell you why the model made a certain decision, which
+          is what managers actually care about.
+        </div>
+      </li>
+      <li>
+        <span class="contrib-num">4</span>
+        <div>
+          <strong>A public benchmark across three industries</strong>
+          A reusable dataset and comparison of methods that other researchers can
+          build on, covering energy, healthcare, and logistics with real Dutch data.
+        </div>
+      </li>
+    </ul>
+
+    <div class="partners-panel fade d2">
+      <h3>Industry Partners</h3>
+      <div class="partner-row">
+        <div class="partner-icon">🏥</div>
+        <div>
+          <div class="partner-name">Maastricht University Medical Centre+</div>
+          <div class="partner-desc">
+            ICU capacity planning and nursing staff allocation. Case Study 2 uses
+            data calibrated on MUMC+ bed registry and admission patterns.
+          </div>
+        </div>
+      </div>
+      <div class="partner-row">
+        <div class="partner-icon">🚚</div>
+        <div>
+          <div class="partner-name">Last-Mile Logistics Providers</div>
+          <div class="partner-desc">
+            Dutch parcel carriers planning daily van routes by postcode zone.
+            Case Study 3 uses CBS demographic data and the OpenStreetMap road network.
+          </div>
+        </div>
+      </div>
+      <div class="partner-row">
+        <div class="partner-icon">⚡</div>
+        <div>
+          <div class="partner-name">Energy Companies</div>
+          <div class="partner-desc">
+            Battery storage operators on the NL day-ahead electricity market.
+            Case Study 1 uses live ENTSO-E price data across 34,320 hours.
+          </div>
+        </div>
+      </div>
+      <div class="partner-row">
+        <div class="partner-icon">🏛</div>
+        <div>
+          <div class="partner-name">Department of Quantitative Economics &middot; SBE</div>
+          <div class="partner-desc">
+            Research home for this PhD, bringing together econometrics, operations
+            research, and machine learning in one department.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ FOOTER -->
+<footer>
+  <div class="footer-brand">
+    <em>Decision-Focused Learning in Modern Operations</em> &middot;
+    PhD Proposal &middot; School of Business and Economics &middot; Maastricht University
+  </div>
+  <div class="footer-links">
+    <a href="track1.html">Case 1 &middot; Energy</a>
+    <a href="track2.html">Case 2 &middot; Hospital</a>
+    <a href="track3.html">Case 3 &middot; Logistics</a>
+  </div>
+</footer>
 
 <script>
-function show(n) {
-  document.querySelectorAll('iframe').forEach((f, i) => f.classList.toggle('active', i+1===n));
-  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i+1===n));
-}
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); } });
+}, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+document.querySelectorAll('.fade').forEach(el => obs.observe(el));
 </script>
+
 </body>
 </html>

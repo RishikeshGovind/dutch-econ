@@ -82,6 +82,32 @@ h2{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,40px);line-heig
 
 svg text{font-family:'Inter',-apple-system,sans-serif}
 
+/* ─── Track nav (shown on all track pages) ───────────────────────────────── */
+.track-nav{
+  position:fixed;top:0;left:0;right:0;height:48px;
+  background:rgba(251,249,245,.95);border-bottom:1px solid var(--border);
+  backdrop-filter:blur(8px);display:flex;align-items:center;
+  padding:0 clamp(16px,3vw,40px);gap:0;z-index:500;
+}
+.track-nav-home{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12px;font-weight:500;color:var(--muted);
+  text-decoration:none;padding:5px 16px 5px 0;
+  border-right:1px solid var(--border);margin-right:12px;
+  white-space:nowrap;transition:color .2s;flex-shrink:0;
+}
+.track-nav-home:hover{color:var(--text)}
+.track-nav-home::before{content:'←';margin-right:4px}
+.track-nav-cases{display:flex;gap:4px;flex:1}
+.track-nav-link{
+  font-size:12px;font-weight:500;color:var(--muted);
+  text-decoration:none;padding:5px 14px;border-radius:6px;
+  border:1px solid transparent;white-space:nowrap;
+  transition:all .2s;
+}
+.track-nav-link:hover{background:var(--surface);color:var(--text);border-color:var(--border)}
+.track-nav-link.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
 /* ─── ML Features section (shared by track1 and track3) ─────────────────────── */
 #ml-features{min-height:100vh;padding:80px clamp(48px,6vw,120px);border-top:1px solid var(--border)}
 .ml-categories{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:28px 48px}
