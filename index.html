@@ -176,10 +176,13 @@
       <p>
         In Step 2, instead of the model learning "I was 8 euros off on this prediction",
         it learns "my mistake at 6pm caused the battery to charge instead of sell, which
-        cost 200 euros". The model then pays more attention to getting 6pm right and stops
-        worrying so much about 3am, where the decision would have been the same either way.
-        This is the key insight that makes SPO+ work in energy and hospital settings.
-        The open research challenge is making it work for delivery routing too.
+        cost 200 euros". The model pays more attention to hours where errors flip decisions
+        and less to hours where the outcome would have been the same either way.
+        How much that helps in practice depends on whether those high-impact hours
+        have a pattern the model can learn. When they do, SPO+ clearly wins.
+        When forecast errors are spread uniformly across all hours, the gain shrinks.
+        The PhD will measure exactly where that boundary sits, across energy, hospital,
+        and logistics data, and across different market conditions.
       </p>
       <span class="cite">Elmachtoub and Grigas (2022) &middot; Management Science &middot; "Smart Predict-Then-Optimize"</span>
     </div>
@@ -230,9 +233,10 @@
           </div>
         </div>
         <div class="case-insight">
-          This is the cleanest case for SPO+. Because the planner is a linear program,
-          we can calculate exactly which forecast mistakes led to wrong decisions and
-          train the model to fix those first.
+          SPO+ and standard XGBoost earn similar revenue here because 93% of hours are
+          decision-sensitive, leaving no specific cluster to target. That is the finding:
+          SPO+ gains depend on market structure, not just the method. Measuring when that
+          changes is the research question.
         </div>
       </div>
       <div class="case-footer">

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Transfer Case · Last-Mile Logistics · NL Parcel VRP</title>
+<title>Case Study 3 · Logistics · NL Parcel VRP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -36,22 +36,18 @@
 <!-- ══ HERO ══════════════════════════════════════════════════════════════ -->
 <section id="hero">
   <div class="eyebrow fade">Transfer Case · Last-Mile Logistics</div>
-  <h1 class="fade d1">The <em>Last-Mile Problem:</em><br>When Routing Meets Forecasting</h1>
+  <h1 class="fade d1">When You Plan the Wrong Route<br>Because You Predicted the Wrong Demand</h1>
   <div class="hero-line fade d1"></div>
-  <p class="lead fade d2">This page applies the same research question to parcel delivery. A Dutch carrier forecasts daily parcel demand by postcode zone and uses that forecast to plan delivery routes using a Capacitated VRP.
-  Routing at this scale is too complex to solve exactly, so heuristics are used instead.
-  That is what makes this case different from the energy and hospital tracks.</p>
+  <p class="lead fade d2">A delivery company has to plan its van routes the night before. To do that it needs to predict how many parcels each neighbourhood will need the next day. Get that prediction wrong and the van ends up on a longer route than it needed to be. This case is harder than the energy and hospital cases because there is no exact formula for the perfect route. At this scale you have to use clever shortcuts, and those shortcuts cannot easily teach the forecast model how to improve.</p>
   <div class="hero-stats">
     <div class="stat fade"><div class="num green" id="h-oracle">—</div><div class="lbl">Best-known benchmark route (km)</div></div>
-    <div class="stat fade d1"><div class="num" id="h-nn">—</div><div class="lbl">Nearest-neighbour heuristic (km), 39% longer</div></div>
-    <div class="stat fade d2"><div class="num teal" id="h-twoopt">—</div><div class="lbl">2-opt improved (km), closes 60% of gap</div></div>
+    <div class="stat fade d1"><div class="num" id="h-nn">—</div><div class="lbl">Basic routing algorithm (km), 39% longer</div></div>
+    <div class="stat fade d2"><div class="num teal" id="h-twoopt">—</div><div class="lbl">Improved routing (km), closes 60% of gap</div></div>
   </div>
   <div class="insight fade d2">
     <span class="insight-icon">↓</span>
-    <div class="insight-text"><strong>Why VRP motivates SPO+</strong>
-    There is no provably optimal route at this scale, so the green benchmark is just the best found, not a guarantee.
-    SPO+ trained on route cost would learn to focus on zones where a bad demand forecast adds the most distance, not just the zones where the number is furthest off.
-    Track 1 and Track 2 both use a linear program you can differentiate through. This track cannot.</div>
+    <div class="insight-text"><strong>Why this case is the hardest of the three</strong>
+    The green benchmark route is the best we could find, not a mathematical guarantee of the shortest possible route. A smarter model would learn to focus on the zones where a wrong forecast adds the most extra kilometres, not just the zones where the prediction number was furthest off. Cases 1 and 2 use a planning tool that can send feedback back to the forecast model to help it improve. Case 3 uses a routing shortcut that cannot do that. Working out how to give the model useful feedback anyway is the open research question.</div>
   </div>
   <div class="data-src fade d2">
     <strong>Data &amp; Methods</strong>
@@ -100,10 +96,8 @@
   </div>
   <div class="insight fade" style="margin-top:28px">
     <span class="insight-icon">🚐</span>
-    <div class="insight-text"><strong>The demand forecasting link</strong>
-    The order zones are visited depends on how much demand each one has.
-    A more accurate demand forecast leads to a better visit order and fewer crossing paths.
-    SPO+ would train the model to reduce route distance rather than just prediction error.</div>
+    <div class="insight-text"><strong>How the forecast changes the route</strong>
+    The order the van visits each zone depends on how many parcels are going there. A better demand forecast leads to a smarter visit order and fewer wasted kilometres. A model trained on route distance instead of prediction accuracy would naturally learn to get the high-demand zones right.</div>
   </div>
 </section>
 
@@ -130,9 +124,8 @@
 
   <div class="insight fade" style="margin-top:28px">
     <span class="insight-icon">📍</span>
-    <div class="insight-text"><strong>Why geography matters for routing</strong>
-    If the forecast underestimates a busy zone like Nieuw-West, the vehicle arrives understocked and has to loop back, adding 8 to 12 km per trip.
-    Every route in the charts below starts with a zone-level demand forecast as its input.</div>
+    <div class="insight-text"><strong>One wrong zone can add 12 kilometres</strong>
+    If the forecast gets a busy zone like Nieuw-West wrong, the van runs out of parcels and has to loop back. That adds 8 to 12 km per trip. Every route shown in the charts below was planned using a zone-level demand forecast as the starting point.</div>
   </div>
 </section>
 
@@ -146,9 +139,8 @@
   <div class="chart-wrap fade"><div id="heatmap-chart"></div></div>
   <div class="insight fade">
     <span class="insight-icon">📦</span>
-    <div class="insight-text"><strong>Demand variability drives route variance</strong>
-    A 20% demand error in a dense zone can mean a vehicle runs short and needs a second pass, adding 8 to 12 km per day.
-    Good routing starts with a good demand forecast.</div>
+    <div class="insight-text"><strong>A wrong forecast in one zone ripples through the whole route</strong>
+    A 20% error in a busy zone can mean the van needs a second pass through the area, adding 8 to 12 km a day. Better routing starts with a better forecast.</div>
   </div>
 </section>
 
@@ -156,9 +148,7 @@
 <section id="routeport">
   <div class="eyebrow fade">Chart 2 of 5</div>
   <h2 class="fade">30 Days of Routes Overlaid</h2>
-  <p class="lead fade">One line per day, coloured by algorithm.
-  The benchmark routes (green) cluster tightly. Nearest-neighbour routes (orange) spread out all over the place.
-  2-opt (teal) falls somewhere in the middle. All routes are on the same Amsterdam street map.</p>
+  <p class="lead fade">Each line is one day's delivery route. The benchmark routes cluster tightly because the algorithm always finds a similar efficient path. The basic routing routes vary widely because the method just picks the closest zone each time, which leads to different inefficient patterns on different days. 2-opt lands somewhere in between.</p>
   <div class="chart-wrap fade"><div id="routeport-chart" style="height:400px;background:#EDE7DE;border-radius:10px;overflow:hidden;position:relative"></div></div>
   <div class="legend fade">
     <div class="legend-item"><div class="legend-rect" style="background:var(--green);opacity:.5"></div>Best-known benchmark route</div>
@@ -171,34 +161,31 @@
 <section id="distrace">
   <div class="eyebrow fade">Chart 3 of 5</div>
   <h2 class="fade">The Compounding Distance Gap</h2>
-  <p class="lead fade">Total route distance across 30 days.
-  A 12 km daily gap adds up to 360 km and around €540 in extra fuel costs per month, per vehicle.</p>
+  <p class="lead fade">Total delivery distance over 30 days. A 12 km gap per day adds up to 360 extra kilometres in a month, which is about 540 euros in extra fuel costs per van.</p>
   <div class="chart-wrap fade"><div id="dist-chart"></div></div>
   <div class="insight fade">
     <span class="insight-icon">⛽</span>
-    <div class="insight-text"><strong>The operational cost</strong>
-    At €0.45 per km across 3 vehicles, switching from nearest-neighbour to 2-opt alone saves around €162 per day.
-    A 10% improvement in demand forecast accuracy through SPO+ could close more of the remaining gap to the benchmark.</div>
+    <div class="insight-text"><strong>What the extra kilometres actually cost</strong>
+    At 0.45 euros per km across 3 vans, switching from the basic algorithm to 2-opt already saves about 162 euros a day. A 10% improvement in demand forecast accuracy could close even more of the remaining gap to the best known benchmark.</div>
   </div>
 </section>
 
 <!-- ══ HEURISTIC COMPARISON ═══════════════════════════════════════════════ -->
 <section id="explain">
   <div class="eyebrow fade">Charts 4 &amp; 5 of 5</div>
-  <h2 class="fade">Where Heuristics Win and Lose</h2>
-  <p class="lead fade">2-opt cuts a lot of the distance that nearest-neighbour wastes on dense routes, but on days when demand is hard to predict it still falls short of the benchmark.
-  Those are the days where a better forecast would have changed the initial route order.</p>
+  <h2 class="fade">Where the Routing Shortcuts Win and Where They Fail</h2>
+  <p class="lead fade">The improved routing removes a lot of the wasted distance that the basic algorithm creates. But on days when demand is hard to predict, it still ends up further from the benchmark. Those are exactly the days where a better demand forecast would have changed how the route was planned from the start.</p>
   <div class="chart-row">
     <div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
         <strong style="color:var(--text)">Zone savings map</strong><br>
-        Arc radius shows km saved per day when that zone's demand is forecast correctly. The outer residential zones matter most.</p>
+        The bigger the arc, the more kilometres are saved when that zone's demand is forecast correctly. The outer residential zones matter most.</p>
       <div class="fade"><div id="clock-chart"></div></div>
     </div>
     <div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
         <strong style="color:var(--text)">Forecast accuracy, route efficiency</strong><br>
-        Each point is one operating day. Days with smaller demand forecast errors tend to produce shorter routes.</p>
+        Each dot is one day. Days where the demand forecast was more accurate tend to produce shorter, more efficient routes.</p>
       <div class="fade"><div id="scatter-chart"></div></div>
       <div class="fade" style="margin-top:28px">
         <p style="font-size:11px;color:var(--subtle);margin-bottom:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:500">Algorithm comparison · 30-day total distance</p>
@@ -208,11 +195,8 @@
   </div>
   <div class="insight fade" style="margin-top:40px">
     <span class="insight-icon">🎯</span>
-    <div class="insight-text"><strong>The research gap this track opens</strong>
-    Track 1 uses a linear program you can differentiate through. Track 2 adds asymmetric costs to that LP.
-    This track replaces the LP with a heuristic solver that cannot be differentiated directly.
-    Extending SPO+ to work here, using things like perturbation-based gradients or surrogate losses,
-    is the open question that connects all three tracks.</div>
+    <div class="insight-text"><strong>Where the research goes from here</strong>
+    Case 1 uses a planning tool that maths can work backwards through to improve the forecast. Case 2 adds an unequal cost structure to that same type of tool. Case 3 replaces it with a routing shortcut that you cannot work backwards through in the same way. Finding a way to still improve the forecast using feedback from this kind of planner is the open research question. The SPO+ framework (Elmachtoub &amp; Grigas, 2022) works cleanly in Cases 1 and 2. Extending it to handle routing shortcuts is what makes Case 3 the most novel part of the research.</div>
   </div>
 </section>
 
@@ -220,10 +204,7 @@
 <section id="ml-features">
   <div class="eyebrow fade">Model Internals</div>
   <h2 class="fade">Feature Engineering &amp; Importances</h2>
-  <p class="lead fade">XGBoost trained on CBS Kerncijfers 2023 zone demographics and a PostNL-calibrated
-  daily demand series for all 12 Amsterdam zones across 2023. The 23 features span
-  recent demand history, zone demographics from CBS, and calendar patterns.
-  Importance is the average gain each feature adds across all trees.</p>
+  <p class="lead fade">The demand forecast model was trained on CBS neighbourhood statistics from 2023 and a daily delivery demand series for all 12 Amsterdam zones, calibrated against PostNL annual report figures. The 23 input variables cover recent delivery history, demographic information about each zone from CBS, and calendar patterns. Importance shows how much each variable helps the model on average.</p>
   <div class="ml-view-tabs fade">
     <button class="ml-view-tab active" data-view="table">Feature Matrix</button>
     <button class="ml-view-tab" data-view="bars">Overview</button>

@@ -84,7 +84,8 @@ def _load_raw() -> tuple[pd.DataFrame, bool]:
         df = pd.read_parquet(PANEL_FILE)
         df.index = pd.to_datetime(df.index, utc=True)
         # Normalise index to datetime_utc column for downstream compat
-        df = df.reset_index().rename(columns={"index": "datetime_utc"})
+        idx_col = df.index.name or "index"
+        df = df.reset_index().rename(columns={idx_col: "datetime_utc"})
         # Legacy alias: some code uses price_eur_mwh
         if "price_da" in df.columns and "price_eur_mwh" not in df.columns:
             df["price_eur_mwh"] = df["price_da"]

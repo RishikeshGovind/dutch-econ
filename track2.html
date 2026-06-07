@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Transfer Case · Hospital Operations · NL ICU Staffing</title>
+<title>Case Study 2 · Hospital · NL ICU Staffing</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style/base.css">
@@ -34,20 +34,18 @@
 <!-- ══ HERO ══════════════════════════════════════════════════════════════ -->
 <section id="hero">
   <div class="eyebrow fade">Transfer Case · Hospital Operations</div>
-  <h1 class="fade d1">Staffing the Ward Under <em>Forecast Error</em><br>Cost and Service Risk</h1>
+  <h1 class="fade d1">Getting the Nurse Count Wrong<br>Costs More Than You Think</h1>
   <div class="hero-line fade d1"></div>
-  <p class="lead fade d2">This page applies the same predict-then-optimize idea to a hospital setting. A teaching hospital forecasts ICU admissions for the next day and uses that forecast to plan nurse staffing. The catch is that being short-staffed costs far more than having too many staff on shift.</p>
+  <p class="lead fade d2">A hospital forecasts how many patients will need intensive care tomorrow and uses that number to decide how many nurses to call in. Getting the forecast wrong in either direction costs money. But the costs are very different. Having too many nurses on a quiet day wastes money. Not having enough nurses on a busy day means patients wait longer for care and the hospital pays emergency rates to fix it.</p>
   <div class="hero-stats">
-    <div class="stat fade"><div class="num green" id="h-oracle">—</div><div class="lbl">Benchmark cost with perfect foresight (€)</div></div>
-    <div class="stat fade d1"><div class="num red" id="h-naive">—</div><div class="lbl">XGBoost P-T-O cost (€)</div></div>
-    <div class="stat fade d2"><div class="num" id="h-gap">—</div><div class="lbl">Extra cost from forecast error (€)</div></div>
+    <div class="stat fade"><div class="num green" id="h-oracle">—</div><div class="lbl">Minimum possible cost with perfect information (€)</div></div>
+    <div class="stat fade d1"><div class="num red" id="h-naive">—</div><div class="lbl">Actual cost using the forecast model (€)</div></div>
+    <div class="stat fade d2"><div class="num" id="h-gap">—</div><div class="lbl">Extra cost caused by forecast errors (€)</div></div>
   </div>
   <div class="insight fade d2">
     <span class="insight-icon">↓</span>
-    <div class="insight-text"><strong>The asymmetric loss problem</strong>
-    Standard XGBoost treats overpredicting and underpredicting patient numbers as equally bad.
-    In practice, calling in extra staff on a quiet day costs much less than being short-staffed on a busy one.
-    SPO+ would train the forecast to care about that difference directly.</div>
+    <div class="insight-text"><strong>The two costs are not the same</strong>
+    Standard machine learning treats getting the number too high and getting it too low as equally bad mistakes. But a hospital does not work that way. Calling in one extra nurse costs about 45 euros an hour. Being one nurse short costs closer to 180 euros an hour in emergency cover. A model trained to reduce the number of mistakes does not know about this difference. A model trained to reduce the total cost would.</div>
   </div>
   <div class="data-src fade d2">
     <strong>Data &amp; Methods</strong>
@@ -62,7 +60,7 @@
     Production volumes:
     <a href="https://www.nza.nl" target="_blank" rel="noopener">NZa</a>
     DBC open data ·
-    Staffing LP with asymmetric penalty (understaffing: 4× overstaffing in the prototype) ·
+    Staffing planner penalises being short-staffed 4 times more than overstaffing ·
     Potential partner setting: Maastricht UMC+
   </div>
 </section>
@@ -71,11 +69,11 @@
 <section id="sim">
   <div class="eyebrow fade">Live Simulation</div>
   <h2 class="fade">Watch the Ward</h2>
-  <p class="lead fade">Each dot is one ICU patient. The dashed line is the staffing level set the <em>previous night</em> based on the forecast. Hit Play to see a day where morning admissions push past it.</p>
+  <p class="lead fade">Each dot is one ICU patient arriving through the day. The dashed line is how many nurses were scheduled the night before, based on what the model predicted. Press Play to see what happens when more patients show up than expected.</p>
   <div class="fade">
     <div id="sim-banner">
       <span id="sim-action" style="color:var(--muted)">○ Ready</span>
-      <span id="sim-narrative">Press Play to simulate a day of ICU admissions against the LP staffing plan</span>
+      <span id="sim-narrative">Press Play to simulate a day of ICU admissions against the staffing plan</span>
     </div>
     <div id="sim-controls">
       <button id="sim-play-btn">▶ Play</button>
@@ -110,9 +108,8 @@
   <div class="chart-wrap fade"><div id="heatmap-chart"></div></div>
   <div class="insight fade">
     <span class="insight-icon">🏥</span>
-    <div class="insight-text"><strong>The staffing horizon problem</strong>
-    ICU shifts are usually set 12 to 24 hours in advance. Monday morning admissions can swing by around 40% depending on how many patients were discharged over the weekend.
-    A model trained on staffing cost rather than pure accuracy should handle this kind of pattern better.</div>
+    <div class="insight-text"><strong>Staffing decisions have to be made a day early</strong>
+    ICU shifts are usually locked in 12 to 24 hours before they start. Monday morning admissions can vary by about 40% depending on how many patients left over the weekend. A model trained to reduce cost rather than just prediction errors should get better at recognising these patterns.</div>
   </div>
 </section>
 
@@ -120,9 +117,7 @@
 <section id="staffing">
   <div class="eyebrow fade">Chart 2 of 5</div>
   <h2 class="fade">Charge the Ward, Pay the Penalty</h2>
-  <p class="lead fade">72 hours comparing benchmark staffing to what the XGBoost forecast produced.
-  Grey shows idle staff time. Red is when actual demand exceeded capacity.
-  The benchmark uses just enough staff each shift and never gets caught short.</p>
+  <p class="lead fade">Three days of staffing compared side by side. The benchmark hired exactly the right number of nurses each day with perfect information. Grey bars show nurses sitting idle. Red shows hours when the ward was short-staffed.</p>
   <div class="chart-wrap fade"><div id="staffing-chart"></div></div>
   <div class="legend fade">
     <div class="legend-item"><div class="legend-rect" style="background:var(--teal);opacity:.8"></div>Actual demand (patients)</div>
@@ -135,13 +130,12 @@
 <section id="cost">
   <div class="eyebrow fade">Chart 3 of 5</div>
   <h2 class="fade">The Growing Cost Gap</h2>
-  <p class="lead fade">Total staffing cost across 60 simulated days. The dashed line is the minimum cost possible if you knew demand perfectly. A few missed surge days are enough to drive most of the gap.</p>
+  <p class="lead fade">Total staffing cost over 60 days. The dashed line is what the hospital would have spent if the forecast had been perfect every single day. Most of the gap comes from a handful of days when a patient surge was missed.</p>
   <div class="chart-wrap fade"><div id="cost-chart"></div></div>
   <div class="insight fade">
     <span class="insight-icon">📈</span>
-    <div class="insight-text"><strong>Asymmetry in action</strong>
-    Overstaffing adds a slow steady cost day by day. Short-staffed shifts are rare but expensive and show up as sharp jumps in the cost line.
-    In this prototype, just a few missed surges account for most of the total gap.</div>
+    <div class="insight-text"><strong>A few bad days drive most of the cost</strong>
+    Having too many nurses adds a small steady cost each day. Being short-staffed is rare but hits the budget hard when it happens. In this model a small number of days where a patient surge was missed explains most of the total overspend.</div>
   </div>
 </section>
 
@@ -149,18 +143,18 @@
 <section id="explain">
   <div class="eyebrow fade">Charts 4 &amp; 5 of 5</div>
   <h2 class="fade">When Forecast Errors Are Expensive</h2>
-  <p class="lead fade">A 2-patient miss at 3 am does not change anything because night staffing is fixed anyway. The same miss at 9 am on Monday means calling in agency nurses at three times the normal rate. The clock shows which hours the forecast really needs to get right.</p>
+  <p class="lead fade">A 2-patient miss at 3am does not change the staffing plan because night shifts are set well in advance. The same error at 9am on a Monday means calling in agency nurses at three times the normal hourly rate. The clock shows which hours the forecast actually needs to be accurate for.</p>
   <div class="chart-row">
     <div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
         <strong style="color:var(--text)">Cost-impact clock</strong><br>
-        Arc radius shows the expected cost of a 2-patient forecast miss at each hour. Morning and afternoon post-surgery windows are the most expensive.</p>
+        The bigger the arc, the more expensive it is when the forecast is 2 patients off at that hour. Morning and afternoon are the most critical.</p>
       <div class="fade"><div id="clock-chart"></div></div>
     </div>
     <div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px" class="fade">
         <strong style="color:var(--text)">Lower forecast error, lower staffing cost</strong><br>
-        Each point is one simulated day. Days with smaller forecast errors generally cost less.</p>
+        Each dot is one simulated day. The more accurate the forecast, the lower the staffing cost tends to be.</p>
       <div class="fade"><div id="scatter-chart"></div></div>
       <div class="fade" style="margin-top:28px">
         <p style="font-size:11px;color:var(--subtle);margin-bottom:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:500">Model comparison · 60-day staffing cost</p>
@@ -170,10 +164,8 @@
   </div>
   <div class="insight fade" style="margin-top:40px">
     <span class="insight-icon">🎯</span>
-    <div class="insight-text"><strong>Why SPO+ fits hospitals</strong>
-    Standard XGBoost ignores the cost difference: a short-staffed shift costs around €180 per patient-hour versus €45 for staff sitting idle.
-    SPO+ (Elmachtoub &amp; Grigas, 2022) trains the model to reduce the actual staffing cost, not just the prediction error,
-    focusing on the surge windows shown in the clock above.</div>
+    <div class="insight-text"><strong>Why standard training gets this wrong</strong>
+    Standard training tells the model to be accurate. It treats a prediction that was 2 patients too high the same as a prediction that was 2 patients too low. But in a hospital they cost very different amounts. Being understaffed costs about 180 euros per patient-hour. Being overstaffed costs about 45 euros per hour. SPO+ (Elmachtoub &amp; Grigas, 2022) trains the model on the actual cost of each type of mistake, so it learns to worry more about underestimates during busy morning and afternoon windows.</div>
   </div>
 </section>
 
@@ -181,10 +173,7 @@
 <section id="ml-features">
   <div class="eyebrow fade">Model Internals</div>
   <h2 class="fade">Feature Engineering &amp; Importances</h2>
-  <p class="lead fade">XGBoost trained on real RIVM national ICU admission data (Oct 2021–Apr 2024),
-  scaled to a single teaching hospital (40 IC beds, 3.5% of national capacity) and combined
-  with a NICE-calibrated non-COVID occupancy baseline. The model predicts tomorrow's total
-  ICU occupancy — the number the LP uses to set staffing. Importance = mean gain across all trees.</p>
+  <p class="lead fade">The model was trained on real Dutch ICU admission data from RIVM, covering October 2021 to April 2024. The national figures were scaled down to match a single teaching hospital with 40 beds, which represents about 3.5% of national ICU capacity. The model predicts how many patients will be in the ICU tomorrow. That number feeds into the staffing planner. Importance shows how much each input variable helps the model on average.</p>
   <div class="ml-view-tabs fade">
     <button class="ml-view-tab active" data-view="table">Feature Matrix</button>
     <button class="ml-view-tab" data-view="bars">Overview</button>
