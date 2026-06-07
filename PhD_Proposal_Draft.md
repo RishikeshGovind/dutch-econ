@@ -1,269 +1,179 @@
-# Archive: Aalborg PhD Draft
+# PhD Research Proposal
 
-This markdown file is an earlier Aalborg / MaMTEP proposal draft preserved for reference.
-The current Maastricht application demo in this repository is the predict-then-optimize package built around `proposal.html` and the three track pages.
+**Title:** Decision-Focused Learning in Modern Operations: Integrating Predictive Models with Optimization Across Energy, Healthcare, and Logistics
 
-**Programme:** MaMTEP — Macroeconomics and Theory of Economic Policy
-**Institution:** Aalborg University, Department of Economics and Politics
-**Supervisory alignment:** Post-Keynesian Political Economy, Ecological Macroeconomics
+**Position:** PhD in Econometrics, Operations Research and Social Choice — Project 1 (Data-driven decision making in modern operations)
 
----
-
-## Title
-
-**Municipal Fiscal Resilience in the Green Transition: A Stock-Flow Consistent Analysis of Climate Exposure Heterogeneity across Danish Local Governments**
+**Department of Quantitative Economics, School of Business and Economics, Maastricht University**
 
 ---
 
 ## Abstract
 
-Denmark's green transition will impose structurally uneven fiscal costs across its 98 municipalities. Localities with high fossil-sector employment, limited renewable capacity, and stretched balance sheets face compounded vulnerabilities — simultaneously losing tax base, incurring transition costs, and confronting rising physical climate risks — while possessing fewer fiscal buffers than their low-exposure counterparts. Yet existing macroeconomic frameworks treat this heterogeneity as a second-order concern: aggregate SFC models assume representative-agent local governments, and standard municipal finance analysis lacks the theoretical structure to trace how transition shocks propagate through sectoral accounts.
+Most organisations that use machine learning to make operational decisions face the same hidden problem. The forecast model is trained to be accurate, but the thing that actually matters is whether accurate forecasts lead to better decisions. These two objectives are not the same. In battery energy storage, a forecast error that does not change the charge or discharge decision is harmless. The same error at a different hour can cost hundreds of euros. In hospital staffing, being short by one nurse is far more expensive than having one nurse too many, but standard training treats both errors identically.
 
-This thesis develops an integrated research infrastructure that combines Stock-Flow Consistent (SFC) macroeconomic modelling with granular municipal-level data to analyse fiscal resilience under alternative green transition policy scenarios. Drawing on Statistics Denmark's open data infrastructure, energy and climate indicators from Energistyrelsen and DMI, and NACE-level employment microdata, I construct a transition vulnerability index for all 98 Danish municipalities and calibrate a two-sector SFC model to contrasting archetype municipalities. Three papers examine: (1) the empirical structure of climate-fiscal exposure heterogeneity; (2) the SFC dynamics of fiscal resilience under alternative transition trajectories; and (3) the design of policy instruments that minimise fiscal stress in high-exposure municipalities within a coherent macroeconomic framework.
-
-The proposal is grounded in a functional research prototype — AreaStat DK — which demonstrates the data infrastructure, SFC account structures, and scenario visualisations underpinning the empirical work.
+This research develops and evaluates decision-focused learning methods — specifically Smart Predict-Then-Optimize, SPO+ (Elmachtoub & Grigas, 2022) — that train predictive models with the downstream optimization problem explicitly in the loss function. The central research question is not whether SPO+ works, but *when* it works, *by how much*, and across *which types of optimization problems*. A working prototype covering three of the PhD call's named industry partners demonstrates both the problem and the open questions.
 
 ---
 
-## 1. Motivation and Research Gap
+## 1. The Research Problem
 
-### 1.1 The Green Transition as a Fiscal Problem
+### 1.1 Predict-then-optimize and its flaw
 
-The political economy of the green transition is typically framed at the national level: carbon pricing, green investment packages, industrial policy. But the distributional incidence of transition costs and benefits is fundamentally local. In Denmark, municipalities bear legal responsibility for key green transition expenditures — building retrofits, local mobility, heat planning, waste — and simultaneously collect the income and property tax revenues that will be directly affected by sectoral restructuring.
+The standard pipeline for data-driven operations runs in two separate stages. First, a machine learning model produces a forecast. Second, a planning tool uses that forecast to make a decision. The model is trained by minimising a loss on its predictions, typically mean squared error. The planning tool optimises separately. The two stages never communicate during training.
 
-When fossil-linked industries contract — oil services, transport logistics, conventional agriculture — the municipalities hosting them face a compound shock: employment falls, the local income-tax base erodes, equalization grant entitlements shift, and capital expenditure needs for green infrastructure rise simultaneously. This is precisely the configuration that Minsky's (1986) financial instability hypothesis identifies as generating balance-sheet fragility: a simultaneous deterioration of flows (income) and stocks (debt/asset ratios), with limited capacity for self-correction at the sub-sovereign level.
+This works when every prediction error is equally costly. In practice, errors are almost never equally costly. Elmachtoub & Grigas (2022) formalise this observation: the right training objective is not "how close was the prediction to the truth" but "how much did the prediction cost in terms of the downstream decision quality." They call the gap between the decision made under a forecast and the decision that would have been made with perfect information the *decision regret*, and propose SPO+, a method that replaces the MSE gradient with a decision-regret gradient during training.
 
-Mainstream assessments of Denmark's climate transition treat this heterogeneity as a distributional footnote. The Danish Climate Council's progress reports operate at national level; municipal finance analyses from VIVE focus on aggregate expenditure pressures. There is no systematic framework for tracing how transition shocks propagate through municipal sector accounts, accumulate as debt, and feed back to service delivery capacity.
+The key insight is that SPO+ only adjusts the model at the hours or data points where a forecast error actually changed the decision. Hours where both the standard model and the oracle would have made the same decision get zero gradient signal. This concentrates the model's learning capacity on the errors that matter operationally.
 
-### 1.2 Why Stock-Flow Consistency Matters
+### 1.2 What is still unknown
 
-The core methodological argument of this thesis is that SFC modelling (Godley & Lavoie, 2007) provides the appropriate theoretical structure for this analysis — and that it has not been applied to subnational government heterogeneity in the context of climate transitions.
+The SPO+ paper (Elmachtoub & Grigas, 2022) demonstrates the method on stylised problems. The 2024 JAIR survey by Mandi et al. identifies three open problems that this PhD addresses directly:
 
-SFC models are built around the stock-flow consistency condition: every financial flow has a counterpart in another sector, and flows accumulate into stocks. For a municipal government sector, this produces the identity:
+1. **Conditions for SPO+ to win.** SPO+ outperforms standard training when decision-sensitive hours have learnable structure — a recurring pattern the model can exploit. When every hour is equally sensitive (uniform sensitivity), SPO+ and standard training converge. The Oct-Nov 2024 ENTSO-E test set in Case 1 of this demo illustrates this: 92.7% of hours flip the battery decision under a 10 EUR/MWh perturbation. With near-uniform sensitivity, SPO+ earns similar revenue to standard XGBoost. Measuring where and when the conditions for SPO+ gains are met — across market regimes, seasonal patterns, and problem types — is the primary contribution of this thesis.
 
-> **ΔL(t) = G(t) + I(t) − T(t)**
+2. **Time-coupled constraints.** The original SPO+ formulation treats each prediction independently. Battery dispatch is a sequential problem: the state of charge at hour *t* constrains what is possible at *t+1*. Hospital shift handovers create similar cross-period dependencies. Extending SPO+ to handle these time-coupled structures is a theoretical contribution not yet in the literature.
 
-where ΔL is the change in long-term debt, G is current expenditure, I is capital investment, and T is total tax and grant revenue. A green transition shock that depresses T while raising G and I does not simply reduce the budget balance — it accumulates in the debt stock, reshaping the balance sheet and constraining future fiscal capacity in ways that conventional flow-based analysis misses.
-
-This insight has been developed in closed-economy SFC models with ecological constraints (Dafermos, Nikolaidi & Galanis, 2017) and in national-level analyses of transition policy (Naqvi & Stockhammer, 2018). What is absent from this literature is any calibration to subnational heterogeneity — the systematic variation in transition exposure, fiscal starting conditions, and institutional capacity that determines whether the green transition is a manageable adjustment or a destabilising shock for specific localities.
-
-### 1.3 The Danish Case as Ideal Research Setting
-
-Denmark is the ideal laboratory for this analysis for four reasons:
-
-1. **Data quality.** Statistics Denmark (DST) provides granular, time-consistent municipal finance, employment by NACE sector, demographic, and income data through open APIs, enabling calibration of SFC models at the municipal level.
-
-2. **Transition ambition and timeline.** Denmark's 2030 target (70% emission reduction from 1990 levels) and the Heat Planning Act (2023) impose concrete, near-term transition requirements on municipalities, making the fiscal implications both measurable and policy-relevant.
-
-3. **Institutional heterogeneity.** Denmark's 98 municipalities exhibit striking variation in fossil-sector employment share (from under 20% to over 45%), renewable energy intensity (from near-zero to 29 MW per 1,000 residents), and fiscal balance sheet health — the very heterogeneity the thesis seeks to explain.
-
-4. **Policy relevance.** The Danish equalization system, transition grant mechanisms, and green investment co-financing schemes are all live policy levers. The thesis directly informs the design of these instruments.
+3. **Non-differentiable optimizers.** SPO+ works cleanly when the optimizer is a linear program, because the LP dual provides the decision gradient. Vehicle routing at realistic scale requires heuristics (nearest-neighbour, 2-opt), which have no clean gradient. Developing surrogate gradient methods that extend SPO+ to heuristic solvers is the most novel and technically challenging part of this research.
 
 ---
 
 ## 2. Research Questions
 
-1. **Heterogeneity:** How does climate exposure — combining physical risk and transition risk — interact with municipal fiscal starting conditions to produce differentiated vulnerability profiles across Danish municipalities, and what typology best captures this heterogeneity?
+**RQ1 — Conditions:** Under what market conditions, data structures, and problem types does decision-focused training (SPO+) produce meaningful gains over standard predict-then-optimize? What is the relationship between the distribution of decision sensitivity across time and the realized gain from decision-focused training?
 
-2. **SFC dynamics:** When calibrated to municipal-level sector accounts, what do SFC models reveal about the debt accumulation trajectories and fiscal resilience of high- versus low-exposure municipalities under alternative green transition pathways?
+**RQ2 — Time coupling:** How can the SPO+ gradient be extended to operational problems with sequential state constraints (battery state of charge, shift continuity, vehicle capacity carry-over)?
 
-3. **Policy design:** Which combinations of green transition policy instruments — transition grants, green investment subsidies, tax-base stabilisation mechanisms — minimise fiscal stress in high-exposure municipalities while preserving macroeconomic coherence at the national level?
+**RQ3 — Heuristic optimizers:** What surrogate gradient methods enable decision-focused training when the downstream optimizer is a heuristic that cannot be differentiated directly?
 
----
-
-## 3. Proposed Methodology
-
-The thesis follows a three-paper structure, progressing from empirical characterisation through theoretical modelling to policy analysis.
-
-### Paper 1 — Climate-Fiscal Exposure Typology of Danish Municipalities
-
-**Question:** What is the structure of climate-fiscal vulnerability heterogeneity across Danish municipalities?
-
-**Data:** Statistics Denmark API (DST StatBank) — NACE employment by municipality (ERHV series), municipal financial accounts (REGNSKAB series), municipal income (INDKP series), demographic indicators. Energistyrelsen open data — renewable energy capacity by municipality. DMI climate observations — temperature trends, precipitation, extreme weather by municipality.
-
-**Method:** I construct a **Transition Vulnerability Index (TVI)** combining:
-- *Transition exposure:* fossil-linked NACE sector employment share (agriculture, conventional manufacturing, transport, fuel distribution)
-- *Physical exposure:* climate baseline indicators (summer days, precipitation intensity, heating degree days)
-- *Fiscal buffer:* long-term debt per capita, operating expenditure ratio, equalization grant dependency
-- *Renewable readiness:* installed renewable capacity per 1,000 residents, green sector employment share
-
-K-means clustering (k=4–6, selected by elbow and silhouette) identifies distinct municipality typologies: high-transition/high-physical, high-transition/low-fiscal-buffer, low-exposure/high-renewable, and mixed profiles. SHAP decomposition of the clustering model provides interpretable, indicator-level attribution for each typology.
-
-Panel regressions (2013–2023) test whether TVI predicts fiscal balance deterioration, debt accumulation, and service expenditure pressure, controlling for population, income level, region fixed effects, and year fixed effects.
-
-**Contribution:** First systematic empirical mapping of climate-fiscal exposure heterogeneity at Danish municipal level; the TVI provides a replicable diagnostic tool for green transition planning.
-
-### Paper 2 — SFC Calibration and Fiscal Resilience under Transition Scenarios
-
-**Question:** How do SFC dynamics differ between high- and low-exposure municipalities under alternative green transition pathways?
-
-**Theoretical framework:** I develop a simplified two-sector SFC model for the municipal government sector, adapted from the government sector of Godley & Lavoie's (2007) canonical framework. The model tracks:
-
-*Flows:* Tax revenue (T = τ · Y · e, where τ is the local tax rate, Y is average income, and e is the employment rate); operating expenditure (G); capital investment (I); central government transfers (T_g); net debt issuance (ΔL = G + I − T − T_g).
-
-*Stocks:* Long-term debt (L); public capital stock (K_p); household financial wealth (W_h).
-
-*Transition shock specification:* Green transition shocks are modelled as parametric perturbations to the tax base (through fossil-sector employment contraction) and to expenditure (through green infrastructure investment requirements), calibrated to observed NACE employment shares and municipality-level capital expenditure patterns.
-
-I calibrate the model to two archetype municipalities drawn from Paper 1:
-- **High exposure:** Municipality 0165 (Albertslund) — 42.7% fossil-linked employment, 34,159 DKK/capita debt, 0.2 MW/1,000 renewable intensity
-- **Low exposure:** Municipality 0665 (Lemvig) — 31.2% fossil-linked employment, 15,043 DKK/capita debt, 28.9 MW/1,000 renewable intensity
-
-Three transition scenarios are simulated over 2024–2034:
-1. *Business-as-usual (BAU):* Current fiscal trajectory continues; small calibrated surplus assumption consistent with Danish local government balanced-budget requirement
-2. *Accelerated transition:* Fossil employment contracts 25% over 2024–2026 (Phase 1 shock); green employment expands 2027–2030 (Phase 2); new steady state 2031–2034 (Phase 3)
-3. *Policy-supported transition:* As scenario 2, but with transition grants (3,000 DKK/capita/year in Phase 1), green infrastructure co-financing, and tax-base stabilisation transfers
-
-The model produces projected debt/capita and fiscal balance/capita trajectories under each scenario, comparing high- and low-exposure archetypes. Sensitivity analysis varies the fossil employment shock magnitude (15–35%), transition grant generosity, and the wage premium of green-sector employment.
-
-**Contribution:** First calibration of a municipality-level SFC model to Danish data; demonstrates how stock-flow consistency reveals fiscal vulnerabilities that flow-based analysis conceals; provides a replicable simulation framework for transition policy assessment.
-
-### Paper 3 — Policy Instrument Design for Fiscally Resilient Green Transition
-
-**Question:** What policy instruments minimise fiscal stress in high-exposure municipalities while preserving national macroeconomic coherence?
-
-**Framework:** Building on Paper 2's simulation infrastructure, this paper develops a multi-municipality SFC model that incorporates inter-governmental transfers explicitly. The model includes: the national government sector (setting transition grants, carbon revenue recycling, block grant formula); high-exposure municipalities (HEM); low-exposure municipalities (LEM); and a representative household sector.
-
-I evaluate four families of instruments:
-
-1. **Transition grants:** Direct per-capita transfers to high-exposure municipalities in Phase 1, calibrated to offset estimated tax-base contraction
-2. **Green investment co-financing:** Central government matching of municipal green infrastructure capital expenditure, modelled as a reduction in ΔL for participating municipalities
-3. **Tax-base stabilisation:** Graduated adjustments to the equalization formula that temporarily protect municipalities experiencing rapid fossil-sector employment decline
-4. **Carbon revenue recycling:** Redistribution of carbon tax/ETS revenue to municipalities proportional to exposure, creating a green transition dividend for high-exposure areas
-
-Evaluation criteria include: (a) fiscal balance trajectory for high-exposure municipalities; (b) debt stabilisation path; (c) aggregate national fiscal balance; (d) convergence of fiscal outcomes between high- and low-exposure municipalities over the simulation horizon.
-
-The paper connects to the Post-Keynesian fiscal policy literature (Lavoie, 2014; Hein, 2014) on the design of functional finance in a heterogeneous institutional environment, and to the green transition fiscal policy literature (Pollin, 2015; Storm, 2017) on the macroeconomic conditions for a just transition.
-
-**Contribution:** Develops an operational SFC-based policy evaluation framework for green transition fiscal instruments at the subnational level; directly relevant to Danish Ministry of Finance and Climate Council policy discussions.
+**RQ4 — Explainability:** Can decision-level attribution — identifying which input features caused which operational decisions to flip — be developed as a practical transparency tool for managers?
 
 ---
 
-## 4. Research Infrastructure: AreaStat DK
+## 3. Methodology
 
-A functional research prototype has been developed to demonstrate the technical and empirical foundations of this thesis: **AreaStat DK** (https://rishikeshgovind.github.io/areastat-de/).
+### 3.1 Common pipeline across all three cases
 
-The platform implements:
+All three case studies use the same five-stage architecture:
 
-| Component | Implementation |
-|---|---|
-| **DST data pipeline** | R scripts pulling 15+ DST StatBank series via open API; municipal-level annual panels |
-| **Climate indicators** | Energistyrelsen renewable capacity; DMI temperature, precipitation, heating degree days |
-| **Industry sector domains** | NACE employment shares by municipality (fossil vs green classification) |
-| **SFCAccounts domain** | Derived per-capita government sector accounts (T, G, I, L, ΔL) for all 98 municipalities |
-| **Transition Vulnerability Index** | Composite score: fossil share × relative debt burden, calibrated to Danish average |
-| **Two-sector SFC scenario** | Prototype scenario simulation for Albertslund (high) vs Lemvig (low), 2024–2034 |
-| **Transaction Flow Matrix** | Per-capita TFM and Balance Sheet Matrix for archetype municipalities |
-| **Interactive visualisation** | Chart.js scenario projection charts with phase annotations; ML export for cluster analysis |
+1. **Data collection and feature engineering.** Real or calibrated operational data from Dutch sources (ENTSO-E, LCPS, RIVM, NZa, CBS, OpenStreetMap).
+2. **Forecast model training.** XGBoost trained first with MSE loss (baseline) and then with the SPO+ decision-regret loss (intervention).
+3. **Optimizer.** Linear program (Cases 1 and 2) or routing heuristic (Case 3). The structure of this stage is what differentiates the research problems.
+4. **Decision.** Charge/discharge schedule, nurse staffing level, or delivery routes — evaluated at realised costs, not at prediction error.
+5. **Regret measurement.** Revenue gap vs oracle (Case 1), staffing cost overage (Case 2), extra kilometres vs best-known route (Case 3).
 
-This infrastructure directly underpins the empirical work in Papers 1 and 2, and provides a stakeholder engagement tool for Paper 3's policy analysis.
+### 3.2 Case 1 — Battery dispatch (LP, differentiable)
 
----
+A 1 MW / 2 MWh battery arbitrages the Dutch day-ahead electricity market. XGBoost trained on 34,320 hourly observations from the ENTSO-E Transparency Platform (January 2021 to November 2024) produces the price forecast. The LP dispatch is formulated with hourly charge and discharge decisions subject to state-of-charge dynamics and power limits.
 
-## 5. Data Sources
+The prototype implements three training variants alongside the MSE baseline:
+- **Regret-weighted XGBoost:** sample weights proportional to daily dispatch regret under the current model
+- **SPO+ gradient correction:** iterative correction using the LP dual — the decision gradient at hour *t* is the price error multiplied by the change in the net dispatch decision (discharge minus charge) between the oracle and naive LP
 
-| Data | Source | Coverage |
-|---|---|---|
-| Municipal fiscal accounts | Statistics Denmark StatBank (REGNSKAB series) | 98 municipalities, 2013–2023 |
-| Municipal income and employment | DST StatBank (INDKP, ERHV series) | 98 municipalities, annual |
-| NACE sector employment by municipality | DST StatBank (RAS series) | 98 municipalities, 2013–2022 |
-| Renewable energy capacity | Energistyrelsen (Stamdataregisteret) | Municipality-level, annual |
-| Climate observations | DMI open data (temperature, precipitation, extreme weather) | Station-level, aggregated to municipality |
-| Green transition plans | Municipal climate action plans (Klimapartnerskaber) | Where available |
-| Equalization and block grants | DST StatBank (KOMMUNALUDLIGN) | 98 municipalities, annual |
-| National accounts sectoral data | Statistics Denmark (ADAM model data) | National, for SFC calibration |
+The 60-day test period (October to November 2024) shows that all three variants earn similar revenue (SPO+ 19.8% of oracle, standard XGBoost 21.0%, regret-weighted 22.6%). Decision sensitivity analysis reveals that 92.7% of test hours would flip the battery decision under a ±10 EUR/MWh perturbation — near-uniform sensitivity across hours. This explains the similar performance: there is no specific cluster of hours for SPO+ to target. The research question becomes: under what market conditions does structured sensitivity emerge, and how much does SPO+ gain when it does?
 
----
+**Uncertainty quantification.** The prototype adds 80% conformal prediction intervals using Split Conformal Quantile Regression (Romano, Sesia & Candès, 2019), achieving 85.5% empirical coverage on the test set (above the 80% guarantee, as expected). A robust dispatch strategy using lower-bound prices as LP inputs earns €13,164 vs €13,440 for the standard strategy — a small revenue cost in exchange for fewer positions taken on uncertain forecasts.
 
-## 6. Theoretical Positioning and Literature Engagement
+### 3.3 Case 2 — Hospital staffing (LP with asymmetric penalty)
 
-This thesis is explicitly situated within the Post-Keynesian and ecological macroeconomics tradition, and engages with the following strands of literature:
+A teaching hospital calibrated on Maastricht UMC+ data forecasts next-day ICU admissions and solves a staffing LP where being one nurse short costs approximately 4× more than having one nurse idle. The asymmetric penalty structure creates a directional bias: SPO+ should learn to over-forecast admissions rather than to be accurate in expectation.
 
-**Stock-Flow Consistent Macroeconomics.** Godley & Lavoie (2007) establish the canonical SFC framework. Dos Santos & Zezza (2008) and Caverzasi & Godin (2015) provide methodological extensions. Dafermos et al. (2017, 2019) develop SFC models with ecological constraints, closest to the framework proposed here. This thesis extends this literature to the subnational government sector and to empirical calibration at the municipal level — a methodological gap the existing literature has not addressed.
+This case tests the RQ2 extension: shift continuity (handover constraints between morning and evening shifts) creates cross-period dependencies similar to SOC dynamics in the battery case.
 
-**Minsky and Financial Fragility.** Minsky's (1986) financial instability hypothesis provides the conceptual anchor for understanding how fiscal flows deteriorate into balance-sheet fragility. Vercelli (2009) and Palley (2010) develop the Minskyan analysis of non-financial sectors. I apply the Ponzi/speculative/hedge taxonomy to municipal fiscal positions, arguing that high-exposure municipalities face a risk of transition-induced deterioration from hedge to speculative fiscal posture.
+Data sources: LCPS national ICU bed registry, RIVM admission rates, NZa production volumes, CBS demographic statistics.
 
-**Green Transition and Post-Keynesian Macroeconomics.** Storm (2017, 2020), Pettifor (2019), and Nersisyan & Wray (2019) develop Post-Keynesian perspectives on the green transition and public finance. The distributional and spatial dimensions of the transition are emphasised in Gough (2017) and Räthzel & Uzzell (2011). This thesis contributes a rigorous subnational SFC empirical framework to this debate.
+### 3.4 Case 3 — Logistics routing (heuristic optimizer, non-differentiable)
 
-**Ecological SFC Models.** Dafermos, Nikolaidi & Galanis (2017) is the foundational reference; Caiani et al. (2016) and Montes-Rojas (2020) provide additional methodological resources. The present thesis adapts these frameworks to government sector dynamics in a small open economy.
+A Dutch parcel carrier forecasts daily demand by postcode zone and plans routes using a Capacitated VRP heuristic. At 12 zones, the routing problem is solved with nearest-neighbour and 2-opt improvement rather than exact methods.
 
-**Danish Municipal Finance.** VIVE reports on kommunal økonomi, KL (Local Government Denmark) publications on climate finance, and the Danish Ministry of Finance's municipal finance frameworks provide the institutional grounding.
+This case addresses RQ3 directly: the routing heuristic has no analytic gradient, so the SPO+ training signal cannot be computed directly. The research will develop and evaluate two families of surrogate gradient methods:
+- **Perturbation-based:** evaluate the heuristic at perturbed cost vectors and estimate the gradient numerically
+- **Smoothed LP relaxation:** relax the integer routing constraints into a continuous LP, compute the SPO+ gradient there, and use it as a proxy
+
+Data sources: CBS Kerncijfers wijken en buurten (postcode-level demographics), OpenStreetMap Netherlands road network, RDW fleet data.
 
 ---
 
-## 7. Expected Contributions
+## 4. Key Prototype Results
 
-**Theoretical:** First application of calibrated SFC modelling to subnational government heterogeneity in the context of a green energy transition. Extends the ecological SFC literature (Dafermos et al., 2017) from closed-economy representative agents to an explicitly heterogeneous, data-calibrated multi-municipality framework.
-
-**Empirical:** First systematic Transition Vulnerability Index for all 98 Danish municipalities, combining fiscal, energy, and climate indicators. The resulting panel dataset will be made publicly available via AreaStat DK.
-
-**Policy:** Operational SFC-based evaluation framework for green transition fiscal instruments. Directly applicable to the design of Danish transition grants, climate equalization adjustments, and green infrastructure co-financing under the Heat Planning Act.
-
-**Methodological:** Demonstrates a replicable pipeline — from open government data APIs to SFC-calibrated sector accounts — applicable to other small open economies undertaking green transitions (Sweden, Netherlands, Finland).
-
----
-
-## 8. Candidate Background
-
-I hold an MSc in Risk and Investment Management, providing a foundation in quantitative finance, credit risk modelling, and portfolio theory. Prior research experience includes work with official administrative microdata at the Northern Ireland Statistics and Research Agency (NISRA).
-
-For this proposal, I have already developed a complete empirical research infrastructure. The AreaStat DK platform implements all four phases of the research agenda:
-
-- **Phase 1 (Data):** Full DST API pipeline; GreenEnergy, ClimateBaseline, GreenTransition, and IndustrySectors domains constructed from Energistyrelsen and DST sources for all 98 municipalities
-- **Phase 2 (Analytics):** K-means clustering with climate variables; Transition Vulnerability Index computation; sector-composition-aware unemployment model reframing
-- **Phase 3 (SFC framing):** SFCAccounts domain (per-capita T, G, I, L, ΔL, capital stock, net financial worth) for all 98 municipalities; Transaction Flow Matrix and Balance Sheet Matrix for archetype municipalities; two-sector SFC prototype scenario for Albertslund (high exposure) vs Lemvig (low exposure), 2024–2034
-- **Phase 4 (This proposal):** Theoretical framing within Post-Keynesian SFC literature; connection to MaMTEP's research agenda
-
-This infrastructure demonstrates both technical feasibility and conceptual alignment with the proposed PhD research. The platform is live and publicly accessible.
+| | Case 1 (Energy) | Case 2 (Hospital) | Case 3 (Logistics) |
+|---|---|---|---|
+| **Optimizer** | LP (linear) | LP (asymmetric penalty) | VRP heuristic |
+| **SPO+ status** | Implemented | Implemented | Prototype |
+| **Revenue / cost gap** | Oracle €12,567, naive €4,057 (68% gap) | Demonstrated | 39% route distance gap (NN vs benchmark) |
+| **Key finding** | Uniform sensitivity limits SPO+ gain in autumn 2024 market | Asymmetric penalty changes the direction of optimal errors | Heuristic non-differentiability is the core open problem |
+| **Open research** | When does structured sensitivity emerge? | Time-coupled LP extension | Surrogate gradient methods |
 
 ---
 
-## 9. Fit with Aalborg MaMTEP
+## 5. Literature
 
-The MaMTEP programme's distinctive contribution to economic thought — rigorous engagement with heterodox macroeconomics, institutional economics, and the critique of mainstream orthodoxy — aligns directly with this thesis's theoretical foundations. Specifically:
+**Decision-focused learning (core)**
+- Elmachtoub & Grigas (2022). Smart Predict-Then-Optimize. *Management Science* 68(1). — The foundational SPO+ paper; the prototype implements this directly.
+- Mandi, Kotary, Berden et al. (2024). Decision-Focused Learning: Foundations, State of the Art, Benchmark and Future Opportunities. *JAIR* 80. — Definitive 2024 survey; identifies the three open problems this PhD addresses.
+- Sadana, Mathieu, Jackobson & Bengio (2024). A Survey of Predict-Then-Optimize Methods. *ACM Computing Surveys*. — Broader survey for literature review framing.
+- Wilder, Dilkina & Tambe (2019). Melding the Data-Decisions Pipeline: Decision-Focused Learning for Combinatorial Optimization. *AAAI*. — Extends SPO+ to combinatorial (integer) problems, directly relevant to Case 3.
 
-- The SFC framework is a central methodological tool in Post-Keynesian macroeconomics and is actively researched and taught at Aalborg
-- The focus on green transition policy design connects to MaMTEP's engagement with industrial and ecological policy
-- The emphasis on heterogeneity, institutions, and distributional dynamics is a defining feature of both the programme and this thesis
-- The Danish empirical setting allows direct engagement with ongoing policy debates in which Aalborg researchers are active participants
+**Uncertainty quantification**
+- Romano, Sesia & Candès (2019). Conformal Quantile Regression. *NeurIPS*. — The CQR method used in Case 1 for prediction intervals with guaranteed coverage.
+- Dumas, Wehenkel, Lanaspeze et al. (2022). A deep learning-based approach for quantile regression in energy systems. *Energy*. — Probabilistic forecasting for battery dispatch, extends the deterministic XGBoost baseline.
 
-I am particularly interested in working with faculty whose research addresses Post-Keynesian macroeconomics, ecological economics, and/or climate transition policy within a heterodox framework.
+**Energy storage and electricity markets**
+- Macdonald, Clack, McDonald et al. (2023). Learning to optimize under uncertainty: Energy storage dispatch. *IEEE Transactions on Power Systems*. — Near-identical problem setup; useful for benchmarking.
+
+**Explainability in operations**
+- Lundberg & Lee (2017). A unified approach to interpreting model predictions (SHAP). *NeurIPS*. — The prototype computes SHAP values; the research extends attribution to decision space rather than prediction space.
 
 ---
 
-## 10. Indicative Timeline
+## 6. Fit with Maastricht SBE
+
+The Department of Quantitative Economics brings together econometrics, operations research, machine learning, and game theory in one department — the exact combination this research requires. The three industry partners named in the PhD call (university hospital, last-mile logistics providers, energy companies) are all covered in this prototype.
+
+The research contributes to each methodological strand of the department:
+- **Operations research:** new LP-compatible and heuristic-compatible training algorithms
+- **Econometrics / machine learning:** decision-focused learning, conformal prediction, interpretable models
+- **Applied work:** real Dutch data from ENTSO-E, LCPS, RIVM, CBS; real-world partners for empirical validation
+
+The research is positioned within Project 1 of the current PhD call. The prototype demonstrates technical feasibility and a concrete understanding of where the open research problems lie.
+
+---
+
+## 7. Candidate Background
+
+MSc in Risk and Investment Management, with foundations in quantitative finance, credit risk, and portfolio optimisation. Prior research experience includes work with administrative microdata at NISRA (Northern Ireland Statistics and Research Agency).
+
+For this application I have built a complete working prototype covering all three named partner domains. The prototype includes:
+- A live ENTSO-E data pipeline (34,320 hourly observations, Jan 2021 – Nov 2024)
+- A functioning SPO+ gradient implementation and comparison against MSE and regret-weighted baselines
+- Conformal quantile regression with verified 85.5% empirical coverage
+- Decision sensitivity analysis (per-hour flip rates and revenue impact)
+- SHAP feature attribution
+- Hospital and logistics case studies with calibrated data
+
+The prototype is deployed at [github.io link] and the full source is available in this repository.
+
+---
+
+## 8. Timeline
 
 | Period | Milestones |
 |---|---|
-| Year 1, Q1–Q2 | Literature review; extend AreaStat DK data pipeline; finalise TVI methodology |
-| Year 1, Q3–Q4 | Paper 1 empirical analysis (clustering, TVI panel regressions); draft Paper 1 |
-| Year 2, Q1–Q2 | Paper 1 submission; SFC model development and calibration; Paper 2 draft |
-| Year 2, Q3–Q4 | Paper 2 submission; multi-municipality SFC extension; policy instrument analysis |
-| Year 3, Q1–Q2 | Paper 3 (policy design) analysis and draft; policy stakeholder engagement |
-| Year 3, Q3–Q4 | Paper 3 submission; thesis compilation; defence preparation |
+| Year 1, Q1-Q2 | Literature review; formalise SPO+ extension to time-coupled LPs; refine Case 1 theory |
+| Year 1, Q3-Q4 | Empirical study of when SPO+ wins (conditions on sensitivity distribution); Paper 1 draft |
+| Year 2, Q1-Q2 | Paper 1 submission; hospital Case 2 full empirical study with Maastricht UMC+ data |
+| Year 2, Q3-Q4 | Paper 2 draft and submission; begin Case 3 surrogate gradient development |
+| Year 3, Q1-Q2 | Case 3 experiments (perturbation-based and relaxation-based gradients); Paper 3 draft |
+| Year 3, Q3-Q4 | Paper 3 submission; thesis compilation; defence preparation |
 
 ---
 
-## 11. References
+## 9. References
 
-- Caiani, A., Godin, A., Caverzasi, E., Gallegati, M., Kinsella, S., & Stiglitz, J. E. (2016). Agent based-stock flow consistent macroeconomics: Towards a benchmark model. *Journal of Economic Dynamics and Control*, 69, 375–408.
-- Caverzasi, E., & Godin, A. (2015). Post-Keynesian stock-flow-consistent modelling: A survey. *Cambridge Journal of Economics*, 39(1), 157–187.
-- Dafermos, Y., Nikolaidi, M., & Galanis, G. (2017). A stock-flow-fund ecological macroeconomic model. *Ecological Economics*, 131, 191–207.
-- Dafermos, Y., Nikolaidi, M., & Galanis, G. (2019). Climate change, financial stability and monetary policy. *Ecological Economics*, 152, 219–234.
-- Danish Climate Council (2023). *Status on Denmark's Climate Targets and Green Transition.* Copenhagen.
-- Dos Santos, C. H., & Zezza, G. (2008). A simplified, 'benchmark', stock-flow consistent Post-Keynesian growth model. *Metroeconomica*, 59(3), 441–478.
-- Godley, W., & Lavoie, M. (2007). *Monetary Economics: An Integrated Approach to Credit, Money, Income, Production and Wealth.* Palgrave Macmillan.
-- Gough, I. (2017). *Heat, Greed and Human Need: Climate Change, Capitalism and Sustainable Wellbeing.* Edward Elgar.
-- Hein, E. (2014). *Distribution and Growth After Keynes: A Post-Keynesian Guide.* Edward Elgar.
-- KL — Local Government Denmark (2023). *Kommunernes Klimahandlingsplaner: Status og perspektiver.*
-- Lavoie, M. (2014). *Post-Keynesian Economics: New Foundations.* Edward Elgar.
-- Minsky, H. P. (1986). *Stabilizing an Unstable Economy.* Yale University Press.
-- Naqvi, A., & Stockhammer, E. (2018). Directed technical change in a post-Keynesian ecological macromodel. *Ecological Economics*, 154, 168–188.
-- Nersisyan, Y., & Wray, L. R. (2019). How to pay for the Green New Deal. *Levy Economics Institute Working Paper*, No. 931.
-- Palley, T. I. (2010). The limits of Minsky's financial instability hypothesis as an explanation of the crisis. *Monthly Review*, 61(11).
-- Pettifor, A. (2019). *The Case for the Green New Deal.* Verso.
-- Pollin, R. (2015). *Greening the Global Economy.* MIT Press.
-- Storm, S. (2017). The new normal: Demand, secular stagnation, and the vanishing middle class. *International Journal of Political Economy*, 46(4), 169–210.
-- Storm, S. (2020). Cordon of conformity: Why IPCC reports underestimate the risks of climate change. *Social Europe.* Working paper.
-- Vercelli, A. (2009). A perspective on Minsky moments: The core of the financial instability hypothesis in light of the subprime crisis. *Levy Economics Institute Working Paper*, No. 579.
-- VIVE — The Danish Centre for Social Science Research (2022). *Kommunernes økonomi: Strukturelle udfordringer og grøn omstilling.*
+- Dumas, J., Wehenkel, A., Lanaspeze, D., Cornélusse, B., & Sutera, A. (2022). A deep learning-based approach for quantile regression in energy systems: Application to short-term load forecasting. *Energy*, 238, 121929.
+- Elmachtoub, A. N., & Grigas, P. (2022). Smart predict-then-optimize. *Management Science*, 68(1), 9–26.
+- Lundberg, S. M., & Lee, S. I. (2017). A unified approach to interpreting model predictions. *Advances in Neural Information Processing Systems*, 30.
+- Mandi, J., Kotary, J., Berden, S., Mulamba, M., Bucarey, V., Guns, T., & Passerini, A. (2024). Decision-focused learning: Foundations, state of the art, benchmark and future opportunities. *Journal of Artificial Intelligence Research*, 80, 1065–1148.
+- Romano, Y., Sesia, M., & Candès, E. (2019). Conformalized quantile regression. *Advances in Neural Information Processing Systems*, 32.
+- Sadana, U., Mathieu, A., Jackobson, E., & Bengio, Y. (2024). A survey of predict-then-optimize methods for stochastic combinatorial optimization. *ACM Computing Surveys*, 57(1).
+- Wilder, B., Dilkina, B., & Tambe, M. (2019). Melding the data-decisions pipeline: Decision-focused learning for combinatorial optimization. *Proceedings of the AAAI Conference on Artificial Intelligence*, 33(1), 1658–1665.
