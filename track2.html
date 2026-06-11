@@ -69,32 +69,73 @@
 <section id="sim">
   <div class="eyebrow fade">Live Simulation</div>
   <h2 class="fade">Watch the Ward</h2>
-  <p class="lead fade">Each dot is one ICU patient arriving through the day. The dashed line is how many nurses were scheduled the night before, based on what the model predicted. Press Play to see what happens when more patients show up than expected.</p>
+  <p class="lead fade">Nursing shifts are locked in by 6pm the night before. The model makes its forecast. The hospital commits. Step through the day to see what it costs when the morning surge is bigger than the model expected.</p>
   <div class="fade">
-    <div id="sim-banner">
-      <span id="sim-action" style="color:var(--muted)">○ Ready</span>
-      <span id="sim-narrative">Press Play to simulate a day of ICU admissions against the staffing plan</span>
+    <div class="ward-story">
+
+      <!-- LEFT: locked-in decision from last night -->
+      <div class="ward-panel">
+        <div class="ward-ey">YESTERDAY · 18:00</div>
+        <div class="ward-ph">Decision locked</div>
+        <div class="ward-fc-block">
+          <div class="ward-fc-n">14</div>
+          <div class="ward-fc-l">patients predicted for morning shift</div>
+        </div>
+        <div class="ward-fc-arrow">↓ schedules</div>
+        <div class="ward-fc-block">
+          <div class="ward-fc-n">14</div>
+          <div class="ward-fc-l">day nurses booked</div>
+        </div>
+        <div class="ward-locked">Cannot adjust until tomorrow</div>
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+          <div class="ward-ey" style="margin-bottom:4px">ACTUAL RIGHT NOW</div>
+          <div id="ws-actual" style="font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:var(--text);line-height:1">—</div>
+          <div id="ws-actual-lbl" style="font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.4">patients</div>
+        </div>
+      </div>
+
+      <!-- CENTER: ward bed grid -->
+      <div class="ward-panel ward-panel-main">
+        <div class="ward-ph-row">
+          <span class="ward-ey">ICU WARD &middot; <span id="sim-hour-disp">00:00</span></span>
+          <span id="sim-action" style="color:var(--muted);font-size:13px;font-weight:600">○ Ready</span>
+        </div>
+        <div id="sim-bed-grid"></div>
+        <div class="ward-legend">
+          <span class="wbl"><span class="wbl-d" style="background:#0C7A91"></span>Patient (covered)</span>
+          <span class="wbl"><span class="wbl-d" style="background:#C4B9AD"></span>Idle nurse</span>
+          <span class="wbl"><span class="wbl-d" style="background:#991B1B"></span>Patient (no cover)</span>
+        </div>
+        <p id="sim-narrative" class="ward-narr">Press Play to step through the day</p>
+      </div>
+
+      <!-- RIGHT: running cost breakdown -->
+      <div class="ward-panel">
+        <div class="ward-ey">COST TODAY</div>
+        <div class="ward-cost-item">
+          <div class="ward-cost-lbl">Idle nurses</div>
+          <div class="ward-cost-rate">€45 / nurse / hr</div>
+          <div class="ward-cost-val" id="sim-idle-cost">€0</div>
+        </div>
+        <div class="ward-cost-sep"></div>
+        <div class="ward-cost-item">
+          <div class="ward-cost-lbl">Emergency cover</div>
+          <div class="ward-cost-rate" style="color:#991B1B">€180 / patient / hr</div>
+          <div class="ward-cost-val" style="color:#991B1B" id="sim-short-cost">€0</div>
+        </div>
+        <div class="ward-cost-sep"></div>
+        <div class="ward-cost-lbl">Total penalty</div>
+        <div id="sim-penalty" class="ward-penalty-total">€0</div>
+        <div class="occ-track" style="margin-top:14px"><div id="sim-occ-bar" style="width:0%"></div></div>
+        <div style="font-size:10px;color:var(--subtle);margin-top:4px" id="sim-cap">— nurses on duty</div>
+        <div style="font-size:10px;color:var(--subtle)" id="sim-occ">— patients in ward</div>
+      </div>
     </div>
+
     <div id="sim-controls">
       <button id="sim-play-btn">▶ Play</button>
       <input type="range" id="sim-slider" min="0" max="23" value="0" step="1">
-      <span class="sim-time" id="sim-hour-disp">00:00</span>
-    </div>
-    <div class="chart-wrap"><div id="sim-svg-wrap"></div></div>
-    <div class="sim-stat-row">
-      <div class="sim-stat">
-        <div class="sv" id="sim-occ">—</div>
-        <div class="sl">Ward occupancy (patients)</div>
-      </div>
-      <div class="sim-stat" style="min-width:180px">
-        <div class="occ-track"><div id="sim-occ-bar" style="width:60%"></div></div>
-        <div class="sv" id="sim-cap" style="font-size:16px;margin-top:4px">14 beds staffed</div>
-        <div class="sl">LP staffing decision</div>
-      </div>
-      <div class="sim-stat">
-        <div class="sv" id="sim-penalty" style="color:var(--red)">€0</div>
-        <div class="sl">Penalty cost today</div>
-      </div>
+      <span class="sim-time" id="sim-time-label">00:00</span>
     </div>
   </div>
 </section>
@@ -297,10 +338,9 @@ function moveTip(ev){const{clientX:x,clientY:y}=ev;const tw=tip.offsetWidth,th=t
 function hideTip(){tip.style.opacity=0;}
 
 // ══════════════════════════════════════════════════════════════════════════════
-// SIMULATION — two-zone patient flow
+// SIMULATION — bed grid story
 // ══════════════════════════════════════════════════════════════════════════════
 (function initSim(){
-  // 24h sim data: ward occupancy and staffed capacity per hour
   const SIM = [
     {h:0,w:8,s:10},{h:1,w:7,s:10},{h:2,w:6,s:10},{h:3,w:6,s:10},
     {h:4,w:7,s:10},{h:5,w:8,s:10},{h:6,w:9,s:10},{h:7,w:11,s:14},
@@ -309,159 +349,123 @@ function hideTip(){tip.style.opacity=0;}
     {h:16,w:14,s:14},{h:17,w:13,s:14},{h:18,w:16,s:16},{h:19,w:15,s:16},
     {h:20,w:13,s:16},{h:21,w:11,s:14},{h:22,w:9,s:12},{h:23,w:8,s:10}
   ];
-  const N_P = 20;  // patient dots (1 = 1 patient, 20 = full ward)
-  const N_BG = 10; // ambient queue dots
 
-  const W = Math.max(520, Math.min($("sim-svg-wrap").clientWidth||920, 920));
-  const H = 300, PAD = 14, iW = W-PAD*2;
-  const QW = iW*0.38, BW = iW-QW;
-  const QCX = QW/2, WCX = QW+BW/2, CY = H/2;
-  const R = 7;
+  const N=20, COLS=5, ROWS=4, GAP=7;
+  const el=$("sim-bed-grid");
+  const W=Math.min(el.clientWidth||400,400);
+  const BW=Math.floor((W-GAP*(COLS-1))/COLS);
+  const BH=Math.round(BW*0.78);
+  const H=ROWS*BH+(ROWS-1)*GAP+2;
 
-  const initWard = SIM[0].w;
-  const dots = [];
-  for (let i=0;i<N_P;i++) {
-    const inW = i<initWard;
-    dots.push({id:i, kind:"patient", zone:inW?"ward":"queue", overflow:false,
-      x:(inW?WCX:QCX)+(Math.random()-.5)*80, y:CY+(Math.random()-.5)*110, vx:0, vy:0});
+  const svg=d3.select("#sim-bed-grid").append("svg").attr("width",W).attr("height",H);
+
+  const bedData=d3.range(N).map(i=>({
+    id:i, col:i%COLS, row:Math.floor(i/COLS),
+    x:(i%COLS)*(BW+GAP), y:Math.floor(i/COLS)*(BH+GAP), state:"empty"
+  }));
+
+  // Bed background rects
+  const beds=svg.selectAll("rect.sb").data(bedData).join("rect").attr("class","sb")
+    .attr("x",d=>d.x).attr("y",d=>d.y).attr("width",BW).attr("height",BH).attr("rx",7)
+    .attr("fill","#EDE8E0").attr("opacity",.45);
+
+  const PR=Math.max(6, BW*0.16);
+  // Patient head circle
+  const heads=svg.selectAll("circle.sh").data(bedData).join("circle").attr("class","sh")
+    .attr("cx",d=>d.x+BW*.5).attr("cy",d=>d.y+BH*.36).attr("r",PR)
+    .attr("fill","rgba(255,255,255,.9)").attr("opacity",0);
+  // Patient body rect
+  const bodies=svg.selectAll("rect.sbdy").data(bedData).join("rect").attr("class","sbdy")
+    .attr("x",d=>d.x+BW*.3).attr("y",d=>d.y+BH*.57).attr("width",BW*.4).attr("height",BH*.27).attr("rx",3)
+    .attr("fill","rgba(255,255,255,.9)").attr("opacity",0);
+  // Overflow warning "!"
+  const warns=svg.selectAll("text.sw").data(bedData).join("text").attr("class","sw")
+    .attr("x",d=>d.x+BW*.77).attr("y",d=>d.y+BH*.32)
+    .style("font-size",`${Math.max(9,BW*.2)}px`).style("font-weight","700")
+    .attr("text-anchor","middle").attr("fill","#FCA5A5").attr("opacity",0).text("!");
+
+  const BCOL={occupied:"#0C7A91",idle:"#C4B9AD",overflow:"#991B1B",empty:"#EDE8E0"};
+  const BOPC={occupied:.92,idle:.65,overflow:.92,empty:.4};
+
+  let cumIdle=0, cumShort=0, curH=0;
+
+  function getState(i,actual,staffed){
+    const n=i+1;
+    if(actual>=staffed){ return n<=staffed?"occupied":n<=actual?"overflow":"empty"; }
+    return n<=actual?"occupied":n<=staffed?"idle":"empty";
   }
-  for (let i=0;i<N_BG;i++) {
-    dots.push({id:N_P+i, kind:"bg", zone:"queue", overflow:false,
-      x:QCX+(Math.random()-.5)*100, y:CY+(Math.random()-.5)*130, vx:0, vy:0});
-  }
 
-  const svg = d3.select("#sim-svg-wrap").append("svg").attr("width",W).attr("height",H);
-  const g = svg.append("g").attr("transform",`translate(${PAD},0)`);
+  function stepHour(h){
+    const D=SIM[h], actual=D.w, staffed=D.s;
+    bedData.forEach((bd,i)=>{ bd.state=getState(i,actual,staffed); });
 
-  // Zone backgrounds
-  const qRect = g.append("rect").attr("x",0).attr("y",8).attr("width",QW-8).attr("height",H-16).attr("rx",14).attr("fill","#F0EAE0").attr("opacity",.9);
-  const wRect = g.append("rect").attr("x",QW+8).attr("y",8).attr("width",BW-8).attr("height",H-16).attr("rx",14).attr("fill","#E2EFF5").attr("opacity",.9);
+    beds.transition().duration(360).attr("fill",d=>BCOL[d.state]).attr("opacity",d=>BOPC[d.state]);
+    const hasP=d=>d.state==="occupied"||d.state==="overflow";
+    const isOvr=d=>d.state==="overflow";
+    const iconFill=d=>isOvr(d)?"rgba(255,210,210,.9)":"rgba(255,255,255,.9)";
+    heads.transition().duration(360).attr("opacity",d=>hasP(d)?.9:0).attr("fill",iconFill);
+    bodies.transition().duration(360).attr("opacity",d=>hasP(d)?.9:0).attr("fill",iconFill);
+    warns.transition().duration(360).attr("opacity",d=>isOvr(d)?.92:0);
 
-  // Labels
-  g.append("text").attr("x",QCX).attr("y",26).attr("text-anchor","middle").style("font-size","10px").style("font-weight","700").style("fill","#B0A89E").style("letter-spacing","0.14em").text("ARRIVALS");
-  g.append("text").attr("x",QCX).attr("y",40).attr("text-anchor","middle").style("font-size","9px").style("fill","#C4B9AD").text("incoming patients");
-  g.append("text").attr("x",WCX).attr("y",26).attr("text-anchor","middle").style("font-size","10px").style("font-weight","700").style("fill","#5A96B0").style("letter-spacing","0.14em").text("ICU WARD");
-  g.append("text").attr("x",WCX).attr("y",40).attr("text-anchor","middle").style("font-size","9px").style("fill","#7AAEC4").text("staffed capacity set night before");
-  g.append("text").attr("x",iW-6).attr("y",H-12).attr("text-anchor","end").style("font-size","9px").style("fill","#9AB5D0").text("● = 1 patient");
+    // Accumulate cost for this hour
+    if(actual>staffed) cumShort+=(actual-staffed)*180;
+    else if(actual<staffed) cumIdle+=(staffed-actual)*45;
 
-  // Capacity line (at 14/20 of ward height)
-  const capLine = g.append("line")
-    .attr("x1",QW+12).attr("x2",QW+BW-4)
-    .attr("y1",CY-50).attr("y2",CY-50)
-    .attr("stroke","#0C7A91").attr("stroke-width",1.8).attr("stroke-dasharray","6,4").attr("opacity",.7);
-  const capLabel = g.append("text")
-    .attr("x",QW+BW-6).attr("y",CY-54).attr("text-anchor","end")
-    .style("font-size","10px").style("fill","#0C7A91").style("font-weight","600").text("capacity: 14");
-
-  const arrow = g.append("text").attr("x",QW).attr("y",CY+8).attr("text-anchor","middle").style("font-size","26px").style("opacity",0).style("pointer-events","none");
-
-  function dotFill(d) {
-    if (d.kind==="bg") return "#C4B9AD";
-    if (d.overflow) return "#991B1B";
-    if (d.zone==="ward") return "#0C7A91";
-    return "#8FAFC0";
-  }
-  function targetX(d) { return d.zone==="ward" ? WCX : QCX; }
-
-  const circles = g.selectAll("circle.d").data(dots).join("circle").attr("class","d")
-    .attr("r",d=>d.kind==="bg"?R-2:R)
-    .attr("fill",dotFill).attr("opacity",d=>d.kind==="bg"?0.22:0.88);
-
-  const sim = d3.forceSimulation(dots)
-    .force("x",d3.forceX(targetX).strength(0.08))
-    .force("y",d3.forceY(CY).strength(0.07))
-    .force("collide",d3.forceCollide(R+1.6).strength(0.9))
-    .force("charge",d3.forceManyBody().strength(-1.5))
-    .alphaDecay(0.015)
-    .on("tick",()=>{
-      circles.attr("cx",d=>d.x).attr("cy",d=>d.y).attr("fill",dotFill)
-        .attr("opacity",d=>d.kind==="bg"?0.22:0.88);
-    });
-
-  function reheat(){sim.force("x",d3.forceX(targetX).strength(0.08));sim.alpha(0.46).restart();}
-
-  let cumPenalty=0, curH=0;
-
-  function stepHour(h) {
-    const D = SIM[h];
-    const target = D.w, cap = D.s;
-    const pd = dots.filter(d=>d.kind==="patient");
-    const inWard = pd.filter(d=>d.zone==="ward").length;
-    const delta = target - inWard;
-
-    if (delta>0) {
-      let mv=0; pd.forEach(d=>{if(d.zone==="queue"&&mv<delta){d.zone="ward";mv++;}});
-      arrow.text("→").style("fill","#0C7A91").style("opacity",.75).transition().duration(900).style("opacity",0);
-    } else if (delta<0) {
-      let mv=0; pd.forEach(d=>{if(d.zone==="ward"&&mv<Math.abs(delta)){d.zone="queue";mv++;}});
-    }
-
-    // Mark overflow
-    const wardDots = dots.filter(d=>d.kind==="patient"&&d.zone==="ward");
-    const over = Math.max(0, wardDots.length - cap);
-    wardDots.forEach((d,i)=>{ d.overflow = i >= wardDots.length - over; });
-
-    if (target > cap) cumPenalty += (target-cap)*180;
-
-    reheat();
-
-    // Update capacity line
-    const capFrac = cap/N_P;
-    const lineY = CY - capFrac*130;
-    capLine.attr("y1",lineY).attr("y2",lineY);
-    capLabel.attr("y",lineY-5).text(`capacity: ${cap}`);
-
-    // Background color of ward when overstaffed
-    const isOver = target > cap, isUnder = target < cap-2;
-    wRect.attr("fill", isOver?"#FEE2E2":isUnder?"#F0F4F8":"#E2EFF5");
-
-    const occPct = Math.round(target/cap*100);
+    const over=actual>staffed, under=actual<staffed-1;
     let action, narr, col;
-    if (isOver) {
-      action="🚨 Understaffed";
-      narr=`${target-cap} patients above the staffed capacity of ${cap}. Emergency admissions came in above the overnight forecast.`;
-      col="var(--red)";
-    } else if (isUnder) {
-      action="⬜ Overstaffed";
-      narr=`Ward at ${target}/${cap}. The forecast overestimated demand. ${cap-target} staff are idle, adding waste cost.`;
+    if(over){
+      const diff=actual-staffed;
+      action="🚨 Over capacity";
+      narr = h===9
+        ? `Peak hour. ${actual} patients — ${diff} above the ${staffed} staffed. Emergency agency called. Each of those ${diff} patients costs €180/hr. This is exactly the mistake SPO+ trains the model to avoid.`
+        : `${actual} patients in the ward. ${staffed} nurses on shift. ${diff} patient${diff>1?"s are":"is"} without dedicated cover. Emergency rate of €180/hr applies.`;
+      col="#991B1B";
+    } else if(under){
+      const diff=staffed-actual;
+      action="⬜ Nurses idle";
+      narr=`Ward at ${actual}/${staffed}. Forecast overestimated. ${diff} nurse${diff>1?"s":""}idle at €18/hr. Wasteful, but much cheaper than running short.`;
       col="var(--subtle)";
     } else {
-      action="✓ Well Matched";
-      narr=`Ward at ${target}/${cap}. Staffing matched demand well. Good forecast day.`;
-      col="var(--teal)";
+      action="✓ Well matched";
+      narr=`Ward at ${actual}/${staffed}. Forecast and reality align. No penalty cost this hour.`;
+      col="#0C7A91";
     }
+
     $("sim-action").textContent=action; $("sim-action").style.color=col;
     $("sim-narrative").textContent=narr;
-    $("sim-occ").textContent=target;
-    $("sim-occ").style.color=isOver?"var(--red)":isUnder?"var(--subtle)":"var(--text)";
-    $("sim-cap").textContent=`${cap} beds staffed`;
-    $("sim-occ-bar").style.width=Math.min(100,occPct)+"%";
-    $("sim-occ-bar").style.background=isOver?"var(--red)":"var(--teal)";
-    $("sim-penalty").textContent=fmtE(cumPenalty);
     $("sim-hour-disp").textContent=String(h).padStart(2,"0")+":00";
     $("sim-slider").value=h;
+
+    $("ws-actual").textContent=actual;
+    $("ws-actual").style.color=over?"#991B1B":under?"var(--subtle)":"var(--text)";
+    $("ws-actual-lbl").textContent=over?`patients (${actual-staffed} over capacity)`:under?`patients (${staffed-actual} idle nurse${staffed-actual>1?"s":""})` :"patients in ward";
+
+    $("sim-occ").textContent=`${actual} patients in ward`;
+    $("sim-cap").textContent=`${staffed} nurses on duty`;
+    const occPct=Math.min(100,Math.round(actual/Math.max(staffed,1)*100));
+    $("sim-occ-bar").style.width=occPct+"%";
+    $("sim-occ-bar").style.background=over?"#991B1B":"#0C7A91";
+
+    $("sim-idle-cost").textContent="€"+fmt(cumIdle);
+    $("sim-short-cost").textContent="€"+fmt(cumShort);
+    $("sim-penalty").textContent="€"+fmt(cumIdle+cumShort);
     curH=h;
   }
 
   function jumpTo(h){
-    cumPenalty=0;
-    dots.forEach(d=>{d.overflow=false;d.zone="queue";});
-    let b=0; dots.filter(d=>d.kind==="patient").forEach(d=>{if(b<SIM[0].w){d.zone="ward";b++;}});
-    for(let i=1;i<=h;i++){
-      const D=SIM[i], t=D.w, c=D.s;
-      const pd=dots.filter(d=>d.kind==="patient");
-      const ib=pd.filter(d=>d.zone==="ward").length, dl=t-ib;
-      if(dl>0){let mv=0;pd.forEach(d=>{if(d.zone==="queue"&&mv<dl){d.zone="ward";mv++;}});}
-      else if(dl<0){let mv=0;pd.forEach(d=>{if(d.zone==="ward"&&mv<-dl){d.zone="queue";mv++;}});}
-      if(t>c) cumPenalty+=(t-c)*180;
+    cumIdle=0; cumShort=0;
+    for(let i=0;i<h;i++){
+      const D=SIM[i];
+      if(D.w>D.s) cumShort+=(D.w-D.s)*180;
+      else if(D.w<D.s) cumIdle+=(D.s-D.w)*45;
     }
-    dots.forEach(d=>{const cx=d.zone==="ward"?WCX:QCX;d.x=cx+(Math.random()-.5)*70;d.y=CY+(Math.random()-.5)*100;});
-    reheat(); stepHour(h);
+    curH=h; stepHour(h);
   }
 
   let playing=false, timer=null;
   function advance(){
-    if(!playing)return; stepHour(curH);
+    if(!playing)return;
+    stepHour(curH);
     if(curH>=23){playing=false;$("sim-play-btn").textContent="↺ Replay";$("sim-play-btn").dataset.mode="replay";return;}
     curH++; timer=setTimeout(advance,950);
   }
@@ -473,7 +477,9 @@ function hideTip(){tip.style.opacity=0;}
     playing=false;if(timer){clearTimeout(timer);timer=null;}
     $("sim-play-btn").textContent="▶ Play";$("sim-play-btn").dataset.mode="";jumpTo(parseInt(this.value));
   });
-  setTimeout(()=>{playing=true;$("sim-play-btn").textContent="⏸ Pause";advance();},900);
+
+  jumpTo(0);
+  setTimeout(()=>{playing=true;$("sim-play-btn").textContent="⏸ Pause";curH=1;advance();},1100);
 })();
 
 // ══════════════════════════════════════════════════════════════════════════════

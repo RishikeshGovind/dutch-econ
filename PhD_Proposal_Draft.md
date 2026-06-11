@@ -1,6 +1,6 @@
 # PhD Research Proposal
 
-**Title:** Decision-Focused Learning in Modern Operations: Integrating Predictive Models with Optimization Across Energy, Healthcare, and Logistics
+**Title:** Decision-Focused Learning in Modern Operations: Integrating Predictive Models with Optimisation Across Energy, Healthcare, and Logistics
 
 **Position:** PhD in Econometrics, Operations Research and Social Choice — Project 1 (Data-driven decision making in modern operations)
 
@@ -12,13 +12,13 @@
 
 Most organisations that use machine learning to make operational decisions face the same hidden problem. The forecast model is trained to be accurate, but the thing that actually matters is whether accurate forecasts lead to better decisions. These two objectives are not the same. In battery energy storage, a forecast error that does not change the charge or discharge decision is harmless. The same error at a different hour can cost hundreds of euros. In hospital staffing, being short by one nurse is far more expensive than having one nurse too many, but standard training treats both errors identically.
 
-This research develops and evaluates decision-focused learning methods — specifically Smart Predict-Then-Optimize, SPO+ (Elmachtoub & Grigas, 2022) — that train predictive models with the downstream optimization problem explicitly in the loss function. The central research question is not whether SPO+ works, but *when* it works, *by how much*, and across *which types of optimization problems*. A working prototype covering three of the PhD call's named industry partners demonstrates both the problem and the open questions.
+This research develops and evaluates decision-focused learning methods — specifically Smart Predict-Then-Optimise, SPO+ (Elmachtoub & Grigas, 2022) — that train predictive models with the downstream optimisation problem explicitly in the loss function. The central research question is not whether SPO+ works, but *when* it works, *by how much*, and across *which types of optimisation problems*. A working prototype covering three of the PhD call's named industry partners demonstrates both the problem and the open questions.
 
 ---
 
 ## 1. The Research Problem
 
-### 1.1 Predict-then-optimize and its flaw
+### 1.1 Predict-then-optimise and its flaw
 
 The standard pipeline for data-driven operations runs in two separate stages. First, a machine learning model produces a forecast. Second, a planning tool uses that forecast to make a decision. The model is trained by minimising a loss on its predictions, typically mean squared error. The planning tool optimises separately. The two stages never communicate during training.
 
@@ -34,17 +34,17 @@ The SPO+ paper (Elmachtoub & Grigas, 2022) demonstrates the method on stylised p
 
 2. **Time-coupled constraints.** The original SPO+ formulation treats each prediction independently. Battery dispatch is a sequential problem: the state of charge at hour *t* constrains what is possible at *t+1*. Hospital shift handovers create similar cross-period dependencies. Extending SPO+ to handle these time-coupled structures is a theoretical contribution not yet in the literature.
 
-3. **Non-differentiable optimizers.** SPO+ works cleanly when the optimizer is a linear program, because the LP dual provides the decision gradient. Vehicle routing at realistic scale requires heuristics (nearest-neighbour, 2-opt), which have no clean gradient. Developing surrogate gradient methods that extend SPO+ to heuristic solvers is the most novel and technically challenging part of this research.
+3. **Non-differentiable optimisers.** SPO+ works cleanly when the optimiser is a linear program, because the LP dual provides the decision gradient. Vehicle routing at realistic scale requires heuristics (nearest-neighbour, 2-opt), which have no clean gradient. Developing surrogate gradient methods that extend SPO+ to heuristic solvers is the most novel and technically challenging part of this research.
 
 ---
 
 ## 2. Research Questions
 
-**RQ1 — Conditions:** Under what market conditions, data structures, and problem types does decision-focused training (SPO+) produce meaningful gains over standard predict-then-optimize? What is the relationship between the distribution of decision sensitivity across time and the realized gain from decision-focused training?
+**RQ1 — Conditions:** Under what market conditions, data structures, and problem types does decision-focused training (SPO+) produce meaningful gains over standard predict-then-optimise? What is the relationship between the distribution of decision sensitivity across time and the realized gain from decision-focused training?
 
 **RQ2 — Time coupling:** How can the SPO+ gradient be extended to operational problems with sequential state constraints (battery state of charge, shift continuity, vehicle capacity carry-over)?
 
-**RQ3 — Heuristic optimizers:** What surrogate gradient methods enable decision-focused training when the downstream optimizer is a heuristic that cannot be differentiated directly?
+**RQ3 — Heuristic optimisers:** What surrogate gradient methods enable decision-focused training when the downstream optimiser is a heuristic that cannot be differentiated directly?
 
 **RQ4 — Explainability:** Can decision-level attribution — identifying which input features caused which operational decisions to flip — be developed as a practical transparency tool for managers?
 
@@ -58,7 +58,7 @@ All three case studies use the same five-stage architecture:
 
 1. **Data collection and feature engineering.** Real or calibrated operational data from Dutch sources (ENTSO-E, LCPS, RIVM, NZa, CBS, OpenStreetMap).
 2. **Forecast model training.** XGBoost trained first with MSE loss (baseline) and then with the SPO+ decision-regret loss (intervention).
-3. **Optimizer.** Linear program (Cases 1 and 2) or routing heuristic (Case 3). The structure of this stage is what differentiates the research problems.
+3. **Optimiser.** Linear program (Cases 1 and 2) or routing heuristic (Case 3). The structure of this stage is what differentiates the research problems.
 4. **Decision.** Charge/discharge schedule, nurse staffing level, or delivery routes — evaluated at realised costs, not at prediction error.
 5. **Regret measurement.** Revenue gap vs oracle (Case 1), staffing cost overage (Case 2), extra kilometres vs best-known route (Case 3).
 
@@ -82,7 +82,7 @@ This case tests the RQ2 extension: shift continuity (handover constraints betwee
 
 Data sources: LCPS national ICU bed registry, RIVM admission rates, NZa production volumes, CBS demographic statistics.
 
-### 3.4 Case 3 — Logistics routing (heuristic optimizer, non-differentiable)
+### 3.4 Case 3 — Logistics routing (heuristic optimiser, non-differentiable)
 
 A Dutch parcel carrier forecasts daily demand by postcode zone and plans routes using a Capacitated VRP heuristic. At 12 zones, the routing problem is solved with nearest-neighbour and 2-opt improvement rather than exact methods.
 
@@ -98,7 +98,7 @@ Data sources: CBS Kerncijfers wijken en buurten (postcode-level demographics), O
 
 | | Case 1 (Energy) | Case 2 (Hospital) | Case 3 (Logistics) |
 |---|---|---|---|
-| **Optimizer** | LP (linear) | LP (asymmetric penalty) | VRP heuristic |
+| **Optimiser** | LP (linear) | LP (asymmetric penalty) | VRP heuristic |
 | **SPO+ status** | Implemented | Implemented | Prototype |
 | **Revenue / cost gap** | Oracle €12,567, naive €4,057 (68% gap) | Demonstrated | 39% route distance gap (NN vs benchmark) |
 | **Key finding** | Uniform sensitivity limits SPO+ gain in autumn 2024 market | Asymmetric penalty changes the direction of optimal errors | Heuristic non-differentiability is the core open problem |
@@ -109,17 +109,17 @@ Data sources: CBS Kerncijfers wijken en buurten (postcode-level demographics), O
 ## 5. Literature
 
 **Decision-focused learning (core)**
-- Elmachtoub & Grigas (2022). Smart Predict-Then-Optimize. *Management Science* 68(1). — The foundational SPO+ paper; the prototype implements this directly.
+- Elmachtoub & Grigas (2022). Smart Predict-Then-Optimise. *Management Science* 68(1). — The foundational SPO+ paper; the prototype implements this directly.
 - Mandi, Kotary, Berden et al. (2024). Decision-Focused Learning: Foundations, State of the Art, Benchmark and Future Opportunities. *JAIR* 80. — Definitive 2024 survey; identifies the three open problems this PhD addresses.
-- Sadana, Mathieu, Jackobson & Bengio (2024). A Survey of Predict-Then-Optimize Methods. *ACM Computing Surveys*. — Broader survey for literature review framing.
-- Wilder, Dilkina & Tambe (2019). Melding the Data-Decisions Pipeline: Decision-Focused Learning for Combinatorial Optimization. *AAAI*. — Extends SPO+ to combinatorial (integer) problems, directly relevant to Case 3.
+- Sadana, Mathieu, Jackobson & Bengio (2024). A Survey of Predict-Then-Optimise Methods. *ACM Computing Surveys*. — Broader survey for literature review framing.
+- Wilder, Dilkina & Tambe (2019). Melding the Data-Decisions Pipeline: Decision-Focused Learning for Combinatorial Optimisation. *AAAI*. — Extends SPO+ to combinatorial (integer) problems, directly relevant to Case 3.
 
 **Uncertainty quantification**
 - Romano, Sesia & Candès (2019). Conformal Quantile Regression. *NeurIPS*. — The CQR method used in Case 1 for prediction intervals with guaranteed coverage.
 - Dumas, Wehenkel, Lanaspeze et al. (2022). A deep learning-based approach for quantile regression in energy systems. *Energy*. — Probabilistic forecasting for battery dispatch, extends the deterministic XGBoost baseline.
 
 **Energy storage and electricity markets**
-- Macdonald, Clack, McDonald et al. (2023). Learning to optimize under uncertainty: Energy storage dispatch. *IEEE Transactions on Power Systems*. — Near-identical problem setup; useful for benchmarking.
+- Macdonald, Clack, McDonald et al. (2023). Learning to optimise under uncertainty: Energy storage dispatch. *IEEE Transactions on Power Systems*. — Near-identical problem setup; useful for benchmarking.
 
 **Explainability in operations**
 - Lundberg & Lee (2017). A unified approach to interpreting model predictions (SHAP). *NeurIPS*. — The prototype computes SHAP values; the research extends attribution to decision space rather than prediction space.
@@ -171,9 +171,9 @@ The prototype is deployed at [github.io link] and the full source is available i
 ## 9. References
 
 - Dumas, J., Wehenkel, A., Lanaspeze, D., Cornélusse, B., & Sutera, A. (2022). A deep learning-based approach for quantile regression in energy systems: Application to short-term load forecasting. *Energy*, 238, 121929.
-- Elmachtoub, A. N., & Grigas, P. (2022). Smart predict-then-optimize. *Management Science*, 68(1), 9–26.
+- Elmachtoub, A. N., & Grigas, P. (2022). Smart predict-then-optimise. *Management Science*, 68(1), 9–26.
 - Lundberg, S. M., & Lee, S. I. (2017). A unified approach to interpreting model predictions. *Advances in Neural Information Processing Systems*, 30.
 - Mandi, J., Kotary, J., Berden, S., Mulamba, M., Bucarey, V., Guns, T., & Passerini, A. (2024). Decision-focused learning: Foundations, state of the art, benchmark and future opportunities. *Journal of Artificial Intelligence Research*, 80, 1065–1148.
 - Romano, Y., Sesia, M., & Candès, E. (2019). Conformalized quantile regression. *Advances in Neural Information Processing Systems*, 32.
-- Sadana, U., Mathieu, A., Jackobson, E., & Bengio, Y. (2024). A survey of predict-then-optimize methods for stochastic combinatorial optimization. *ACM Computing Surveys*, 57(1).
-- Wilder, B., Dilkina, B., & Tambe, M. (2019). Melding the data-decisions pipeline: Decision-focused learning for combinatorial optimization. *Proceedings of the AAAI Conference on Artificial Intelligence*, 33(1), 1658–1665.
+- Sadana, U., Mathieu, A., Jackobson, E., & Bengio, Y. (2024). A survey of predict-then-optimise methods for stochastic combinatorial optimisation. *ACM Computing Surveys*, 57(1).
+- Wilder, B., Dilkina, B., & Tambe, M. (2019). Melding the data-decisions pipeline: Decision-focused learning for combinatorial optimisation. *Proceedings of the AAAI Conference on Artificial Intelligence*, 33(1), 1658–1665.

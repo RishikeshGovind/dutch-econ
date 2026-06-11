@@ -12,3 +12,27 @@
 .chart-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:56px;align-items:start}
 .occ-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:6px;width:100%}
 #sim-occ-bar{height:100%;background:var(--teal);border-radius:3px;transition:width .6s ease,background .3s}
+
+/* ─── Ward story simulation layout ──────────────────────────────────────── */
+.ward-story{display:grid;grid-template-columns:165px 1fr 165px;gap:14px;margin-bottom:16px;align-items:start}
+@media(max-width:760px){.ward-story{grid-template-columns:1fr}}
+.ward-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.ward-panel-main{padding:14px 16px}
+.ward-ey{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--subtle);margin-bottom:8px}
+.ward-ph{font-family:'Playfair Display',serif;font-size:16px;color:var(--text);margin-bottom:12px}
+.ward-ph-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px}
+.ward-fc-block{margin-bottom:8px}
+.ward-fc-n{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--primary);line-height:1.1}
+.ward-fc-l{font-size:10.5px;color:var(--muted);line-height:1.4}
+.ward-fc-arrow{font-size:15px;color:var(--border);margin:4px 0 6px}
+.ward-locked{font-size:10px;color:var(--subtle);font-style:italic;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+.ward-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+.wbl{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.wbl-d{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+.ward-narr{font-size:12.5px;color:var(--muted);font-style:italic;margin-top:10px;min-height:38px;line-height:1.5}
+.ward-cost-item{margin-bottom:5px}
+.ward-cost-lbl{font-size:11px;color:var(--muted)}
+.ward-cost-rate{font-size:9.5px;color:var(--subtle);font-weight:500;margin-bottom:3px}
+.ward-cost-val{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--text);line-height:1.1}
+.ward-cost-sep{height:1px;background:var(--border);margin:10px 0}
+.ward-penalty-total{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#991B1B;margin:4px 0 0}
